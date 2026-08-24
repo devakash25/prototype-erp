@@ -1,0 +1,113 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
+import { env } from './config/env';
+import { logger } from './utils/logger';
+import { errorHandler } from './middleware/errorHandler';
+import { auditLog } from './middleware/auditLog';
+import { apiLimiter, authLimiter } from './middleware/rateLimit';
+
+// Routes
+import authRoutes from './modules/auth/auth.routes';
+import userRoutes from './modules/users/users.routes';
+import notificationRoutes, { announcementRouter } from './modules/notifications/notifications.routes';
+import dashboardRoutes from './modules/analytics/dashboard.routes';
+import analyticsRoutes from './modules/analytics/analytics.routes';
+import directorAnalyticsRoutes from './modules/analytics/director.routes';
+import feeStructureRoutes from './modules/finance/feeStructure.routes';
+import principalAnalyticsRoutes from './modules/analytics/principal.routes';
+import hodAnalyticsRoutes from './modules/analytics/hod.routes';
+import teacherAnalyticsRoutes from './modules/analytics/teacher.routes';
+import studentAnalyticsRoutes from './modules/analytics/student.routes';
+import accountantAnalyticsRoutes from './modules/analytics/accountant.routes';
+import admissionAnalyticsRoutes from './modules/analytics/admission.routes';
+import transportAnalyticsRoutes from './modules/analytics/transport.routes';
+import administrativeAnalyticsRoutes from './modules/analytics/administrative.routes';
+import parentAnalyticsRoutes from './modules/analytics/parent.routes';
+import ceoAnalyticsRoutes from './modules/analytics/ceo.routes';
+import librarianAnalyticsRoutes from './modules/analytics/librarian.routes';
+import hostelAnalyticsRoutes from './modules/analytics/hostel.routes';
+import feeRoutes from './modules/fees/fees.routes';
+import attendanceRoutes from './modules/attendance/attendance.routes';
+import doubtRoutes from './modules/doubts/doubts.routes';
+import assignmentRoutes from './modules/assignments/assignments.routes';
+import parentMessagingRoutes from './modules/parent-messaging/parent-messaging.routes';
+
+const app = express();
+
+// Security & utility middleware
+app.use(helmet());
+app.use(cors({
+  origin: env.NODE_ENV === 'production' ? env.APP_URL : '*',
+  credentials: true,
+}));
+app.use(compression());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Logging
+app.use(morgan('combined', {
+  stream: { write: (message: string) => logger.info(message.trim()) },
+}));
+
+// Global rate limiting
+app.use('/api/', apiLimiter);
+
+// Audit logging for write operations
+app.use('/api/', auditLog());
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// API Info
+app.get('/api/v1', (req, res) => {
+  res.json({
+    name: 'DEV ERP API',
+    version: '1.0.0',
+    status: 'running',
+  });
+});
+
+// Register routes
+app.use('/api/v1/auth', authLimiter, authRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/announcements', announcementRouter);
+app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/director', directorAnalyticsRoutes);
+app.use('/api/v1/fee-structures', feeStructureRoutes);
+app.use('/api/v1/principal', principalAnalyticsRoutes);
+app.use('/api/v1/hod', hodAnalyticsRoutes);
+app.use('/api/v1/teacher', teacherAnalyticsRoutes);
+app.use('/api/v1/student', studentAnalyticsRoutes);
+app.use('/api/v1/accountant', accountantAnalyticsRoutes);
+app.use('/api/v1/admission', admissionAnalyticsRoutes);
+app.use('/api/v1/transport', transportAnalyticsRoutes);
+app.use('/api/v1/administrative', administrativeAnalyticsRoutes);
+app.use('/api/v1/parent', parentAnalyticsRoutes);
+app.use('/api/v1/ceo', ceoAnalyticsRoutes);
+app.use('/api/v1/librarian', librarianAnalyticsRoutes);
+app.use('/api/v1/hostel', hostelAnalyticsRoutes);
+app.use('/api/v1/fees', feeRoutes);
+app.use('/api/v1/attendance', attendanceRoutes);
+app.use('/api/v1/doubts', doubtRoutes);
+app.use('/api/v1/assignments', assignmentRoutes);
+app.use('/api/v1/parent-messaging', parentMessagingRoutes);
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: { message: 'Route not found', statusCode: 404 },
+  });
+});
+
+// Error handler
+app.use(errorHandler);
+
+export default app;
