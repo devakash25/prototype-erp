@@ -6,6 +6,7 @@ import {
   HeartPulse, Library, Settings,
 } from 'lucide-react'
 import api from '@/services/api'
+import { GreetingBanner } from '@/components/GreetingBanner'
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-IN', {
@@ -67,10 +68,7 @@ export function CEODashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">CEO Dashboard</h1>
-        <p className="text-slate-500 text-sm mt-1">Overview of your ERP system</p>
-      </div>
+      <GreetingBanner />
 
       {/* Top Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

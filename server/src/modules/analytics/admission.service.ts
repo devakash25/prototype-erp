@@ -25,10 +25,22 @@ class AdmissionAnalyticsService {
     ]);
 
     return {
-      todayEnquiries, totalApplications, pendingReview, approved, rejected,
-      enrolled, followUpPending, underReview, incompleteDocs,
-      conversionRate: totalApplications > 0 ? ((enrolled / totalApplications) * 100).toFixed(1) : '0',
+      todayEnquiries,
+      newApplications: totalApplications,
+      totalApplications,
+      pendingVerification: pendingReview,
+      admissionsApproved: approved,
+      incompleteDocuments: incompleteDocs,
       admissionTarget: totalApplications > 0 ? ((enrolled / Math.max(totalApplications, 1)) * 100).toFixed(0) : '0',
+      underReview,
+      followupsPending: followUpPending,
+      rejected,
+      enrolled,
+      conversionRate: totalApplications > 0 ? ((enrolled / totalApplications) * 100).toFixed(1) : '0',
+      sourceWebsite: 0,
+      sourceWalkin: 0,
+      sourceReferral: 0,
+      sourceSocial: 0,
     };
   }
 
@@ -44,7 +56,7 @@ class AdmissionAnalyticsService {
     const results = await Promise.all(
       stages.map(s => prisma.admission.count({ where: { institutionId, status: s.status as any } }))
     );
-    return stages.map((s, i) => ({ ...s, count: results[i] }));
+    return stages.map((s, i) => ({ stage: s.name, count: results[i] }));
   }
 
   async getApplications(userId: string, search?: string, status?: string, page = 1, limit = 20) {
@@ -213,12 +225,19 @@ class AdmissionAnalyticsService {
 
   async getRecentActivity(userId: string, limit = 15) {
     const { institutionId } = await this.resolve(userId);
-    return prisma.admission.findMany({
+    const admissions = await prisma.admission.findMany({
       where: { institutionId },
       orderBy: { updatedAt: 'desc' },
       take: limit,
       select: { id: true, firstName: true, lastName: true, applicationNumber: true, status: true, updatedAt: true, source: true },
     });
+    return admissions.map(a => ({
+      id: a.id,
+      description: `${a.firstName} ${a.lastName} - ${a.status.replace('_', ' ')}`,
+      date: a.updatedAt,
+      source: a.source,
+      applicationNumber: a.applicationNumber,
+    }));
   }
 
   async getReports(userId: string) {

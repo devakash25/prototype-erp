@@ -29,9 +29,10 @@ const PIE_COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"];
 
 export default function StudentAnalytics() {
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
-  const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
-  const dateParams = dateRange ? `?from=${dateRange.from}&to=${dateRange.to}` : "";
+  const dateParams = (fromDate || toDate) ? `${fromDate ? `?from=${fromDate}` : ''}${toDate ? `${fromDate ? '&' : '?'}to=${toDate}` : ''}` : "";
 
   const { data: overview, loading: overviewLoading, refetch: refetchOverview } = useApi(`/analytics/students/overview${dateParams}`);
   const { data: demographics, loading: demographicsLoading, refetch: refetchDemographics } = useApi(`/analytics/students/demographics${dateParams}`);
@@ -136,7 +137,7 @@ export default function StudentAnalytics() {
           <p className="mt-1 text-sm text-gray-500">Comprehensive student performance and enrollment insights</p>
         </div>
         <div className="flex items-center gap-3">
-          <DateRangeFilter onChange={setDateRange} />
+          <DateRangeFilter fromDate={fromDate} toDate={toDate} onFromDateChange={setFromDate} onToDateChange={setToDate} />
           <button
             onClick={refetchAll}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"

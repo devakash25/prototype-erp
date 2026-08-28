@@ -27,7 +27,7 @@ router.get('/hostels', async (req: Request, res: Response) => {
 
 router.get('/hostels/:id', async (req: Request, res: Response) => {
   try {
-    const data = await hostelService.getHostelDetail(req.params.id);
+    const data = await hostelService.getHostelDetail(req.params.id as string);
     res.json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, error: { message: error.message || 'Failed to fetch hostel' } });
@@ -46,7 +46,7 @@ router.post('/hostels', async (req: Request, res: Response) => {
 
 router.patch('/hostels/:id', async (req: Request, res: Response) => {
   try {
-    const data = await hostelService.updateHostel(req.params.id, req.body);
+    const data = await hostelService.updateHostel(req.params.id as string, req.body);
     res.json({ success: true, data, message: 'Hostel updated successfully' });
   } catch (error: any) {
     res.status(500).json({ success: false, error: { message: error.message || 'Failed to update hostel' } });
@@ -73,7 +73,7 @@ router.get('/rooms', async (req: Request, res: Response) => {
 
 router.get('/rooms/:id', async (req: Request, res: Response) => {
   try {
-    const data = await hostelService.getRoomDetail(req.params.id);
+    const data = await hostelService.getRoomDetail(req.params.id as string);
     res.json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, error: { message: error.message || 'Failed to fetch room' } });
@@ -96,7 +96,7 @@ router.post('/rooms', async (req: Request, res: Response) => {
 
 router.patch('/rooms/:id', async (req: Request, res: Response) => {
   try {
-    const data = await hostelService.updateRoom(req.params.id, req.body);
+    const data = await hostelService.updateRoom(req.params.id as string, req.body);
     res.json({ success: true, data, message: 'Room updated successfully' });
   } catch (error: any) {
     res.status(500).json({ success: false, error: { message: error.message || 'Failed to update room' } });
@@ -119,7 +119,7 @@ router.post('/allocate', async (req: Request, res: Response) => {
 
 router.post('/deallocate/:studentId', async (req: Request, res: Response) => {
   try {
-    const data = await hostelService.deallocateRoom(req.params.studentId);
+    const data = await hostelService.deallocateRoom(req.params.studentId as string);
     res.json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, error: { message: error.message || 'Failed to deallocate room' } });
@@ -165,7 +165,7 @@ router.post('/complaints', async (req: Request, res: Response) => {
 
 router.patch('/complaints/:id', async (req: Request, res: Response) => {
   try {
-    const data = await hostelService.updateComplaint(req.params.id, req.body);
+    const data = await hostelService.updateComplaint(req.params.id as string, req.body);
     res.json({ success: true, data, message: 'Complaint updated successfully' });
   } catch (error: any) {
     res.status(500).json({ success: false, error: { message: error.message || 'Failed to update complaint' } });

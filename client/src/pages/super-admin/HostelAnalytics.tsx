@@ -34,7 +34,7 @@ export function HostelAnalytics() {
           <p className="text-sm text-gray-500">Hostel occupancy, maintenance, and fee collection</p>
         </div>
         <div className="flex items-center gap-3">
-          <DateRangeFilter fromDate={fromDate} setFromDate={setFromDate} toDate={toDate} setToDate={setToDate} />
+          <DateRangeFilter fromDate={fromDate} toDate={toDate} onFromDateChange={setFromDate} onToDateChange={setToDate} />
           <button onClick={handleExportCSV} className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             <Download className="w-4 h-4" />
             Export CSV

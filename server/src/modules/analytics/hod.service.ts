@@ -226,7 +226,7 @@ class HODAnalyticsService {
     const atRisk = performance.filter(p => p.atRisk);
     const topPerformers = performance.filter(p => p.attendanceRate >= 85 && p.passRate >= 80).sort((a, b) => b.avgMarks - a.avgMarks).slice(0, 10);
 
-    return { performance, atRisk, topPerformers, total: performance.length };
+    return { students: performance, totalStudents: performance.length, atRisk, topPerformers };
   }
 
   async getStudentAttendance(userId: string, days = 7) {
@@ -247,29 +247,31 @@ class HODAnalyticsService {
         present, total,
       });
     }
-    return trends;
+    return { trend: trends };
   }
 
   async getCourses(userId: string) {
     const { departmentId } = await this.resolve(userId);
-    return prisma.course.findMany({
+    const courses = await prisma.course.findMany({
       where: { departmentId, isActive: true },
       include: {
         _count: { select: { subjects: true, students: true } },
         subjects: { where: { isActive: true }, select: { id: true, name: true, code: true } },
       },
     });
+    return { courses };
   }
 
   async getSubjects(userId: string) {
     const { departmentId } = await this.resolve(userId);
-    return prisma.subject.findMany({
+    const subjects = await prisma.subject.findMany({
       where: { departmentId, isActive: true },
       include: {
         course: { select: { name: true, code: true } },
         _count: { select: { assignments: true, studyMaterials: true } },
       },
     });
+    return { subjects };
   }
 
   async getTimetable(userId: string) {
@@ -300,7 +302,7 @@ class HODAnalyticsService {
 
   async getAssignments(userId: string) {
     const { departmentId } = await this.resolve(userId);
-    return prisma.assignment.findMany({
+    const assignments = await prisma.assignment.findMany({
       where: { subject: { departmentId }, isActive: true },
       include: {
         subject: { select: { name: true, code: true } },
@@ -308,6 +310,7 @@ class HODAnalyticsService {
       },
       orderBy: { dueDate: 'desc' },
     });
+    return { assignments };
   }
 
   async getExaminationStatus(userId: string) {

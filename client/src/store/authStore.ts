@@ -5,7 +5,10 @@ export type UserRole =
   | 'CEO'
   | 'CHIEF_HEAD'
   | 'DIRECTOR'
+  | 'MANAGER'
+  | 'VICE_MANAGER'
   | 'PRINCIPAL'
+  | 'VICE_PRINCIPAL'
   | 'HOD'
   | 'TEACHER'
   | 'ACCOUNTANT'
@@ -17,16 +20,19 @@ export type UserRole =
   | 'STUDENT'
   | 'PARENT'
 
+export type InstitutionType = 'SCHOOL' | 'COLLEGE'
+
 export interface User {
   id: string
   email: string
   role: UserRole
+  institutionId?: string
+  institutionType?: InstitutionType
   firstName: string
   lastName: string
   fullName: string
   phone?: string
   avatar?: string
-  institutionId?: string
   enabledFeatures?: string[]
 }
 

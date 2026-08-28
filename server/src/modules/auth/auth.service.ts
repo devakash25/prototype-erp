@@ -81,8 +81,15 @@ export class AuthService {
     }
 
     // Enabled roles
-    if (!['CEO', 'CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'HOD', 'TEACHER', 'STUDENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF', 'PARENT', 'LIBRARIAN', 'HOSTEL_WARDEN'].includes(user.role)) {
+    if (!['CEO', 'CHIEF_HEAD', 'DIRECTOR', 'MANAGER', 'VICE_MANAGER', 'PRINCIPAL', 'VICE_PRINCIPAL', 'HOD', 'TEACHER', 'STUDENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF', 'PARENT', 'LIBRARIAN', 'HOSTEL_WARDEN'].includes(user.role)) {
       throw new UnauthorizedError('Your role is not yet active. Contact your administrator.');
+    }
+
+    // Fetch institution type for non-CEO users
+    let institutionType: string | null = null;
+    if (user.institutionId) {
+      const inst = await prisma.institution.findUnique({ where: { id: user.institutionId }, select: { type: true } });
+      institutionType = inst?.type || null;
     }
 
     const payload = {
@@ -90,6 +97,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       institutionId: user.institutionId || '',
+      institutionType: institutionType || '',
     };
 
     const { accessToken, refreshToken } = generateTokens(payload);
@@ -130,6 +138,7 @@ export class AuthService {
         phone: user.phone,
         avatar: user.avatar,
         institutionId: user.institutionId,
+        institutionType,
       },
       accessToken,
       refreshToken,
@@ -156,6 +165,7 @@ export class AuthService {
       email: payload.email,
       role: payload.role,
       institutionId: payload.institutionId,
+      institutionType: payload.institutionType || '',
     };
 
     const tokens = generateTokens(newPayload);
@@ -287,6 +297,7 @@ export class AuthService {
         institutionId: true,
         lastLoginAt: true,
         createdAt: true,
+        institution: { select: { type: true } },
       },
     });
 
@@ -294,7 +305,8 @@ export class AuthService {
       throw new NotFoundError('User');
     }
 
-    return user;
+    const { institution, ...userData } = user;
+    return { ...userData, institutionType: institution?.type || null };
   }
 
   async getActiveFeatures(): Promise<string[]> {

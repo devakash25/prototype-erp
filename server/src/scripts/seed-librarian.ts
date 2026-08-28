@@ -370,7 +370,7 @@ async function main() {
     return d;
   };
 
-  const issuesData = [
+  const issuesData: Array<{ bookIdx: number; studentIdx: number; issueDaysAgo: number; dueDaysFromNow: number; status: string; returnDate?: number | null; returnDateOffset?: number; fine: number }> = [
     // 6 ACTIVE (issued) - issued in last 10 days, due in next 4-10 days
     { bookIdx: 0, studentIdx: 0, issueDaysAgo: 3, dueDaysFromNow: 7, status: 'issued', returnDate: null, fine: 0 },
     { bookIdx: 1, studentIdx: 1, issueDaysAgo: 5, dueDaysFromNow: 6, status: 'issued', returnDate: null, fine: 0 },
@@ -414,10 +414,10 @@ async function main() {
       const issueDate = daysAgo(issue.issueDaysAgo);
       const dueDate = daysFromNow(issue.dueDaysFromNow);
 
-      const returnDate = issue.returnDate !== undefined && issue.returnDate !== null
+      const returnDate = 'returnDate' in issue && issue.returnDate != null
         ? daysAgo(Math.abs(issue.returnDate as number))
-        : issue.returnDateOffset !== undefined
-          ? daysAgo(Math.abs(issue.returnDateOffset))
+        : 'returnDateOffset' in issue && issue.returnDateOffset != null
+          ? daysAgo(Math.abs(issue.returnDateOffset as number))
           : null;
 
       await prisma.libraryIssue.create({

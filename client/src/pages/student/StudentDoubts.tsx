@@ -9,10 +9,9 @@ import {
   AlertCircle,
   RefreshCw,
   FileText,
-  CheckCircle2,
-  ChevronRight,
   User,
   X,
+  Users,
 } from "lucide-react";
 
 interface Subject {
@@ -21,9 +20,9 @@ interface Subject {
   subjectCode: string;
   teacherName: string;
   teacherAvatar: string | null;
-  hasConversation: boolean;
-  conversationStatus: string | null;
-  unresolvedDoubts: number;
+  hasGroup: boolean;
+  groupId: string | null;
+  status: string | null;
 }
 
 interface ChatMessage {
@@ -33,6 +32,7 @@ interface ChatMessage {
   senderName: string;
   senderAvatar: string | null;
   senderRole: "STUDENT" | "TEACHER";
+  senderUserRole: string;
   attachmentUrl: string | null;
   attachmentType: string | null;
   read: boolean;
@@ -61,7 +61,6 @@ export function StudentDoubts() {
   const [inputMessage, setInputMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [opening, setOpening] = useState(false);
-  const [resolving, setResolving] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +82,7 @@ export function StudentDoubts() {
     let interval: ReturnType<typeof setInterval> | null = null;
     if (conversationId) {
       interval = setInterval(() => {
-        fetchChatMessages();
+        fetchChatMessagesSilent();
       }, 5000);
     }
     return () => {
@@ -120,6 +119,18 @@ export function StudentDoubts() {
     }
   };
 
+  const fetchChatMessagesSilent = async () => {
+    if (!conversationId) return;
+    try {
+      const res = await api.get(`/doubts/student/chat/${conversationId}`);
+      const data = res.data.data || res.data;
+      setChatInfo(data.conversation);
+      setMessages(data.messages || []);
+    } catch {
+      // Silent poll
+    }
+  };
+
   const handleSubjectClick = async (subject: Subject) => {
     setOpening(true);
     setError(null);
@@ -129,10 +140,10 @@ export function StudentDoubts() {
       });
       const data = res.data.data || res.data;
       setSelectedSubject(subject);
-      setConversationId(data.conversationId);
+      setConversationId(data.groupId);
       setChatInfo({
-        id: data.conversationId,
-        subject: data.subjectName || subject.subjectName,
+        id: data.groupId,
+        subject: data.subject || subject.subjectName,
         subjectCode: data.subjectCode || subject.subjectCode,
         teacher: data.teacherName || subject.teacherName,
         teacherAvatar: data.teacherAvatar || subject.teacherAvatar,
@@ -162,23 +173,6 @@ export function StudentDoubts() {
       setInputMessage(msgText);
     } finally {
       setSending(false);
-    }
-  };
-
-  const handleResolve = async () => {
-    if (!conversationId) return;
-    setResolving(true);
-    try {
-      await api.post("/doubts/resolve", { conversationId });
-      setConversationId(null);
-      setSelectedSubject(null);
-      setChatInfo(null);
-      setMessages([]);
-      fetchSubjects();
-    } catch (err: any) {
-      setError(err.message || "Failed to mark as resolved");
-    } finally {
-      setResolving(false);
     }
   };
 
@@ -217,7 +211,10 @@ export function StudentDoubts() {
           <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
             <div className="flex items-center gap-3">
               <MessageCircle className="w-6 h-6 text-indigo-600" />
-              <h1 className="text-xl font-bold text-gray-900">Doubts</h1>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Class Doubts</h1>
+                <p className="text-xs text-gray-500">Group chat with your class & teacher</p>
+              </div>
             </div>
             <button
               onClick={fetchSubjects}
@@ -239,7 +236,6 @@ export function StudentDoubts() {
                         <div className="h-4 bg-gray-200 rounded w-1/3 mb-2" />
                         <div className="h-3 bg-gray-200 rounded w-1/4" />
                       </div>
-                      <div className="w-5 h-5 bg-gray-200 rounded" />
                     </div>
                   </div>
                 ))}
@@ -249,11 +245,9 @@ export function StudentDoubts() {
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                   <BookOpen className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-1">
-                  No subjects found
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-700 mb-1">No subjects found</h3>
                 <p className="text-sm text-gray-500 max-w-xs">
-                  You don't have any assigned subjects yet. Contact your admin to get started.
+                  You don't have any assigned subjects yet.
                 </p>
               </div>
             ) : (
@@ -273,25 +267,20 @@ export function StudentDoubts() {
                         <h3 className="font-semibold text-gray-900 text-sm truncate">
                           {subject.subjectName}
                         </h3>
-                        {subject.unresolvedDoubts > 0 && (
-                          <span className="bg-amber-100 text-amber-700 text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0">
-                            {subject.unresolvedDoubts} open
+                        {subject.hasGroup && (
+                          <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                            <Users className="w-3 h-3" /> Group
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <User className="w-3 h-3 text-gray-400" />
-                        <span className="text-xs text-gray-500 truncate">
-                          {subject.teacherName}
-                        </span>
-                        {subject.hasConversation && (
-                          <span className="text-xs text-green-600 font-medium ml-1">
-                            · Active
-                          </span>
-                        )}
+                        <span className="text-xs text-gray-500 truncate">{subject.teacherName}</span>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <div className="text-xs text-gray-400 flex-shrink-0">
+                      {subject.hasGroup ? "Open" : "Start"}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -300,7 +289,7 @@ export function StudentDoubts() {
         </>
       )}
 
-      {/* View 2: Chat Screen */}
+      {/* View 2: Group Chat */}
       {conversationId && (
         <>
           <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
@@ -310,28 +299,25 @@ export function StudentDoubts() {
                 setSelectedSubject(null);
                 setChatInfo(null);
                 setMessages([]);
+                fetchSubjects();
               }}
               className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="flex-1 min-w-0">
-              <h2 className="text-sm font-semibold text-gray-900 truncate">
-                {chatInfo?.teacher || selectedSubject?.teacherName || "Teacher"}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-gray-900 truncate">
+                  {chatInfo?.subject || selectedSubject?.subjectName}
+                </h2>
+                <span className="flex items-center gap-1 text-[10px] font-medium text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">
+                  <Users className="w-2.5 h-2.5" /> Group
+                </span>
+              </div>
               <p className="text-xs text-gray-500 truncate">
-                {chatInfo?.subject || selectedSubject?.subjectName}{" "}
-                ({chatInfo?.subjectCode || selectedSubject?.subjectCode})
+                {chatInfo?.teacher || selectedSubject?.teacherName} &bull; Class
               </p>
             </div>
-            <button
-              onClick={handleResolve}
-              disabled={resolving}
-              className="flex items-center gap-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
-            >
-              <CheckCircle2 className={cn("w-4 h-4", resolving && "animate-spin")} />
-              Resolved
-            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
@@ -340,86 +326,80 @@ export function StudentDoubts() {
                 <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                   <MessageCircle className="w-7 h-7 text-gray-400" />
                 </div>
-                <p className="text-sm text-gray-500">
-                  No messages yet. Start the conversation!
-                </p>
+                <p className="text-sm text-gray-500">No messages yet. Ask a doubt!</p>
               </div>
             ) : (
-              messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={cn(
-                    "flex",
-                    msg.senderRole === "STUDENT" ? "justify-end" : "justify-start"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm",
-                      msg.senderRole === "STUDENT"
-                        ? "bg-indigo-600 text-white rounded-br-md"
-                        : "bg-white border border-gray-200 text-gray-900 rounded-bl-md"
-                    )}
-                  >
-                    {msg.senderRole === "TEACHER" && (
-                      <p className="text-xs font-semibold text-indigo-600 mb-1">
-                        {msg.senderName}
-                      </p>
-                    )}
-                    {msg.attachmentType === "image" && msg.attachmentUrl ? (
-                      <div className="mb-1">
-                        <img
-                          src={msg.attachmentUrl}
-                          alt="Shared image"
-                          className="rounded-lg max-w-full max-h-48 object-cover"
-                        />
-                      </div>
-                    ) : msg.attachmentType === "file" ? (
-                      <div className="flex items-center gap-2 mb-1 p-2 rounded-lg bg-black/5">
-                        <FileText className="w-8 h-8 flex-shrink-0" />
-                        <div className="min-w-0">
-                          <a
-                            href={msg.attachmentUrl || "#"}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs font-medium underline"
-                          >
-                            Download
-                          </a>
-                        </div>
-                      </div>
-                    ) : null}
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                      {msg.text}
-                    </p>
-                    <div
-                      className={cn(
-                        "flex items-center gap-1.5 mt-1.5",
-                        msg.senderRole === "STUDENT" ? "justify-end" : "justify-start"
+              messages.map((msg) => {
+                const isMe = msg.senderRole === "STUDENT" && msg.senderUserRole === "STUDENT";
+                const isTeacher = msg.senderRole === "TEACHER";
+                return (
+                  <div key={msg.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
+                    <div className={cn("max-w-[75%]")}>
+                      {/* Show sender name for others' messages */}
+                      {!isMe && (
+                        <p className={cn(
+                          "text-[10px] font-medium mb-0.5 ml-1",
+                          isTeacher ? "text-indigo-600" : "text-gray-500"
+                        )}>
+                          {msg.senderName} {isTeacher && "(Teacher)"}
+                        </p>
                       )}
-                    >
-                      <span
+                      <div
                         className={cn(
-                          "text-[10px]",
-                          msg.senderRole === "STUDENT" ? "text-indigo-200" : "text-gray-400"
+                          "rounded-2xl px-4 py-2.5 shadow-sm",
+                          isMe
+                            ? "bg-indigo-600 text-white rounded-br-md"
+                            : isTeacher
+                              ? "bg-indigo-50 border border-indigo-200 text-gray-900 rounded-bl-md"
+                              : "bg-white border border-gray-200 text-gray-900 rounded-bl-md"
                         )}
                       >
-                        {formatTime(msg.createdAt)}
-                      </span>
-                      {msg.senderRole === "STUDENT" && (
-                        <span
+                        {msg.attachmentType === "image" && msg.attachmentUrl ? (
+                          <div className="mb-1">
+                            <img
+                              src={msg.attachmentUrl}
+                              alt="Shared image"
+                              className="rounded-lg max-w-full max-h-48 object-cover"
+                            />
+                          </div>
+                        ) : msg.attachmentType === "file" ? (
+                          <div className="flex items-center gap-2 mb-1 p-2 rounded-lg bg-black/5">
+                            <FileText className="w-8 h-8 flex-shrink-0" />
+                            <div className="min-w-0">
+                              <a
+                                href={msg.attachmentUrl || "#"}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-medium underline"
+                              >
+                                Download
+                              </a>
+                            </div>
+                          </div>
+                        ) : null}
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                          {msg.text}
+                        </p>
+                        <div
                           className={cn(
-                            "text-[10px]",
-                            msg.read ? "text-indigo-200" : "text-indigo-300"
+                            "flex items-center gap-1.5 mt-1.5",
+                            isMe ? "justify-end" : "justify-start"
                           )}
                         >
-                          {msg.read ? "✓✓" : "✓"}
-                        </span>
-                      )}
+                          <span
+                            className={cn(
+                              "text-[10px]",
+                              isMe ? "text-indigo-200" : "text-gray-400"
+                            )}
+                          >
+                            {formatTime(msg.createdAt)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
             <div ref={messagesEndRef} />
           </div>
@@ -437,7 +417,7 @@ export function StudentDoubts() {
                     handleSend();
                   }
                 }}
-                placeholder="Type your message..."
+                placeholder="Ask a doubt to the group..."
                 className="flex-1 bg-gray-100 border border-gray-200 rounded-full px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 disabled={sending}
               />

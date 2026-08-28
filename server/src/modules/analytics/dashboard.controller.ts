@@ -2,6 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import { dashboardService } from './dashboard.service';
 import { AppError } from '../../utils/errors';
 
+interface DateRange {
+  from?: Date;
+  to?: Date;
+}
+
+function parseDateRange(req: Request): DateRange {
+  const from = req.query.from ? new Date(req.query.from as string) : undefined;
+  const to = req.query.to ? new Date(req.query.to as string) : undefined;
+  return { from, to };
+}
+
 export class DashboardController {
   async getExecutiveSummary(req: Request, res: Response, next: NextFunction) {
     try {
@@ -10,7 +21,8 @@ export class DashboardController {
         throw new AppError(400, 'Institution not found');
       }
 
-      const data = await dashboardService.getExecutiveSummary(institutionId);
+      const { from, to } = parseDateRange(req);
+      const data = await dashboardService.getExecutiveSummary(institutionId, { from, to });
 
       res.json({
         success: true,
@@ -28,7 +40,8 @@ export class DashboardController {
         throw new AppError(400, 'Institution not found');
       }
 
-      const data = await dashboardService.getRevenueAnalytics(institutionId);
+      const { from, to } = parseDateRange(req);
+      const data = await dashboardService.getRevenueAnalytics(institutionId, { from, to });
 
       res.json({
         success: true,
@@ -46,7 +59,8 @@ export class DashboardController {
         throw new AppError(400, 'Institution not found');
       }
 
-      const data = await dashboardService.getAttendanceAnalytics(institutionId);
+      const { from, to } = parseDateRange(req);
+      const data = await dashboardService.getAttendanceAnalytics(institutionId, { from, to });
 
       res.json({
         success: true,
@@ -64,7 +78,8 @@ export class DashboardController {
         throw new AppError(400, 'Institution not found');
       }
 
-      const data = await dashboardService.getAdmissionAnalytics(institutionId);
+      const { from, to } = parseDateRange(req);
+      const data = await dashboardService.getAdmissionAnalytics(institutionId, { from, to });
 
       res.json({
         success: true,
@@ -82,7 +97,8 @@ export class DashboardController {
         throw new AppError(400, 'Institution not found');
       }
 
-      const data = await dashboardService.getAcademicAnalytics(institutionId);
+      const { from, to } = parseDateRange(req);
+      const data = await dashboardService.getAcademicAnalytics(institutionId, { from, to });
 
       res.json({
         success: true,
@@ -172,7 +188,8 @@ export class DashboardController {
         throw new AppError(400, 'Institution not found');
       }
 
-      const data = await dashboardService.getHelpdeskAnalytics(institutionId);
+      const { from, to } = parseDateRange(req);
+      const data = await dashboardService.getHelpdeskAnalytics(institutionId, { from, to });
 
       res.json({
         success: true,
@@ -190,7 +207,8 @@ export class DashboardController {
         throw new AppError(400, 'Institution not found');
       }
 
-      const data = await dashboardService.getWorkflowAnalytics(institutionId);
+      const { from, to } = parseDateRange(req);
+      const data = await dashboardService.getWorkflowAnalytics(institutionId, { from, to });
 
       res.json({
         success: true,
@@ -245,7 +263,8 @@ export class DashboardController {
       }
 
       const limit = parseInt(req.query.limit as string) || 20;
-      const data = await dashboardService.getRecentActivity(institutionId, limit);
+      const { from, to } = parseDateRange(req);
+      const data = await dashboardService.getRecentActivity(institutionId, limit, { from, to });
 
       res.json({
         success: true,

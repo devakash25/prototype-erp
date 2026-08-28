@@ -125,8 +125,8 @@ router.get('/refunds', async (req: Request, res: Response) => {
 router.post('/refunds/:id/process', async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const { action, notes } = req.body;
-    const data = await accountantAnalyticsService.processRefund(user.userId, req.params.id as string, action, notes);
+    const { action, reason, notes } = req.body;
+    const data = await accountantAnalyticsService.processRefund(user.userId, req.params.id as string, action, reason || notes);
     res.json({ success: true, data, message: `Refund ${action.toLowerCase()}d` });
   } catch (error: any) {
     res.status(500).json({ success: false, error: { message: error.message || 'Failed' } });
@@ -182,6 +182,16 @@ router.get('/activity', async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 15;
     const data = await accountantAnalyticsService.getRecentActivity(user.userId, limit);
     res.json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: { message: error.message || 'Failed' } });
+  }
+});
+
+router.get('/students/:id/payments', async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const data = await accountantAnalyticsService.getStudentFeeDetails(user.userId, req.params.id as string);
+    res.json({ success: true, data: data.payments });
   } catch (error: any) {
     res.status(500).json({ success: false, error: { message: error.message || 'Failed' } });
   }

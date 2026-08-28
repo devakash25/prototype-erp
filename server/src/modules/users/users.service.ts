@@ -1,6 +1,6 @@
 import { prisma } from '../../config/database';
 import bcrypt from 'bcrypt';
-import { NotFoundError, ConflictError } from '../../utils/errors';
+import { NotFoundError, ConflictError, ForbiddenError } from '../../utils/errors';
 import { logger } from '../../utils/logger';
 import { Prisma, UserRole } from '@prisma/client';
 
@@ -44,6 +44,22 @@ export class UserService {
       throw new ConflictError('User with this email already exists');
     }
 
+    // Validate role against institution type
+    const creator = await prisma.user.findUnique({ where: { id: createdBy }, select: { institutionId: true } });
+    if (creator?.institutionId) {
+      const institution = await prisma.institution.findUnique({ where: { id: creator.institutionId }, select: { type: true } });
+      if (institution) {
+        const allowedRoles: Record<string, string[]> = {
+          SCHOOL: ['MANAGER', 'VICE_MANAGER', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
+          COLLEGE: ['CHIEF_HEAD', 'DIRECTOR', 'HOD', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
+        };
+        const allowed = allowedRoles[institution.type] || allowedRoles.COLLEGE;
+        if (!allowed.includes(data.role)) {
+          throw new ForbiddenError(`Role ${data.role} is not available for ${institution.type.toLowerCase()} institutions`);
+        }
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 12);
 
     const user = await prisma.user.create({
@@ -73,7 +89,7 @@ export class UserService {
 
     // If role is employee-type, create employee record with auto-generated profile ID
     const employeeRoles = [
-      'DIRECTOR', 'PRINCIPAL', 'HOD', 'TEACHER', 'ACCOUNTANT',
+      'DIRECTOR', 'MANAGER', 'VICE_MANAGER', 'PRINCIPAL', 'VICE_PRINCIPAL', 'HOD', 'TEACHER', 'ACCOUNTANT',
       'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN',
       'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF',
     ];

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { redis, isRedisAvailable } from '../config/redis';
+import { getRedis, isRedisAvailable } from '../config/redis';
 import { logger } from '../utils/logger';
 import { AppError } from '../utils/errors';
 
@@ -32,7 +32,11 @@ export function rateLimit(options: RateLimitOptions) {
       const windowEnd = windowStart + windowMs;
 
       // Use Redis pipeline for atomic operations
-      const pipeline = redis.pipeline();
+      const client = getRedis();
+      if (!client) {
+        return next(); // No Redis, skip rate limiting
+      }
+      const pipeline = client.pipeline();
       pipeline.zremrangebyscore(key, 0, windowStart - windowMs);
       pipeline.zadd(key, windowStart, `${windowStart}:${Math.random()}`);
       pipeline.zcard(key);

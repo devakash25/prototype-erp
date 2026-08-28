@@ -257,28 +257,26 @@ export function SuperAdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <GreetingBanner />
-        <div className="flex gap-2 ml-4">
-          <button
-            onClick={() => setCustomizeMode(!customizeMode)}
-            className={cn(
-              'flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium transition-colors',
-              customizeMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300'
-            )}
-          >
-            <Settings className="w-4 h-4" />
-            {customizeMode ? 'Done' : 'Customize'}
-          </button>
-          {customizeMode && (
-            <button onClick={resetLayout} className="flex items-center gap-2 px-4 py-2 border border-slate-700 rounded-lg text-sm hover:bg-slate-700 text-slate-300">
-              <RotateCcw className="w-4 h-4" />Reset Layout
-            </button>
+      <GreetingBanner />
+      <div className="flex items-center justify-end gap-2">
+        <button
+          onClick={() => setCustomizeMode(!customizeMode)}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium transition-colors',
+            customizeMode ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300'
           )}
-          <button onClick={loadDashboard} className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm hover:bg-slate-700 text-slate-300">
-            <RefreshCw className="w-4 h-4" />Refresh
+        >
+          <Settings className="w-4 h-4" />
+          {customizeMode ? 'Done' : 'Customize'}
+        </button>
+        {customizeMode && (
+          <button onClick={resetLayout} className="flex items-center gap-2 px-4 py-2 border border-slate-700 rounded-lg text-sm hover:bg-slate-700 text-slate-300">
+            <RotateCcw className="w-4 h-4" />Reset Layout
           </button>
-        </div>
+        )}
+        <button onClick={loadDashboard} className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm hover:bg-slate-700 text-slate-300">
+          <RefreshCw className="w-4 h-4" />Refresh
+        </button>
       </div>
 
       <div className="border-b border-slate-700">

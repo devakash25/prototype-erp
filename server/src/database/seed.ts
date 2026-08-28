@@ -15,7 +15,7 @@ async function main() {
     data: {
       name: 'DEV ERP Academy',
       code: 'DEVERP001',
-      type: 'university',
+      type: 'COLLEGE',
       address: '123 Education Lane',
       city: 'Mumbai',
       state: 'Maharashtra',

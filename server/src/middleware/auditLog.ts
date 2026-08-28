@@ -18,13 +18,14 @@ export function auditLog() {
   return (req: Request, res: Response, next: NextFunction) => {
     const startTime = Date.now();
 
-    // Capture original json method
+    // Capture original methods
     const originalJson = res.json.bind(res);
+    const originalSend = res.send.bind(res);
+    const originalEnd = res.end.bind(res);
 
-    res.json = function (body: any) {
+    function logRequest(body?: any) {
       const duration = Date.now() - startTime;
 
-      // Only log for write operations
       if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
         const userId = req.user?.userId;
         const institutionId = req.user?.institutionId;
@@ -33,13 +34,12 @@ export function auditLog() {
           const entity = extractEntity(req.path);
           const entityId = typeof req.params.id === 'string' ? req.params.id : undefined;
 
-          // Log async to not block response
           logAuditEvent({
             userId,
             action: getAction(req.method),
             entity,
             entityId,
-            newValues: req.method !== 'DELETE' ? body?.data : undefined,
+            newValues: req.method !== 'DELETE' ? extractNewValues(body) : undefined,
             ip: req.ip || req.connection.remoteAddress,
             userAgent: typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : undefined,
             institutionId,
@@ -48,8 +48,24 @@ export function auditLog() {
           }).catch((err) => logger.error({ err }, 'Audit log failed'));
         }
       }
+    }
 
+    // Override res.json
+    res.json = function (body: any) {
+      logRequest(body);
       return originalJson(body);
+    };
+
+    // Override res.send — catches routes that use res.send() instead of res.json()
+    res.send = function (body: any) {
+      logRequest(body);
+      return originalSend(body);
+    };
+
+    // Override res.end — catches routes that use res.status().end()
+    res.end = function (...args: any[]) {
+      logRequest();
+      return originalEnd(...args as any);
     };
 
     next();
@@ -87,6 +103,15 @@ export async function logAuditEvent(data: AuditLogData & {
   } catch (error) {
     logger.error({ error }, 'Failed to create audit log');
   }
+}
+
+function extractNewValues(body: any): Record<string, any> | undefined {
+  if (!body || typeof body !== 'object') return undefined;
+  // The response body typically has { success, data, message }
+  if (body.data && typeof body.data === 'object') {
+    return body.data;
+  }
+  return body;
 }
 
 // Helper functions

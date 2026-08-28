@@ -19,7 +19,7 @@ model Institution {
   id            String   @id @default(uuid())
   name          String
   code          String   @unique
-  type          String   // school, college, university, training
+  type          InstitutionType @default(COLLEGE) // SCHOOL or COLLEGE
   address       String?
   city          String?
   state         String?
@@ -70,6 +70,7 @@ model Institution {
   invoices       Invoice[]
   doubtConversations DoubtConversation[]
   parentConversations ParentConversation[]
+  mcqTests       McqTest[]
 
   @@map("institutions")
 }
@@ -180,7 +181,10 @@ enum UserRole {
   CEO
   CHIEF_HEAD
   DIRECTOR
+  MANAGER
+  VICE_MANAGER
   PRINCIPAL
+  VICE_PRINCIPAL
   HOD
   TEACHER
   ACCOUNTANT
@@ -191,6 +195,11 @@ enum UserRole {
   ADMINISTRATIVE_STAFF
   STUDENT
   PARENT
+}
+
+enum InstitutionType {
+  SCHOOL
+  COLLEGE
 }
 
 enum Gender {
@@ -293,10 +302,11 @@ model Course {
   attendanceModes AttendanceMode[]
   dailyAttendance DailyAttendance[]
   subjectAttendance SubjectAttendance[]
-  doubtConversations DoubtConversation[]
+   doubtConversations DoubtConversation[]
+   mcqTests         McqTest[]
 
-  @@unique([institutionId, code])
-  @@map("courses")
+   @@unique([institutionId, code])
+   @@map("courses")
 }
 
 // ============================================
@@ -330,10 +340,11 @@ model Subject {
   subjectAllocations SubjectAllocation[]
   attendance      Attendance[]
   subjectAttendance SubjectAttendance[]
-  doubtConversations DoubtConversation[]
+   doubtConversations DoubtConversation[]
+   mcqTests         McqTest[]
 
-  @@unique([institutionId, code])
-  @@map("subjects")
+   @@unique([institutionId, code])
+   @@map("subjects")
 }
 
 model SubjectAllocation {
@@ -398,10 +409,12 @@ model Employee {
   libraryIssues   LibraryIssue[]
   enabledAttendModes AttendanceMode[] @relation("AttendanceModeEnabledBy")
   lockedAttendModes AttendanceMode[] @relation("AttendanceModeLockedBy")
-  dailyAttendances DailyAttendance[] @relation("DailyAttendanceMarker")
-  subjectAttendances SubjectAttendance[] @relation("SubjectAttendanceTeacher")
-  doubtConversations DoubtConversation[]
-  parentConversations ParentConversation[]
+   dailyAttendances DailyAttendance[] @relation("DailyAttendanceMarker")
+   subjectAttendances SubjectAttendance[] @relation("SubjectAttendanceTeacher")
+   doubtConversations DoubtConversation[]
+   parentConversations ParentConversation[]
+   mcqTests         McqTest[]
+
 
   @@unique([institutionId, employeeCode])
   @@map("employees")
@@ -501,7 +514,6 @@ model Student {
   attendance          Attendance[]
   dailyAttendance DailyAttendance[]
   subjectAttendance SubjectAttendance[]
-  doubtConversations DoubtConversation[]
   examResults         ExamResult[]
   feePayments         FeePayment[]
   scholarships        StudentScholarship[]
@@ -513,10 +525,13 @@ model Student {
   certificates        Certificate[]
   studentRequests     StudentRequest[]
   parentStudents      ParentStudent[]
-  parentConversations ParentConversation[]
+   parentConversations ParentConversation[]
+    mcqSubmissions   McqSubmission[]
+    hostelAllocations HostelRoomAllocation[]
 
-  @@unique([institutionId, admissionNumber])
-  @@map("students")
+    @@unique([institutionId, admissionNumber])
+   @@index([institutionId, isActive])
+   @@map("students")
 }
 
 // ============================================
@@ -655,6 +670,7 @@ model Attendance {
   academicSession AcademicSession @relation(fields: [academicSessionId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, subjectId, date])
+  @@index([studentId, date])
   @@map("attendance")
 }
 
@@ -926,6 +942,7 @@ model FeeStructure {
   components      FeeComponent[]
   payments        FeePayment[]
 
+  @@index([institutionId, isActive])
   @@map("fee_structures")
 }
 
@@ -965,6 +982,8 @@ model FeePayment {
   feeStructure    FeeStructure  @relation(fields: [feeStructureId], references: [id], onDelete: Cascade)
   refunds         Refund[]
 
+  @@index([studentId, status])
+  @@index([paidAt])
   @@map("fee_payments")
 }
 
@@ -1147,9 +1166,24 @@ model HostelRoom {
 
   hostel          Hostel   @relation(fields: [hostelId], references: [id], onDelete: Cascade)
   building        Building? @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  allocations     HostelRoomAllocation[]
 
   @@unique([hostelId, roomNumber])
   @@map("hostel_rooms")
+}
+
+model HostelRoomAllocation {
+  id              String   @id @default(uuid())
+  studentId       String
+  roomId          String
+  allocatedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  room            HostelRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, roomId])
+  @@map("hostel_room_allocations")
 }
 
 enum HostelType {
@@ -1344,6 +1378,7 @@ model UserNotification {
   student         Student?     @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
   @@unique([notificationId, userId])
+  @@index([userId, isRead])
   @@map("user_notifications")
 }
 
@@ -1651,7 +1686,6 @@ model DoubtConversation {
   classId         String
   subjectId       String
   teacherId       String
-  studentId       String
   status          DoubtStatus @default(NEW)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -1660,10 +1694,9 @@ model DoubtConversation {
   course          Course      @relation(fields: [classId], references: [id], onDelete: Cascade)
   subject         Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   teacher         Employee    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  student         Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   messages        DoubtMessage[]
 
-  @@unique([studentId, teacherId, subjectId, classId])
+  @@unique([teacherId, subjectId, classId])
   @@map("doubt_conversations")
 }
 
@@ -2015,4 +2048,96 @@ model ParentMessage {
   sender          User               @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@map("parent_messages")
+}
+
+// ============================================
+// MCQ ASSESSMENT MODULE
+// ============================================
+
+enum MCQTestStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model McqTest {
+  id              String      @id @default(uuid())
+  institutionId   String
+  classId         String
+  subjectId       String
+  teacherId       String
+  title           String
+  chapter         String?
+  instructions    String?
+  duration        Int
+  totalQuestions  Int         @default(0)
+  totalMarks      Int         @default(0)
+  startTime       DateTime
+  endTime         DateTime
+  status          MCQTestStatus @default(DRAFT)
+  allowReattempt  Boolean     @default(false)
+  randomizeQuestions Boolean  @default(false)
+  randomizeOptions   Boolean  @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  institution     Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  course          Course      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject         Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher         Employee    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  questions       McqQuestion[]
+  submissions     McqSubmission[]
+
+  @@map("mcq_tests")
+}
+
+model McqQuestion {
+  id              String   @id @default(uuid())
+  testId          String
+  question        String
+  optionA         String
+  optionB         String
+  optionC         String
+  optionD         String
+  correctAnswer   String
+  marks           Int      @default(1)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  test            McqTest        @relation(fields: [testId], references: [id], onDelete: Cascade)
+  answers         McqAnswer[]
+
+  @@map("mcq_questions")
+}
+
+model McqSubmission {
+  id              String   @id @default(uuid())
+  testId          String
+  studentId       String
+  score           Int      @default(0)
+  total           Int      @default(0)
+  percentage      Float    @default(0)
+  timeTaken       Int?
+  submittedAt     DateTime @default(now())
+
+  test            McqTest   @relation(fields: [testId], references: [id], onDelete: Cascade)
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers         McqAnswer[]
+
+  @@unique([testId, studentId])
+  @@map("mcq_submissions")
+}
+
+model McqAnswer {
+  id              String   @id @default(uuid())
+  submissionId    String
+  questionId      String
+  selectedOption  String
+  isCorrect       Boolean  @default(false)
+  marks           Int      @default(0)
+
+  submission      McqSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question        McqQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("mcq_answers")
 }

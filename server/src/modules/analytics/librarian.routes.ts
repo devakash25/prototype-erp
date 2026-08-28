@@ -32,7 +32,7 @@ router.get('/books', async (req: Request, res: Response) => {
 
 router.get('/books/:id', async (req: Request, res: Response) => {
   try {
-    const book = await LibrarianService.getBookDetail(req.params.id);
+    const book = await LibrarianService.getBookDetail(req.params.id as string);
     res.json(book);
   } catch (error) {
     res.status(404).json({ error: (error as Error).message });
@@ -51,7 +51,7 @@ router.post('/books', async (req: Request, res: Response) => {
 
 router.patch('/books/:id', async (req: Request, res: Response) => {
   try {
-    const book = await LibrarianService.updateBook(req.params.id, req.body);
+    const book = await LibrarianService.updateBook(req.params.id as string, req.body);
     res.json(book);
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -60,7 +60,7 @@ router.patch('/books/:id', async (req: Request, res: Response) => {
 
 router.delete('/books/:id', async (req: Request, res: Response) => {
   try {
-    const result = await LibrarianService.deleteBook(req.params.id);
+    const result = await LibrarianService.deleteBook(req.params.id as string);
     res.json(result);
   } catch (error) {
     res.status(404).json({ error: (error as Error).message });
@@ -79,7 +79,7 @@ router.post('/issues', async (req: Request, res: Response) => {
 
 router.patch('/issues/:id/return', async (req: Request, res: Response) => {
   try {
-    const issue = await LibrarianService.returnBook(req.params.id, req.body);
+    const issue = await LibrarianService.returnBook(req.params.id as string, req.body);
     res.json(issue);
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -88,7 +88,7 @@ router.patch('/issues/:id/return', async (req: Request, res: Response) => {
 
 router.patch('/issues/:id/renew', async (req: Request, res: Response) => {
   try {
-    const issue = await LibrarianService.renewBook(req.params.id);
+    const issue = await LibrarianService.renewBook(req.params.id as string);
     res.json(issue);
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -120,7 +120,7 @@ router.get('/overdue', async (req: Request, res: Response) => {
 
 router.post('/fines/:id/collect', async (req: Request, res: Response) => {
   try {
-    const result = await LibrarianService.collectFine(req.params.id, req.body);
+    const result = await LibrarianService.collectFine(req.params.id as string, req.body);
     res.json(result);
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });

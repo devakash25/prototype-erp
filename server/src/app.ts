@@ -34,8 +34,20 @@ import attendanceRoutes from './modules/attendance/attendance.routes';
 import doubtRoutes from './modules/doubts/doubts.routes';
 import assignmentRoutes from './modules/assignments/assignments.routes';
 import parentMessagingRoutes from './modules/parent-messaging/parent-messaging.routes';
+import mcqRoutes from './modules/mcq/mcq.routes';
+import settingsRoutes from './modules/settings/settings.routes';
+import rolesRoutes from './modules/settings/roles.routes';
+import bulkRoutes from './modules/settings/bulk.routes';
+import backupRoutes from './modules/settings/backup.routes';
+import auditLogRoutes from './modules/settings/auditLog.routes';
+import reportsRoutes from './modules/settings/reports.routes';
+import searchRoutes from './modules/settings/search.routes';
+import templatesRoutes from './modules/settings/templates.routes';
+import customReportsRoutes from './modules/settings/customReports.routes';
+import appearanceRoutes from './modules/settings/appearance.routes';
 
 const app = express();
+app.set('etag', false);
 
 // Security & utility middleware
 app.use(helmet());
@@ -61,6 +73,13 @@ app.use('/api/', auditLog());
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Disable ETags for API routes to prevent 304 empty responses
+app.use('/api/', (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  next();
 });
 
 // API Info
@@ -98,6 +117,17 @@ app.use('/api/v1/attendance', attendanceRoutes);
 app.use('/api/v1/doubts', doubtRoutes);
 app.use('/api/v1/assignments', assignmentRoutes);
 app.use('/api/v1/parent-messaging', parentMessagingRoutes);
+app.use('/api/v1/mcq', mcqRoutes);
+app.use('/api/v1/system-settings', settingsRoutes);
+app.use('/api/v1/roles', rolesRoutes);
+app.use('/api/v1/bulk', bulkRoutes);
+app.use('/api/v1/backups', backupRoutes);
+app.use('/api/v1/audit-logs', auditLogRoutes);
+app.use('/api/v1/reports', reportsRoutes);
+app.use('/api/v1/search', searchRoutes);
+app.use('/api/v1/templates', templatesRoutes);
+app.use('/api/v1/custom-reports', customReportsRoutes);
+app.use('/api/v1/appearance-settings', appearanceRoutes);
 
 // 404 handler
 app.use((req, res) => {

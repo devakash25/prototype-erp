@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useApi } from '@/hooks/useApi'
 import api from '@/services/api'
 import { cn } from '@/lib/utils'
@@ -19,30 +19,44 @@ import {
 type View = 'classes' | 'conversations' | 'chat'
 
 interface ClassItem {
-  id: string
-  name: string
-  subjects: string[]
+  classId: string
+  className: string
+  classCode: string
+  subjects: Array<{ id: string; name: string; code: string }>
   pendingDoubts: number
   totalStudents: number
+  role: string
 }
 
 interface Conversation {
   id: string
-  studentName: string
-  rollNumber: string
   subject: string
-  lastMessage: string
+  subjectCode: string
+  className: string
+  classCode: string
+  classId: string
+  studentCount: number
+  lastMessage: string | null
+  lastMessageSender: string | null
+  lastMessageSenderRole: string | null
   lastMessageTime: string
   status: 'new' | 'unread' | 'answered' | 'resolved'
   unreadCount: number
+  messageCount: number
 }
 
 interface Message {
   id: string
-  sender: 'student' | 'teacher'
-  message: string
-  timestamp: string
+  text: string
+  senderId: string
+  senderName: string
+  senderAvatar: string | null
+  senderRole: 'STUDENT' | 'TEACHER'
+  senderUserRole: string
+  attachmentUrl: string | null
+  attachmentType: string | null
   read: boolean
+  createdAt: string
 }
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
@@ -68,7 +82,6 @@ function formatTime(timestamp: string) {
   const diffMins = Math.floor(diffMs / 60000)
   const diffHrs = Math.floor(diffMs / 3600000)
   const diffDays = Math.floor(diffMs / 86400000)
-
   if (diffMins < 1) return 'Just now'
   if (diffMins < 60) return `${diffMins}m ago`
   if (diffHrs < 24) return `${diffHrs}h ago`
@@ -77,40 +90,7 @@ function formatTime(timestamp: string) {
 }
 
 function formatMessageTime(timestamp: string) {
-  const date = new Date(timestamp)
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
-
-function SkeletonCards() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="h-44 bg-gray-100 rounded-xl animate-pulse" />
-      ))}
-    </div>
-  )
-}
-
-function SkeletonConversations() {
-  return (
-    <div className="space-y-3">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />
-      ))}
-    </div>
-  )
-}
-
-function SkeletonMessages() {
-  return (
-    <div className="flex-1 p-4 space-y-4">
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className={cn('flex', i % 2 === 0 ? 'justify-start' : 'justify-end')}>
-          <div className="h-10 w-48 bg-gray-100 rounded-2xl animate-pulse" />
-        </div>
-      ))}
-    </div>
-  )
+  return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
 export function TeacherDoubts() {
@@ -122,6 +102,7 @@ export function TeacherDoubts() {
   const [conversationSearch, setConversationSearch] = useState('')
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
+  const [chatData, setChatData] = useState<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { data: classes, loading: classesLoading, error: classesError, refetch: refetchClasses } = useApi<ClassItem[]>(
@@ -133,38 +114,57 @@ export function TeacherDoubts() {
     [selectedClassId]
   )
 
-  const { data: messagesData, loading: msgLoading, error: msgError, refetch: refetchMessages } = useApi<Message[]>(
-    selectedConversationId ? `/doubts/teacher/chat/${selectedConversationId}` : '',
-    [selectedConversationId]
-  )
-
   const conversations = conversationsData ?? []
-  const messages = messagesData ?? []
+  const messages: Message[] = chatData?.messages ?? []
 
   const filteredConversations = conversations.filter((conv) => {
     if (!conversationSearch) return true
     const search = conversationSearch.toLowerCase()
     return (
-      conv.studentName.toLowerCase().includes(search) ||
-      conv.rollNumber.toLowerCase().includes(search)
+      conv.subject.toLowerCase().includes(search) ||
+      conv.subjectCode.toLowerCase().includes(search)
     )
   })
+
+  const fetchChat = useCallback(async (silent = false) => {
+    if (!selectedConversationId) return
+    try {
+      const res = await api.get(`/doubts/teacher/chat/${selectedConversationId}`)
+      const data = res.data.data || res.data
+      if (!silent) setChatData(data)
+      else setChatData((prev: any) => ({ ...prev, messages: data.messages }))
+    } catch {}
+  }, [selectedConversationId])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // Poll classes
+  useEffect(() => {
+    if (view !== 'classes') return
+    const interval = setInterval(() => refetchClasses(), 10000)
+    return () => clearInterval(interval)
+  }, [view, refetchClasses])
+
+  // Poll conversations
+  useEffect(() => {
+    if (view !== 'conversations' || !selectedClassId) return
+    const interval = setInterval(() => refetchConversations(), 5000)
+    return () => clearInterval(interval)
+  }, [view, selectedClassId, refetchConversations])
+
+  // Poll chat
   useEffect(() => {
     if (view !== 'chat' || !selectedConversationId) return
-    const interval = setInterval(() => {
-      refetchMessages()
-    }, 5000)
+    fetchChat()
+    const interval = setInterval(() => fetchChat(true), 5000)
     return () => clearInterval(interval)
-  }, [view, selectedConversationId, refetchMessages])
+  }, [view, selectedConversationId, fetchChat])
 
   const handleSelectClass = (cls: ClassItem) => {
-    setSelectedClassId(cls.id)
-    setSelectedClassName(cls.name)
+    setSelectedClassId(cls.classId)
+    setSelectedClassName(cls.className)
     setView('conversations')
     setConversationSearch('')
   }
@@ -179,12 +179,14 @@ export function TeacherDoubts() {
     setView('classes')
     setSelectedClassId(null)
     setSelectedClassName('')
+    refetchClasses()
   }
 
   const handleBackToConversations = () => {
     setView('conversations')
     setSelectedConversationId(null)
     setSelectedConversation(null)
+    refetchConversations()
   }
 
   const handleSendMessage = async () => {
@@ -196,7 +198,7 @@ export function TeacherDoubts() {
         message: newMessage.trim(),
       })
       setNewMessage('')
-      await refetchMessages()
+      await fetchChat()
     } catch (err) {
       console.error('Failed to send message:', err)
     } finally {
@@ -226,11 +228,8 @@ export function TeacherDoubts() {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
         <AlertCircle className="h-12 w-12 text-red-500" />
-        <p className="text-lg text-gray-600">Failed to load doubt solving data</p>
-        <button
-          onClick={refetchClasses}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
+        <p className="text-lg text-gray-600">Failed to load doubt data</p>
+        <button onClick={refetchClasses} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
           <RefreshCw className="h-4 w-4" /> Retry
         </button>
       </div>
@@ -242,17 +241,19 @@ export function TeacherDoubts() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Doubt Solving</h1>
-          <button
-            onClick={refetchClasses}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 border rounded-lg hover:bg-gray-50"
-          >
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Doubt Groups</h1>
+            <p className="text-gray-500 text-sm">Class-wise subject groups with doubts</p>
+          </div>
+          <button onClick={refetchClasses} className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 border rounded-lg hover:bg-gray-50">
             <RefreshCw className={cn('h-4 w-4', classesLoading && 'animate-spin')} /> Refresh
           </button>
         </div>
 
         {classesLoading ? (
-          <SkeletonCards />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => <div key={i} className="h-44 bg-gray-100 rounded-xl animate-pulse" />)}
+          </div>
         ) : !classes?.length ? (
           <div className="text-center py-16 text-gray-500">
             <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300" />
@@ -261,17 +262,14 @@ export function TeacherDoubts() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {classes.map((cls) => (
-              <div
-                key={cls.id}
-                onClick={() => handleSelectClass(cls)}
-                className="bg-white rounded-xl border shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer"
-              >
+              <div key={cls.classId} onClick={() => handleSelectClass(cls)} className="bg-white rounded-xl border shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer">
                 <div className="flex items-start gap-3 mb-4">
                   <div className="p-2 bg-indigo-50 rounded-lg">
-                    <MessageCircle className="h-5 w-5 text-indigo-600" />
+                    <Users className="h-5 w-5 text-indigo-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate">{cls.name}</h3>
+                    <h3 className="font-semibold text-gray-900 truncate">{cls.className}</h3>
+                    <p className="text-xs text-gray-500">{cls.classCode}</p>
                   </div>
                   {cls.pendingDoubts > 0 && (
                     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
@@ -279,22 +277,21 @@ export function TeacherDoubts() {
                     </span>
                   )}
                 </div>
-
                 {cls.subjects?.length > 0 && (
                   <div className="mb-3">
                     <div className="flex flex-wrap gap-1.5">
-                      {cls.subjects.map((subject, sIdx) => (
-                        <span key={sIdx} className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-md">
-                          {typeof subject === 'string' ? subject : (subject as any).name}
-                        </span>
+                      {cls.subjects.map((s) => (
+                        <span key={s.id} className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-md">{s.name}</span>
                       ))}
                     </div>
                   </div>
                 )}
-
                 <div className="flex items-center gap-1.5 text-sm text-gray-500">
                   <Users className="h-4 w-4" />
                   <span>{cls.totalStudents} students</span>
+                  {cls.role === 'coordinator' && (
+                    <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium bg-purple-100 text-purple-700 rounded">Coordinator</span>
+                  )}
                 </div>
               </div>
             ))}
@@ -304,25 +301,19 @@ export function TeacherDoubts() {
     )
   }
 
-  // VIEW 2: Conversations List
+  // VIEW 2: Subject Groups
   if (view === 'conversations') {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <button
-            onClick={handleBackToClasses}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
+          <button onClick={handleBackToClasses} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <ArrowLeft className="h-5 w-5 text-gray-600" />
           </button>
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-900">{selectedClassName}</h1>
-            <p className="text-sm text-gray-500">Conversations</p>
+            <p className="text-sm text-gray-500">Subject doubt groups</p>
           </div>
-          <button
-            onClick={refetchConversations}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 border rounded-lg hover:bg-gray-50"
-          >
+          <button onClick={refetchConversations} className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 border rounded-lg hover:bg-gray-50">
             <RefreshCw className={cn('h-4 w-4', convLoading && 'animate-spin')} /> Refresh
           </button>
         </div>
@@ -331,7 +322,7 @@ export function TeacherDoubts() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by student name or roll number..."
+            placeholder="Search by subject..."
             value={conversationSearch}
             onChange={(e) => setConversationSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -341,36 +332,37 @@ export function TeacherDoubts() {
         {convError && (
           <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
             <AlertCircle className="h-4 w-4" />
-            Failed to load conversations. <button onClick={refetchConversations} className="underline">Retry</button>
+            Failed to load groups. <button onClick={refetchConversations} className="underline">Retry</button>
           </div>
         )}
 
         {convLoading ? (
-          <SkeletonConversations />
+          <div className="space-y-3">
+            {[...Array(6)].map((_, i) => <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />)}
+          </div>
         ) : !filteredConversations.length ? (
           <div className="text-center py-16 text-gray-500">
             <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-            <p className="text-lg">
-              {conversationSearch ? 'No conversations match your search' : 'No conversations yet'}
-            </p>
+            <p className="text-lg">{conversationSearch ? 'No groups match your search' : 'No doubt groups yet'}</p>
           </div>
         ) : (
           <div className="space-y-3">
             {filteredConversations.map((conv) => (
-              <div
-                key={conv.id}
-                onClick={() => handleSelectConversation(conv)}
-                className="bg-white rounded-xl border shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer"
-              >
+              <div key={conv.id} onClick={() => handleSelectConversation(conv)} className="bg-white rounded-xl border shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer">
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 p-2 bg-gray-100 rounded-full">
-                    <User className="h-5 w-5 text-gray-500" />
+                  <div className="flex-shrink-0 p-2 bg-indigo-50 rounded-full">
+                    <MessageCircle className="h-5 w-5 text-indigo-500" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate">{conv.studentName}</h3>
-                        <p className="text-xs text-gray-500">{conv.rollNumber}</p>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-gray-900 truncate">{conv.subject}</h3>
+                          <span className="text-xs text-gray-400">{conv.subjectCode}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 flex items-center gap-1">
+                          <Users className="h-3 w-3" /> {conv.studentCount} students in group
+                        </p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <StatusBadge status={conv.status} />
@@ -381,18 +373,16 @@ export function TeacherDoubts() {
                         )}
                       </div>
                     </div>
-                    <div className="mt-1.5">
-                      <span className="inline-block px-1.5 py-0.5 text-xs bg-indigo-50 text-indigo-600 rounded mb-1">
-                        {conv.subject}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 mt-1">
-                      <p className="text-sm text-gray-600 truncate flex-1">{conv.lastMessage}</p>
-                      <span className="text-xs text-gray-400 flex-shrink-0 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {formatTime(conv.lastMessageTime)}
-                      </span>
-                    </div>
+                    {conv.lastMessage && (
+                      <div className="flex items-center justify-between gap-2 mt-2">
+                        <p className="text-sm text-gray-600 truncate flex-1">
+                          <span className="font-medium">{conv.lastMessageSender}</span>: {conv.lastMessage}
+                        </p>
+                        <span className="text-xs text-gray-400 flex-shrink-0 flex items-center gap-1">
+                          <Clock className="h-3 w-3" /> {formatTime(conv.lastMessageTime)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -403,25 +393,23 @@ export function TeacherDoubts() {
     )
   }
 
-  // VIEW 3: Chat
+  // VIEW 3: Group Chat
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      {/* Chat Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b bg-white">
-        <button
-          onClick={handleBackToConversations}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
+        <button onClick={handleBackToConversations} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
           <ArrowLeft className="h-5 w-5 text-gray-600" />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h2 className="font-semibold text-gray-900 truncate">
-              {selectedConversation?.studentName}
-            </h2>
-            <span className="text-xs text-gray-500">({selectedConversation?.rollNumber})</span>
+            <h2 className="font-semibold text-gray-900 truncate">{selectedConversation?.subject}</h2>
+            <span className="flex items-center gap-1 text-[10px] font-medium text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">
+              <Users className="w-2.5 h-2.5" /> Group
+            </span>
           </div>
-          <p className="text-xs text-gray-500">{selectedConversation?.subject}</p>
+          <p className="text-xs text-gray-500">
+            {chatData?.conversation?.studentCount || selectedConversation?.studentCount || 0} students &bull; {selectedConversation?.className}
+          </p>
         </div>
         <StatusBadge status={selectedConversation?.status ?? 'new'} />
         {selectedConversation?.status !== 'resolved' && (
@@ -430,88 +418,71 @@ export function TeacherDoubts() {
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
           >
             <CheckCircle2 className="h-4 w-4" />
-            Mark as Resolved
+            Resolve
           </button>
         )}
       </div>
 
-      {/* Messages Area */}
-      {msgError ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-4">
-          <AlertCircle className="h-10 w-10 text-red-500" />
-          <p className="text-gray-600">Failed to load messages</p>
-          <button
-            onClick={refetchMessages}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <RefreshCw className="h-4 w-4" /> Retry
-          </button>
-        </div>
-      ) : msgLoading ? (
-        <SkeletonMessages />
-      ) : !messages.length ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
-          <MessageCircle className="h-12 w-12 mb-3 text-gray-300" />
-          <p>No messages yet. Start the conversation.</p>
-        </div>
-      ) : (
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={cn('flex', msg.sender === 'teacher' ? 'justify-end' : 'justify-start')}
-            >
-              <div className="flex items-end gap-2 max-w-[75%]">
-                {msg.sender === 'student' && (
-                  <div className="flex-shrink-0 p-1.5 bg-gray-200 rounded-full">
-                    <User className="h-3 w-3 text-gray-500" />
-                  </div>
-                )}
-                <div>
-                  <div
-                    className={cn(
-                      'px-4 py-2.5 rounded-2xl text-sm leading-relaxed',
-                      msg.sender === 'teacher'
-                        ? 'bg-indigo-600 text-white rounded-br-md'
-                        : 'bg-white text-gray-900 border rounded-bl-md shadow-sm'
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-gray-500">
+            <MessageCircle className="h-12 w-12 mb-3 text-gray-300" />
+            <p>No messages yet. Students will post doubts here.</p>
+          </div>
+        ) : (
+          messages.map((msg) => {
+            const isTeacher = msg.senderRole === 'TEACHER'
+            return (
+              <div key={msg.id} className={cn('flex', isTeacher ? 'justify-end' : 'justify-start')}>
+                <div className="flex items-end gap-2 max-w-[75%]">
+                  {!isTeacher && (
+                    <div className="flex-shrink-0 p-1.5 bg-gray-200 rounded-full">
+                      <User className="h-3 w-3 text-gray-500" />
+                    </div>
+                  )}
+                  <div>
+                    {!isTeacher && (
+                      <p className="text-[10px] font-medium text-gray-500 mb-0.5 ml-1">
+                        {msg.senderName}
+                      </p>
                     )}
-                  >
-                    {msg.message}
+                    <div
+                      className={cn(
+                        'px-4 py-2.5 rounded-2xl text-sm leading-relaxed',
+                        isTeacher
+                          ? 'bg-indigo-600 text-white rounded-br-md'
+                          : 'bg-white text-gray-900 border rounded-bl-md shadow-sm'
+                      )}
+                    >
+                      {msg.text}
+                    </div>
+                    <div className={cn('flex items-center gap-1 mt-1 text-[10px] text-gray-400', isTeacher ? 'justify-end' : 'justify-start')}>
+                      <span>{formatMessageTime(msg.createdAt)}</span>
+                      {isTeacher && (
+                        msg.read ? <Eye className="h-3 w-3 text-blue-400" /> : <Eye className="h-3 w-3 text-gray-300" />
+                      )}
+                    </div>
                   </div>
-                  <div
-                    className={cn(
-                      'flex items-center gap-1 mt-1 text-[10px] text-gray-400',
-                      msg.sender === 'teacher' ? 'justify-end' : 'justify-start'
-                    )}
-                  >
-                    <span>{formatMessageTime(msg.timestamp)}</span>
-                    {msg.sender === 'teacher' && (
-                      msg.read ? (
-                        <Eye className="h-3 w-3 text-blue-400" />
-                      ) : (
-                        <Eye className="h-3 w-3 text-gray-300" />
-                      )
-                    )}
-                  </div>
+                  {isTeacher && (
+                    <div className="flex-shrink-0 p-1.5 bg-indigo-100 rounded-full">
+                      <User className="h-3 w-3 text-indigo-500" />
+                    </div>
+                  )}
                 </div>
-                {msg.sender === 'teacher' && (
-                  <div className="flex-shrink-0 p-1.5 bg-indigo-100 rounded-full">
-                    <User className="h-3 w-3 text-indigo-500" />
-                  </div>
-                )}
               </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-      )}
+            )
+          })
+        )}
+        <div ref={messagesEndRef} />
+      </div>
 
-      {/* Message Input */}
+      {/* Input */}
       {selectedConversation?.status !== 'resolved' && (
         <div className="flex items-center gap-3 px-4 py-3 border-t bg-white">
           <input
             type="text"
-            placeholder="Type your message..."
+            placeholder="Reply to the group..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -535,7 +506,7 @@ export function TeacherDoubts() {
 
       {selectedConversation?.status === 'resolved' && (
         <div className="px-4 py-3 border-t bg-gray-50 text-center text-sm text-gray-500">
-          This conversation has been resolved.
+          This doubt group has been resolved.
         </div>
       )}
     </div>

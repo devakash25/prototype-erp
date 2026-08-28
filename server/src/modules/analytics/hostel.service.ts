@@ -43,7 +43,7 @@ class HostelService {
         orderBy: { createdAt: 'desc' },
         take: 5,
         include: {
-          creator: { include: { user: { select: { firstName: true, lastName: true } } } },
+          creator: { select: { firstName: true, lastName: true } },
         },
       }),
     ]);
@@ -114,7 +114,7 @@ class HostelService {
         category: c.category,
         status: c.status,
         priority: c.priority,
-        creator: c.creator ? `${c.creator.user.firstName} ${c.creator.user.lastName}` : null,
+        creator: c.creator ? `${c.creator.firstName} ${c.creator.lastName}` : null,
         createdAt: c.createdAt,
       })),
       hostelWiseStats: hostelStats,
@@ -545,10 +545,10 @@ class HostelService {
       where,
       include: {
         creator: {
-          include: { user: { select: { firstName: true, lastName: true, email: true } } },
+          select: { id: true, firstName: true, lastName: true, email: true },
         },
         assignee: {
-          include: { user: { select: { firstName: true, lastName: true } } },
+          select: { id: true, firstName: true, lastName: true },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -561,13 +561,11 @@ class HostelService {
       category: c.category,
       priority: c.priority,
       status: c.status,
-      creator: {
-        id: c.creator?.id,
-        name: c.creator ? `${c.creator.user.firstName} ${c.creator.user.lastName}` : null,
-        email: c.creator?.user.email,
-      },
+      creator: c.creator
+        ? { id: c.creator.id, name: `${c.creator.firstName} ${c.creator.lastName}`, email: c.creator.email }
+        : null,
       assignee: c.assignee
-        ? { id: c.assignee.id, name: `${c.assignee.user.firstName} ${c.assignee.user.lastName}` }
+        ? { id: c.assignee.id, name: `${c.assignee.firstName} ${c.assignee.lastName}` }
         : null,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
@@ -582,8 +580,6 @@ class HostelService {
     priority?: string;
     assigneeId?: string;
   }) {
-    const ticketNumber = `HCM-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
-
     return prisma.helpdeskTicket.create({
       data: {
         institutionId,
@@ -594,11 +590,10 @@ class HostelService {
         category: 'hostel',
         priority: (data.priority || 'MEDIUM') as any,
         status: 'OPEN',
-        ticketNumber,
       },
       include: {
         creator: {
-          include: { user: { select: { firstName: true, lastName: true } } },
+          select: { id: true, firstName: true, lastName: true },
         },
       },
     });
@@ -629,10 +624,10 @@ class HostelService {
       data: updateData,
       include: {
         creator: {
-          include: { user: { select: { firstName: true, lastName: true } } },
+          select: { id: true, firstName: true, lastName: true },
         },
         assignee: {
-          include: { user: { select: { firstName: true, lastName: true } } },
+          select: { id: true, firstName: true, lastName: true },
         },
       },
     });
@@ -786,7 +781,7 @@ class HostelService {
       prisma.helpdeskTicket.findMany({
         where: { institutionId, category: 'hostel', updatedAt: { gte: thirtyDaysAgo } },
         include: {
-          creator: { include: { user: { select: { firstName: true, lastName: true } } } },
+          creator: { select: { firstName: true, lastName: true } },
         },
         orderBy: { updatedAt: 'desc' },
         take: 50,
@@ -821,7 +816,7 @@ class HostelService {
         type: 'complaint',
         description: `Complaint "${c.title}" - ${c.status.toLowerCase().replace('_', ' ')}`,
         date: c.updatedAt,
-        meta: { complaintId: c.id, status: c.status, creator: `${c.creator.user.firstName} ${c.creator.user.lastName}` },
+        meta: { complaintId: c.id, status: c.status, creator: `${c.creator.firstName} ${c.creator.lastName}` },
       });
     });
 

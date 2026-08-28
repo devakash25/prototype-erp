@@ -8,6 +8,7 @@ import {
 import api from '@/services/api'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
+import { GreetingBanner } from '@/components/GreetingBanner'
 
 export function HostelDashboard() {
   const { user } = useAuthStore()
@@ -73,13 +74,8 @@ export function HostelDashboard() {
 
   return (
     <div className="bg-slate-900 min-h-screen p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Hostel Warden Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Welcome back, {user?.fullName || 'Warden'} — manage hostels & rooms
-          </p>
-        </div>
+      <GreetingBanner />
+      <div className="flex items-center justify-end">
         <button
           onClick={loadDashboard}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50"

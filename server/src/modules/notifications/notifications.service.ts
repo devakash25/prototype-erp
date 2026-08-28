@@ -89,7 +89,7 @@ export class NotificationService {
   }
 
   async getNotifications(institutionId: string, page = 1, limit = 20) {
-    const [items, total] = await Promise.all([
+    const [items, total, sent, pending] = await Promise.all([
       prisma.notification.findMany({
         where: { institutionId },
         include: {
@@ -103,15 +103,36 @@ export class NotificationService {
         take: limit,
       }),
       prisma.notification.count({ where: { institutionId } }),
+      prisma.notification.count({ where: { institutionId, isSent: true } }),
+      prisma.notification.count({ where: { institutionId, isScheduled: true, isSent: false } }),
     ]);
 
     return {
-      items,
-      total,
+      notifications: items,
+      stats: { total, sent, pending },
       page,
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async updateNotification(id: string, data: { title?: string; message?: string; type?: string; target?: string; scheduledAt?: Date }) {
+    const notification = await prisma.notification.update({
+      where: { id },
+      data: {
+        ...data,
+        type: data.type as any,
+        target: data.target as any,
+      },
+      include: {
+        sender: {
+          select: { id: true, fullName: true, avatar: true },
+        },
+        _count: { select: { recipients: true } },
+      },
+    });
+
+    return notification;
   }
 
   async getUserNotifications(userId: string, unreadOnly = false) {
@@ -161,6 +182,32 @@ export class NotificationService {
     await prisma.notification.delete({ where: { id } });
     logger.info({ notificationId: id }, 'Notification deleted');
   }
+
+  async getChannels(institutionId: string) {
+    const setting = await prisma.institutionSetting.findUnique({
+      where: { institutionId_key: { institutionId, key: 'notification_channels' } },
+    });
+    const val = setting?.value;
+    return (typeof val === 'object' && val !== null ? val : { email: true, sms: false, push: true, inApp: true }) as any;
+  }
+
+  async getNotificationStats(institutionId: string) {
+    const [total, sent, read] = await Promise.all([
+      prisma.notification.count({ where: { institutionId } }),
+      prisma.notification.count({ where: { institutionId, isSent: true } }),
+      prisma.userNotification.count({ where: { notification: { institutionId }, isRead: true } }),
+    ]);
+    return { total, sent, read, unread: total - read };
+  }
+
+  async updateChannels(institutionId: string, channels: any) {
+    await prisma.institutionSetting.upsert({
+      where: { institutionId_key: { institutionId, key: 'notification_channels' } },
+      update: { value: channels },
+      create: { institutionId, key: 'notification_channels', value: channels },
+    });
+    return channels;
+  }
 }
 
 export class AnnouncementService {
@@ -191,12 +238,9 @@ export class AnnouncementService {
   }
 
   async getAnnouncements(institutionId: string, page = 1, limit = 20) {
-    const [items, total] = await Promise.all([
+    const [items, total, published, draft] = await Promise.all([
       prisma.announcement.findMany({
-        where: {
-          institutionId,
-          isPublished: true,
-        },
+        where: { institutionId },
         include: {
           author: {
             select: { id: true, fullName: true, avatar: true },
@@ -206,14 +250,19 @@ export class AnnouncementService {
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.announcement.count({
-        where: { institutionId, isPublished: true },
-      }),
+      prisma.announcement.count({ where: { institutionId } }),
+      prisma.announcement.count({ where: { institutionId, isPublished: true } }),
+      prisma.announcement.count({ where: { institutionId, isPublished: false } }),
     ]);
 
+    const announcements = items.map(a => ({
+      ...a,
+      status: a.isPublished ? 'PUBLISHED' : (a.expiresAt && a.expiresAt < new Date() ? 'ARCHIVED' : 'DRAFT'),
+    }));
+
     return {
-      items,
-      total,
+      announcements,
+      stats: { total, published, draft },
       page,
       limit,
       totalPages: Math.ceil(total / limit),

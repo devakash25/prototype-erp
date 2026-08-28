@@ -77,8 +77,11 @@ export class ParentService {
 
     const [
       todayAttendanceRecords,
+      todayDailyRecords,
       totalAttendanceRecords,
       presentRecords,
+      totalDailyRecords,
+      presentDailyRecords,
       pendingAssignments,
       upcomingExams,
       feeDue,
@@ -91,8 +94,13 @@ export class ParentService {
       prisma.attendance.findMany({
         where: { studentId: student.id, date: { gte: today, lt: tomorrow } },
       }),
+      prisma.dailyAttendance.findMany({
+        where: { studentId: student.id, date: { gte: today, lt: tomorrow } },
+      }),
       prisma.attendance.count({ where: { studentId: student.id } }),
       prisma.attendance.count({ where: { studentId: student.id, status: 'PRESENT' } }),
+      prisma.dailyAttendance.count({ where: { studentId: student.id } }),
+      prisma.dailyAttendance.count({ where: { studentId: student.id, status: 'PRESENT' } }),
       prisma.assignmentSubmission.count({
         where: {
           studentId: student.id,
@@ -150,12 +158,16 @@ export class ParentService {
 
     const todayPresentCount = todayAttendanceRecords.filter(
       (r) => r.status === 'PRESENT' || r.status === 'LATE'
+    ).length + todayDailyRecords.filter(
+      (r) => r.status === 'PRESENT' || r.status === 'LATE'
     ).length;
-    const todayTotalCount = todayAttendanceRecords.length;
+    const todayTotalCount = todayAttendanceRecords.length + todayDailyRecords.length;
 
+    const totalAll = totalAttendanceRecords + totalDailyRecords;
+    const presentAll = presentRecords + presentDailyRecords;
     const overallAttendance =
-      totalAttendanceRecords > 0
-        ? Math.round((presentRecords / totalAttendanceRecords) * 100)
+      totalAll > 0
+        ? Math.round((presentAll / totalAll) * 100)
         : 0;
 
     let cgpa = 0;
@@ -242,7 +254,7 @@ export class ParentService {
 
     const subjectIds = await this.getSubjectIdsForCourse(student.courseId);
 
-    const [todayRecords, monthlyRecords, allRecords] = await Promise.all([
+    const [todayRecords, monthlyRecords, allRecords, todayDaily, monthlyDaily, allDaily] = await Promise.all([
       prisma.attendance.findMany({
         where: {
           studentId: student.id,
@@ -255,24 +267,36 @@ export class ParentService {
         where: {
           studentId: student.id,
           date: { gte: monthStart, lte: monthEnd },
-          subjectId: { in: subjectIds },
         },
       }),
       prisma.attendance.findMany({
         where: {
           studentId: student.id,
           date: { gte: thirtyDaysAgo },
-          subjectId: { in: subjectIds },
         },
         include: { subject: { select: { name: true, code: true } } },
         orderBy: { date: 'desc' },
         take: 10,
       }),
+      prisma.dailyAttendance.findMany({
+        where: { studentId: student.id, date: { gte: today, lt: tomorrow } },
+        include: { class: { select: { name: true, code: true } } },
+      }),
+      prisma.dailyAttendance.findMany({
+        where: { studentId: student.id, date: { gte: monthStart, lte: monthEnd } },
+      }),
+      prisma.dailyAttendance.findMany({
+        where: { studentId: student.id, date: { gte: thirtyDaysAgo } },
+        include: { class: { select: { name: true, code: true } } },
+        orderBy: { date: 'desc' },
+        take: 10,
+      }),
     ]);
 
+    const todayAllRecords = [...todayRecords, ...todayDaily];
     let todayStatus = 'NO_RECORD';
-    if (todayRecords.length > 0) {
-      const statuses = todayRecords.map((r) => r.status);
+    if (todayAllRecords.length > 0) {
+      const statuses = todayAllRecords.map((r) => r.status);
       if (statuses.includes('PRESENT')) todayStatus = 'PRESENT';
       else if (statuses.includes('LATE')) todayStatus = 'LATE';
       else if (statuses.includes('EXCUSED')) todayStatus = 'EXCUSED';
@@ -280,19 +304,26 @@ export class ParentService {
     }
 
     const monthlyStats = {
-      present: monthlyRecords.filter((r) => r.status === 'PRESENT').length,
-      absent: monthlyRecords.filter((r) => r.status === 'ABSENT').length,
-      late: monthlyRecords.filter((r) => r.status === 'LATE').length,
-      excused: monthlyRecords.filter((r) => r.status === 'EXCUSED').length,
-      total: monthlyRecords.length,
+      present: monthlyRecords.filter((r) => r.status === 'PRESENT').length + monthlyDaily.filter((r) => r.status === 'PRESENT').length,
+      absent: monthlyRecords.filter((r) => r.status === 'ABSENT').length + monthlyDaily.filter((r) => r.status === 'ABSENT').length,
+      late: monthlyRecords.filter((r) => r.status === 'LATE').length + monthlyDaily.filter((r) => r.status === 'LATE').length,
+      excused: monthlyRecords.filter((r) => r.status === 'EXCUSED').length + monthlyDaily.filter((r) => r.status === 'EXCUSED').length,
+      total: monthlyRecords.length + monthlyDaily.length,
     };
 
     const subjectMap = new Map<string, { subject: string; present: number; total: number }>();
+    // Include subject-level attendance
     for (const r of allRecords) {
       const key = r.subjectId;
-      if (!subjectMap.has(key)) {
-        subjectMap.set(key, { subject: r.subject.name, present: 0, total: 0 });
-      }
+      if (!subjectMap.has(key)) subjectMap.set(key, { subject: r.subject.name, present: 0, total: 0 });
+      const s = subjectMap.get(key)!;
+      s.total++;
+      if (r.status === 'PRESENT' || r.status === 'LATE') s.present++;
+    }
+    // Include coordinator daily attendance
+    for (const r of allDaily) {
+      const key = `daily-${r.classId}`;
+      if (!subjectMap.has(key)) subjectMap.set(key, { subject: r.class.name, present: 0, total: 0 });
       const s = subjectMap.get(key)!;
       s.total++;
       if (r.status === 'PRESENT' || r.status === 'LATE') s.present++;
@@ -306,12 +337,13 @@ export class ParentService {
       percentage: data.total > 0 ? Math.round((data.present / data.total) * 100) : 0,
     }));
 
+    const allMerged = [...allRecords, ...allDaily];
     const calendar: { date: string; status: string }[] = [];
     for (let i = 29; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
-      const dayRecords = allRecords.filter(
+      const dayRecords = allMerged.filter(
         (r) => r.date.toISOString().split('T')[0] === dateStr
       );
       if (dayRecords.length > 0) {
@@ -333,12 +365,12 @@ export class ParentService {
       todayStatus,
       monthlyStats,
       subjectWise,
-      recentAttendance: allRecords.map((r) => ({
+      recentAttendance: allMerged.map((r) => ({
         id: r.id,
         date: r.date,
         status: r.status,
-        subject: r.subject.name,
-        subjectCode: r.subject.code,
+        subject: (r as any).subject?.name || (r as any).class?.name || 'Unknown',
+        subjectCode: (r as any).subject?.code || (r as any).class?.code || '',
         remarks: r.remarks,
       })),
       calendar,

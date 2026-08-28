@@ -26,6 +26,16 @@ export const createAnnouncementSchema = z.object({
   }),
 });
 
+export const updateNotificationSchema = z.object({
+  body: z.object({
+    title: z.string().min(1).optional(),
+    message: z.string().min(1).optional(),
+    type: z.enum(['INFO', 'WARNING', 'URGENT', 'SUCCESS', 'ERROR']).optional(),
+    target: z.enum(['ALL', 'STUDENTS', 'EMPLOYEES', 'TEACHERS', 'PARENTS', 'DEPARTMENT', 'SPECIFIC_USERS']).optional(),
+    scheduledAt: z.string().datetime().optional(),
+  }),
+});
+
 export const updateAnnouncementSchema = z.object({
   body: z.object({
     title: z.string().min(1).optional(),

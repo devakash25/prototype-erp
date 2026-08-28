@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
 import { StatCard } from '@/components/StatCard'
+import { GreetingBanner } from '@/components/GreetingBanner'
 import api from '@/services/api'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -73,11 +74,8 @@ export function AccountantDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Accountant Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1">Fee collection & financial overview</p>
-        </div>
+      <GreetingBanner />
+      <div className="flex items-center justify-end">
         <button
           onClick={loadDashboard}
           className="flex items-center gap-2 px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-300 hover:bg-slate-600"

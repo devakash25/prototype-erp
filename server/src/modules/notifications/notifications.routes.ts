@@ -4,6 +4,7 @@ import { validate } from '../../middleware/validate';
 import { authenticate, authorize } from '../../middleware/auth';
 import {
   createNotificationSchema,
+  updateNotificationSchema,
   createAnnouncementSchema,
   updateAnnouncementSchema,
 } from './notifications.validation';
@@ -12,7 +13,7 @@ const router = Router();
 
 router.use(authenticate);
 
-// Notifications
+// Notifications — read: all authenticated; write: management only
 router.post(
   '/',
   authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL'),
@@ -22,9 +23,18 @@ router.post(
 router.get('/', notificationController.getNotifications);
 router.get('/my', notificationController.getUserNotifications);
 router.get('/unread-count', notificationController.getUnreadCount);
+router.get('/channels', notificationController.getChannels);
+router.get('/stats', notificationController.getNotificationStats);
+router.put('/channels', authorize('CHIEF_HEAD'), notificationController.updateChannels);
+router.put(
+  '/:id',
+  authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL'),
+  validate(updateNotificationSchema),
+  notificationController.updateNotification
+);
 router.patch('/:id/read', notificationController.markAsRead);
 router.patch('/read-all', notificationController.markAllAsRead);
-router.delete('/:id', notificationController.deleteNotification);
+router.delete('/:id', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL'), notificationController.deleteNotification);
 
 export default router;
 

@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma, LibraryBookStatus, IssueStatus } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -50,7 +50,7 @@ interface BookFilters {
 }
 
 interface IssueFilters {
-  status?: IssueStatus;
+  status?: string;
 }
 
 export class LibrarianService {
@@ -477,7 +477,6 @@ export class LibrarianService {
         employee: {
           include: {
             user: { select: { firstName: true, lastName: true, email: true } },
-            department: { select: { name: true } },
           },
         },
       },
@@ -536,7 +535,7 @@ export class LibrarianService {
       throw new Error('Issue record not found');
     }
 
-    if (issue.fine === null || issue.fine === 0) {
+    if (issue.fine === null || Number(issue.fine) === 0) {
       throw new Error('No fine to collect');
     }
 
@@ -623,7 +622,6 @@ export class LibrarianService {
         employee: {
           include: {
             user: { select: { firstName: true, lastName: true, email: true } },
-            department: { select: { name: true } },
           },
         },
       },
@@ -668,7 +666,7 @@ export class LibrarianService {
             id: issue.employeeId!,
             name: `${issue.employee.user.firstName} ${issue.employee.user.lastName}`,
             email: issue.employee.user.email,
-            department: issue.employee.department?.name,
+            department: issue.employee.department as string,
             issueCount: 0,
             totalFines: 0,
           });
@@ -747,8 +745,7 @@ export class LibrarianService {
         prisma.libraryIssue.findMany({
           where: {
             book: { institutionId },
-            returnDate: { gte: twelveMonthsAgo },
-            returnDate: { not: null },
+            returnDate: { gte: twelveMonthsAgo, not: null },
           },
           select: { returnDate: true },
         }),
@@ -907,7 +904,7 @@ export class LibrarianService {
             },
           },
         },
-        orderBy: { updatedAt: 'desc' },
+        orderBy: { createdAt: 'desc' },
         take: 20,
       }),
     ]);
@@ -972,7 +969,7 @@ export class LibrarianService {
 
       activities.push({
         type: 'fine',
-        date: fine.updatedAt,
+        date: fine.createdAt,
         description: `Fine of ₹${fine.fine} collected from ${memberName}`,
         book: fine.book.title,
         member: memberName,

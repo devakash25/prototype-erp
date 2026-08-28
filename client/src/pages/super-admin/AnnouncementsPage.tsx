@@ -55,7 +55,7 @@ export function AnnouncementsPage() {
         type: form.type,
         target: form.target,
         priority: form.priority,
-        status: form.status,
+        isPublished: form.status === 'PUBLISHED',
       }
 
       if (editingId) {
@@ -83,7 +83,7 @@ export function AnnouncementsPage() {
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
-      await api.put(`/announcements/${id}`, { status: newStatus })
+      await api.put(`/announcements/${id}`, { isPublished: newStatus === 'PUBLISHED' })
       refetch()
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Failed to update status')

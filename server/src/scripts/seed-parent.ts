@@ -155,7 +155,7 @@ async function main() {
       },
     });
 
-    students.push(s1, s2);
+    students.push(s1 as any, s2 as any);
     console.log('Created 2 sample students');
   }
 

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { cn, formatCurrency, formatNumber } from '@/lib/utils'
 import { StatCard } from '@/components/StatCard'
+import { GreetingBanner } from '@/components/GreetingBanner'
 import api from '@/services/api'
 
 export function DirectorDashboard() {
@@ -62,11 +63,8 @@ export function DirectorDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Director Dashboard</h1>
-          <p className="text-gray-500 text-sm mt-1">Institutional overview & strategic analytics</p>
-        </div>
+      <GreetingBanner />
+      <div className="flex items-center justify-end">
         <button onClick={loadDashboard} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm hover:bg-gray-50">
           <RefreshCw className="w-4 h-4" />Refresh
         </button>

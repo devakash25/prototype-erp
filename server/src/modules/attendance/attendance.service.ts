@@ -14,6 +14,17 @@ interface SubjectAttendanceInput {
 }
 
 class AttendanceService {
+  private isToday(dateStr: string): boolean {
+    const today = new Date().toISOString().split('T')[0];
+    return dateStr === today;
+  }
+
+  private validateToday(dateStr: string): void {
+    if (!this.isToday(dateStr)) {
+      throw new ConflictError('Attendance can only be marked for today. Past dates are read-only.');
+    }
+  }
+
   private async resolve(userId: string) {
     const employee = await prisma.employee.findFirst({
       where: { userId, isActive: true },
@@ -151,6 +162,7 @@ class AttendanceService {
   }
 
   async enableSubjectMode(userId: string, courseId: string, date: string) {
+    this.validateToday(date);
     const { employeeId, institutionId } = await this.validateCoordinator(userId, courseId);
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0);
@@ -198,6 +210,7 @@ class AttendanceService {
   }
 
   async disableSubjectMode(userId: string, courseId: string, date: string) {
+    this.validateToday(date);
     const { employeeId, institutionId } = await this.validateCoordinator(userId, courseId);
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0);
@@ -251,6 +264,7 @@ class AttendanceService {
   }
 
   async markDailyAttendance(userId: string, courseId: string, date: string, session: 'MORNING' | 'EVENING', records: DailyAttendanceInput[]) {
+    this.validateToday(date);
     const { employeeId, institutionId } = await this.validateCoordinator(userId, courseId);
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0);
@@ -405,6 +419,7 @@ class AttendanceService {
   }
 
   async markSubjectAttendance(userId: string, timetableEntryId: string, date: string, records: SubjectAttendanceInput[]) {
+    this.validateToday(date);
     const { employeeId, institutionId, entry } = await this.validateSubjectTeacher(userId, timetableEntryId);
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0);
@@ -504,6 +519,7 @@ class AttendanceService {
   }
 
   async lockAttendance(userId: string, courseId: string, date: string) {
+    this.validateToday(date);
     const { employeeId } = await this.validateCoordinator(userId, courseId);
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0);
@@ -525,6 +541,7 @@ class AttendanceService {
   }
 
   async unlockAttendance(userId: string, courseId: string, date: string) {
+    this.validateToday(date);
     const { employeeId } = await this.validateCoordinator(userId, courseId);
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0);
@@ -589,6 +606,50 @@ class AttendanceService {
         recipients: { create: userIds.map(id => ({ userId: id })) },
       },
     });
+  }
+
+  async getMonthlyOverview(userId: string, courseId: string, year: number, month: number) {
+    await this.validateCoordinator(userId, courseId);
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0, 23, 59, 59);
+
+    const modes = await prisma.attendanceMode.findMany({
+      where: { classId: courseId, date: { gte: start, lte: end } },
+      select: { date: true, mode: true, locked: true },
+    });
+
+    const dailyRecords = await prisma.dailyAttendance.groupBy({
+      by: ['date', 'session'],
+      where: { classId: courseId, date: { gte: start, lte: end } },
+      _count: { id: true },
+    });
+
+    const totalStudents = await prisma.student.count({
+      where: { courseId, isActive: true },
+    });
+
+    const dateMap = new Map<string, any>();
+    for (const m of modes) {
+      const key = m.date.toISOString().split('T')[0];
+      dateMap.set(key, { date: key, mode: m.mode, locked: m.locked, morning: 0, evening: 0, totalStudents });
+    }
+
+    for (const r of dailyRecords) {
+      const key = r.date.toISOString().split('T')[0];
+      if (!dateMap.has(key)) {
+        dateMap.set(key, { date: key, mode: null, locked: false, morning: 0, evening: 0, totalStudents });
+      }
+      const entry = dateMap.get(key)!;
+      if (r.session === 'MORNING') entry.morning = r._count.id;
+      else entry.evening = r._count.id;
+    }
+
+    return {
+      year,
+      month,
+      totalStudents,
+      dates: Array.from(dateMap.values()),
+    };
   }
 }
 

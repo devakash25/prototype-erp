@@ -211,6 +211,66 @@ const principalNavigation: NavItem[] = [
   },
 ]
 
+// School-specific roles (use principal routes for now since similar function)
+const managerNavigation: NavItem[] = [
+  { label: 'Dashboard', icon: LayoutDashboard, href: '/principal/dashboard' },
+  {
+    label: 'Academic',
+    icon: GraduationCap,
+    children: [
+      { label: 'Departments', icon: Building, href: '/principal/departments' },
+      { label: 'Timetable', icon: Clock, href: '/principal/timetable' },
+      { label: 'Attendance', icon: UserCheck, href: '/principal/attendance' },
+      { label: 'LMS', icon: BookOpenCheck, href: '/principal/lms' },
+    ],
+  },
+  {
+    label: 'Faculty',
+    icon: Users,
+    children: [
+      { label: 'Faculty Status', icon: Users, href: '/principal/faculty' },
+      { label: 'Leave Management', icon: ClipboardList, href: '/principal/leave' },
+    ],
+  },
+  {
+    label: 'Students',
+    icon: GraduationCap,
+    children: [
+      { label: 'Student List', icon: Users, href: '/principal/students' },
+      { label: 'Performance', icon: TrendingUp, href: '/principal/students/performance' },
+      { label: 'Attendance', icon: UserCheck, href: '/principal/students/attendance' },
+    ],
+  },
+  {
+    label: 'Examinations',
+    icon: Award,
+    children: [
+      { label: 'Exam Schedule', icon: Calendar, href: '/principal/exams' },
+      { label: 'Results', icon: TrendingUp, href: '/principal/results' },
+      { label: 'Marks Entry', icon: ClipboardCheck, href: '/principal/marks-entry' },
+    ],
+  },
+  {
+    label: 'Management',
+    icon: Shield,
+    children: [
+      { label: 'Notices', icon: Bell, href: '/principal/notices' },
+      { label: 'Approvals', icon: ClipboardCheck, href: '/principal/approvals' },
+      { label: 'Calendar', icon: Calendar, href: '/principal/calendar' },
+    ],
+  },
+  {
+    label: 'Reports',
+    icon: FileText,
+    children: [
+      { label: 'Reports', icon: FileText, href: '/principal/reports' },
+    ],
+  },
+]
+
+const viceManagerNavigation: NavItem[] = managerNavigation
+const vicePrincipalNavigation: NavItem[] = principalNavigation
+
 const hodNavigation: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/hod/dashboard' },
   {
@@ -317,6 +377,7 @@ const teacherNavigation: NavItem[] = [
     icon: Award,
     children: [
       { label: 'Exams', icon: Award, href: '/teacher/examinations' },
+      { label: 'MCQ Tests', icon: FileText, href: '/teacher/mcq' },
       { label: 'Marks Entry', icon: ClipboardCheck, href: '/teacher/marks-entry' },
     ],
   },
@@ -375,6 +436,7 @@ const studentNavigation: NavItem[] = [
     icon: Award,
     children: [
       { label: 'Exam Schedule', icon: Calendar, href: '/student/exams' },
+      { label: 'MCQ Tests', icon: FileText, href: '/student/mcq' },
       { label: 'Results', icon: TrendingUp, href: '/student/results' },
     ],
   },
@@ -699,6 +761,63 @@ const HREF_TO_FEATURE: Record<string, Record<string, string>> = {
     '/principal/helpdesk': 'principal.helpdesk',
     '/principal/reports': 'principal.reports',
   },
+  MANAGER: {
+    '/principal/dashboard': 'principal.dashboard',
+    '/principal/departments': 'principal.departments',
+    '/principal/timetable': 'principal.timetable',
+    '/principal/attendance': 'principal.attendance',
+    '/principal/lms': 'principal.lms',
+    '/principal/faculty': 'principal.faculty_status',
+    '/principal/leave': 'principal.leave_management',
+    '/principal/students': 'principal.students',
+    '/principal/performance': 'principal.performance',
+    '/principal/examinations': 'principal.exam_dashboard',
+    '/principal/notices': 'principal.notifications',
+    '/principal/approvals': 'principal.approvals',
+    '/principal/calendar': 'principal.calendar',
+    '/principal/reports': 'principal.reports',
+  },
+  VICE_MANAGER: {
+    '/principal/dashboard': 'principal.dashboard',
+    '/principal/departments': 'principal.departments',
+    '/principal/timetable': 'principal.timetable',
+    '/principal/attendance': 'principal.attendance',
+    '/principal/lms': 'principal.lms',
+    '/principal/faculty': 'principal.faculty_status',
+    '/principal/leave': 'principal.leave_management',
+    '/principal/students': 'principal.students',
+    '/principal/performance': 'principal.performance',
+    '/principal/examinations': 'principal.exam_dashboard',
+    '/principal/notices': 'principal.notifications',
+    '/principal/approvals': 'principal.approvals',
+    '/principal/calendar': 'principal.calendar',
+    '/principal/reports': 'principal.reports',
+  },
+  VICE_PRINCIPAL: {
+    '/principal/dashboard': 'principal.dashboard',
+    '/principal/departments': 'principal.departments',
+    '/principal/timetable': 'principal.timetable',
+    '/principal/attendance': 'principal.attendance',
+    '/principal/lms': 'principal.lms',
+    '/principal/faculty': 'principal.faculty_status',
+    '/principal/class-coordinators': 'principal.class_coordinators',
+    '/principal/subject-allocation': 'principal.subject_allocation',
+    '/principal/leave': 'principal.leave_management',
+    '/principal/performance': 'principal.performance',
+    '/principal/students': 'principal.students',
+    '/principal/admissions': 'principal.admissions',
+    '/principal/examinations': 'principal.exam_dashboard',
+    '/principal/finance': 'principal.finance_view',
+    '/principal/discipline': 'principal.discipline',
+    '/principal/hostel': 'principal.hostel',
+    '/principal/library': 'principal.library',
+    '/principal/transport': 'principal.transport',
+    '/principal/approvals': 'principal.approvals',
+    '/principal/notifications': 'principal.notifications',
+    '/principal/calendar': 'principal.calendar',
+    '/principal/helpdesk': 'principal.helpdesk',
+    '/principal/reports': 'principal.reports',
+  },
   HOD: {
     '/hod/dashboard': 'hod.dashboard',
     '/hod/department': 'hod.department_overview',
@@ -887,7 +1006,23 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const { data: notifCount } = useApi('/notifications/unread-count')
   const unreadCount = notifCount?.count || 0
 
-  const rawNavigation = user?.role === 'CEO' ? ceoNavigation : user?.role === 'LIBRARIAN' ? librarianNavigation : user?.role === 'HOSTEL_WARDEN' ? hostelWardenNavigation : user?.role === 'DIRECTOR' ? directorNavigation : user?.role === 'PRINCIPAL' ? principalNavigation : user?.role === 'HOD' ? hodNavigation : user?.role === 'TEACHER' ? teacherNavigation : user?.role === 'STUDENT' ? studentNavigation : user?.role === 'ACCOUNTANT' ? accountantNavigation : user?.role === 'ADMISSION_COUNSELLOR' ? admissionNavigation : user?.role === 'TRANSPORT_MANAGER' ? transportNavigation : user?.role === 'ADMINISTRATIVE_STAFF' ? administrativeNavigation : user?.role === 'PARENT' ? parentNavigation : chiefHeadNavigation
+  const rawNavigation = user?.role === 'CEO' ? ceoNavigation
+    : user?.role === 'MANAGER' ? managerNavigation
+    : user?.role === 'VICE_MANAGER' ? viceManagerNavigation
+    : user?.role === 'VICE_PRINCIPAL' ? vicePrincipalNavigation
+    : user?.role === 'LIBRARIAN' ? librarianNavigation
+    : user?.role === 'HOSTEL_WARDEN' ? hostelWardenNavigation
+    : user?.role === 'DIRECTOR' ? directorNavigation
+    : user?.role === 'PRINCIPAL' ? principalNavigation
+    : user?.role === 'HOD' ? hodNavigation
+    : user?.role === 'TEACHER' ? teacherNavigation
+    : user?.role === 'STUDENT' ? studentNavigation
+    : user?.role === 'ACCOUNTANT' ? accountantNavigation
+    : user?.role === 'ADMISSION_COUNSELLOR' ? admissionNavigation
+    : user?.role === 'TRANSPORT_MANAGER' ? transportNavigation
+    : user?.role === 'ADMINISTRATIVE_STAFF' ? administrativeNavigation
+    : user?.role === 'PARENT' ? parentNavigation
+    : chiefHeadNavigation
 
   // Filter navigation based on enabled features (CEO sees everything)
   const navigation = useMemo(() => {

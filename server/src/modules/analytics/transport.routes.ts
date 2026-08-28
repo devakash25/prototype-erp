@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { TransportService } from './transport.service';
 import { authenticate, authorize } from '../../middleware/auth';
+import { logger } from '../../utils/logger';
 
 const router = Router();
 
@@ -19,7 +20,7 @@ router.get('/dashboard', authorize(...allRoles), async (req: Request, res: Respo
     const data = await TransportService.getDashboard(institutionId!);
     res.json(data);
   } catch (error: any) {
-    console.error('Transport dashboard error:', error);
+    logger.error({ err: error }, 'Transport dashboard error');
     res.status(500).json({ error: error.message });
   }
 });
@@ -62,7 +63,7 @@ router.get('/vehicles/stats', authorize(...allRoles), async (req: Request, res: 
 router.get('/vehicles/:id', authorize(...allRoles), async (req: Request, res: Response) => {
   try {
     const { institutionId } = req.user!;
-    const data = await TransportService.getVehicle(institutionId!, req.params.id);
+    const data = await TransportService.getVehicle(institutionId!, req.params.id as string);
     if (!data) return res.status(404).json({ error: 'Vehicle not found' });
     res.json(data);
   } catch (error: any) {
@@ -82,7 +83,7 @@ router.post('/vehicles', authorize(...tmOnly), async (req: Request, res: Respons
 
 router.put('/vehicles/:id', authorize(...tmOnly), async (req: Request, res: Response) => {
   try {
-    const data = await TransportService.updateVehicle(req.user!.institutionId!, req.params.id, req.body);
+    const data = await TransportService.updateVehicle(req.user!.institutionId!, req.params.id as string, req.body);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -92,7 +93,7 @@ router.put('/vehicles/:id', authorize(...tmOnly), async (req: Request, res: Resp
 router.patch('/vehicles/:id/toggle', authorize(...tmOnly), async (req: Request, res: Response) => {
   try {
     const { institutionId } = req.user!;
-    const data = await TransportService.toggleVehicleStatus(institutionId!, req.params.id);
+    const data = await TransportService.toggleVehicleStatus(institutionId!, req.params.id as string);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -137,7 +138,7 @@ router.post('/drivers/attendance', authorize(...tmOnly), async (req: Request, re
 router.get('/drivers/:id', authorize(...allRoles), async (req: Request, res: Response) => {
   try {
     const { institutionId } = req.user!;
-    const data = await TransportService.getDriver(institutionId!, req.params.id);
+    const data = await TransportService.getDriver(institutionId!, req.params.id as string);
     if (!data) return res.status(404).json({ error: 'Driver not found' });
     res.json(data);
   } catch (error: any) {
@@ -149,7 +150,7 @@ router.get('/drivers/:id/attendance', authorize(...allRoles), async (req: Reques
   try {
     const { institutionId } = req.user!;
     const { startDate, endDate } = req.query;
-    const data = await TransportService.getDriverAttendanceSummary(institutionId!, req.params.id, startDate as string, endDate as string);
+    const data = await TransportService.getDriverAttendanceSummary(institutionId!, req.params.id as string, startDate as string, endDate as string);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -173,7 +174,7 @@ router.get('/routes', authorize(...allRoles), async (req: Request, res: Response
 router.get('/routes/:id', authorize(...allRoles), async (req: Request, res: Response) => {
   try {
     const { institutionId } = req.user!;
-    const data = await TransportService.getRoute(institutionId!, req.params.id);
+    const data = await TransportService.getRoute(institutionId!, req.params.id as string);
     if (!data) return res.status(404).json({ error: 'Route not found' });
     res.json(data);
   } catch (error: any) {
@@ -194,7 +195,7 @@ router.post('/routes', authorize(...tmOnly), async (req: Request, res: Response)
 router.put('/routes/:id', authorize(...tmOnly), async (req: Request, res: Response) => {
   try {
     const { institutionId } = req.user!;
-    const data = await TransportService.updateRoute(institutionId!, req.params.id, req.body);
+    const data = await TransportService.updateRoute(institutionId!, req.params.id as string, req.body);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -204,7 +205,7 @@ router.put('/routes/:id', authorize(...tmOnly), async (req: Request, res: Respon
 router.delete('/routes/:id', authorize(...tmOnly), async (req: Request, res: Response) => {
   try {
     const { institutionId } = req.user!;
-    await TransportService.deleteRoute(institutionId!, req.params.id);
+    await TransportService.deleteRoute(institutionId!, req.params.id as string);
     res.json({ message: 'Route deleted' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -213,7 +214,7 @@ router.delete('/routes/:id', authorize(...tmOnly), async (req: Request, res: Res
 
 router.post('/routes/:id/assign-vehicle', authorize(...tmOnly), async (req: Request, res: Response) => {
   try {
-    const data = await TransportService.assignVehicleToRoute(req.user!.institutionId!, req.params.id, req.body);
+    const data = await TransportService.assignVehicleToRoute(req.user!.institutionId!, req.params.id as string, req.body);
     res.status(201).json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -222,7 +223,7 @@ router.post('/routes/:id/assign-vehicle', authorize(...tmOnly), async (req: Requ
 
 router.delete('/routes/:id/remove-vehicle/:vrId', authorize(...tmOnly), async (req: Request, res: Response) => {
   try {
-    await TransportService.removeVehicleFromRoute(req.params.id, req.params.vrId);
+    await TransportService.removeVehicleFromRoute(req.params.id as string, req.params.vrId as string);
     res.json({ message: 'Vehicle removed from route' });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -256,7 +257,7 @@ router.get('/students/unallocated', authorize(...allRoles), async (req: Request,
 router.post('/students/:studentId/allocate', authorize(...tmOnly), async (req: Request, res: Response) => {
   try {
     const { routeId } = req.body;
-    const data = await TransportService.allocateStudent(req.user!.institutionId!, req.params.studentId, routeId);
+    const data = await TransportService.allocateStudent(req.user!.institutionId!, req.params.studentId as string, routeId);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -265,7 +266,7 @@ router.post('/students/:studentId/allocate', authorize(...tmOnly), async (req: R
 
 router.post('/students/:studentId/deallocate', authorize(...tmOnly), async (req: Request, res: Response) => {
   try {
-    const data = await TransportService.deallocateStudent(req.params.studentId);
+    const data = await TransportService.deallocateStudent(req.params.studentId as string);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -308,7 +309,7 @@ router.post('/maintenance', authorize(...tmOnly), async (req: Request, res: Resp
 
 router.put('/maintenance/:id', authorize(...tmOnly), async (req: Request, res: Response) => {
   try {
-    const data = await TransportService.updateMaintenance(req.params.id, req.body);
+    const data = await TransportService.updateMaintenance(req.params.id as string, req.body);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -355,7 +356,7 @@ router.get('/complaints', authorize(...allRoles), async (req: Request, res: Resp
 
 router.patch('/complaints/:id', authorize(...tmOnly), async (req: Request, res: Response) => {
   try {
-    const data = await TransportService.updateComplaint(req.params.id, req.body);
+    const data = await TransportService.updateComplaint(req.params.id as string, req.body);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });

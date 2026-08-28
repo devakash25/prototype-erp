@@ -1,70 +1,44 @@
 #!/bin/bash
-# DEV ERP - Production Deployment Script
-# Run this on your VPS after SSH
-
 set -e
 
-echo "=== DEV ERP Deployment ==="
+echo "=== DEV ERP — Docker Deployment ==="
 
-# 1. Check Docker
-if ! command -v docker &> /dev/null; then
-    echo "Installing Docker..."
-    curl -fsSL https://get.docker.com | sh
-    sudo usermod -aG docker $USER
-    echo "Docker installed. Log out and back in, then re-run this script."
-    exit 1
+# Check if .env exists, if not create from example
+if [ ! -f .env ]; then
+  echo "Creating .env from .env.example..."
+  cp .env.example .env
+  echo ""
+  echo "⚠️  EDIT .env with your secrets before starting!"
+  echo "   Run: nano .env"
+  echo ""
+  exit 1
 fi
 
-# 2. Check Docker Compose
-if ! docker compose version &> /dev/null; then
-    echo "Installing Docker Compose plugin..."
-    sudo apt-get update && sudo apt-get install -y docker-compose-plugin
-fi
+# Build frontend
+echo "Building frontend..."
+cd client
+npm install
+VITE_API_URL="" npm run build
+cd ..
 
-# 3. Generate secrets if not set
-if [ ! -f .env.production ]; then
-    echo "Creating .env.production with generated secrets..."
-    DB_PASS=$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 24)
-    JWT_SECRET=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 48)
-    JWT_REFRESH=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 48)
+# Start services
+echo "Starting Docker services..."
+docker compose -f docker-compose.prod.yml up -d --build
 
-    cat > .env.production << EOF
-DB_PASSWORD=${DB_PASS}
-JWT_SECRET=${JWT_SECRET}
-JWT_REFRESH_SECRET=${JWT_REFRESH}
-APP_URL=https://your-domain.com
-EOF
-    echo "Created .env.production — edit APP_URL to your domain!"
-    echo "Edit with: nano .env.production"
-    exit 0
-fi
-
-# 4. Stop existing containers
-echo "Stopping existing containers..."
-docker compose -f docker-compose.prod.yml down
-
-# 5. Build and start
-echo "Building and starting services..."
-docker compose -f docker-compose.prod.yml --env-file .env.production up --build -d
-
-# 6. Wait for DB
-echo "Waiting for database..."
+# Wait for API to be healthy
+echo "Waiting for API to start..."
 sleep 10
 
-# 7. Seed database (first deploy only)
-read -p "Seed database? (y/n, first deploy only): " SEED
-if [ "$SEED" = "y" ]; then
-    echo "Running seed..."
-    docker compose -f docker-compose.prod.yml exec server npx tsx src/database/seed.ts
-    docker compose -f docker-compose.prod.yml exec server npx tsx src/scripts/seed-parent.ts
-    docker compose -f docker-compose.prod.yml exec server npx tsx src/scripts/seed-librarian.ts
-    docker compose -f docker-compose.prod.yml exec server npx tsx src/scripts/seed-hostel.ts
-fi
+# Run database migration + seed
+echo "Running database migration..."
+docker compose -f docker-compose.prod.yml exec api npx prisma migrate deploy
 
-# 8. Status
 echo ""
 echo "=== Deployment Complete ==="
-docker compose -f docker-compose.prod.yml ps
+echo "Frontend: http://localhost:80"
+echo "API:      http://localhost:5000"
+echo "Health:   http://localhost:5000/health"
 echo ""
-echo "Frontend: http://localhost"
-echo "API: http://localhost/api/v1"
+echo "Default login: admin@dev-erp.com / Admin@123"
+echo ""
+echo "To seed database: docker compose -f docker-compose.prod.yml exec api npx prisma db seed"

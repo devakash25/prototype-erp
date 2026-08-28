@@ -110,6 +110,7 @@ import { AttendanceMonitor } from '@/pages/teacher/AttendanceMonitor'
 import { TeacherNotifications } from '@/pages/teacher/TeacherNotifications'
 import { TeacherDoubts } from '@/pages/teacher/TeacherDoubts'
 import { TeacherParentMessages } from '@/pages/teacher/TeacherParentMessages'
+import { TeacherMCQs } from '@/pages/teacher/TeacherMCQs'
 import { StudentDashboard } from '@/pages/student/StudentDashboard'
 import { StudentAttendance } from '@/pages/student/StudentAttendance'
 import { StudentSubjects } from '@/pages/student/StudentSubjects'
@@ -129,6 +130,7 @@ import { StudentRequests } from '@/pages/student/StudentRequests'
 import { StudentHostel } from '@/pages/student/StudentHostel'
 import { StudentTransport } from '@/pages/student/StudentTransport'
 import { StudentDocuments } from '@/pages/student/StudentDocuments'
+import { StudentMCQs } from '@/pages/student/StudentMCQs'
 import { AccountantDashboard } from '@/pages/accountant/AccountantDashboard'
 import { AccountantCollections } from '@/pages/accountant/AccountantCollections'
 import { AccountantStudentLedger } from '@/pages/accountant/AccountantStudentLedger'
@@ -221,7 +223,7 @@ function RoleRoute({ children, allowedRoles }: { children: React.ReactNode; allo
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (user && !allowedRoles.includes(user.role)) {
     if (user.role === 'DIRECTOR') return <Navigate to="/director/dashboard" replace />
-    if (user.role === 'PRINCIPAL') return <Navigate to="/principal/dashboard" replace />
+    if (user.role === 'PRINCIPAL' || user.role === 'MANAGER' || user.role === 'VICE_MANAGER' || user.role === 'VICE_PRINCIPAL') return <Navigate to="/principal/dashboard" replace />
     if (user.role === 'HOD') return <Navigate to="/hod/dashboard" replace />
     if (user.role === 'TEACHER') return <Navigate to="/teacher/dashboard" replace />
     if (user.role === 'STUDENT') return <Navigate to="/student/dashboard" replace />
@@ -243,7 +245,7 @@ function DirectorRoute({ children }: { children: React.ReactNode }) {
 }
 
 function PrincipalRoute({ children }: { children: React.ReactNode }) {
-  return <RoleRoute allowedRoles={['PRINCIPAL']}>{children}</RoleRoute>
+  return <RoleRoute allowedRoles={['PRINCIPAL', 'MANAGER', 'VICE_MANAGER', 'VICE_PRINCIPAL']}>{children}</RoleRoute>
 }
 
 function ChiefHeadRoute({ children }: { children: React.ReactNode }) {
@@ -309,7 +311,7 @@ function NotFound() {
 function RoleRedirect() {
   const { user } = useAuthStore()
   if (user?.role === 'DIRECTOR') return <Navigate to="/director/dashboard" replace />
-  if (user?.role === 'PRINCIPAL') return <Navigate to="/principal/dashboard" replace />
+  if (user?.role === 'PRINCIPAL' || user?.role === 'MANAGER' || user?.role === 'VICE_MANAGER' || user?.role === 'VICE_PRINCIPAL') return <Navigate to="/principal/dashboard" replace />
   if (user?.role === 'HOD') return <Navigate to="/hod/dashboard" replace />
   if (user?.role === 'TEACHER') return <Navigate to="/teacher/dashboard" replace />
   if (user?.role === 'STUDENT') return <Navigate to="/student/dashboard" replace />
@@ -466,6 +468,7 @@ function App() {
                     <Route path="/teacher/notifications" element={<TeacherRoute><TeacherNotifications /></TeacherRoute>} />
                     <Route path="/teacher/doubts" element={<TeacherRoute><TeacherDoubts /></TeacherRoute>} />
                     <Route path="/teacher/parent-messages" element={<TeacherRoute><TeacherParentMessages /></TeacherRoute>} />
+                    <Route path="/teacher/mcq" element={<TeacherRoute><TeacherMCQs /></TeacherRoute>} />
 
                     {/* Student Routes */}
                     <Route path="/student/dashboard" element={<StudentRoute><StudentDashboard /></StudentRoute>} />
@@ -483,6 +486,7 @@ function App() {
                     <Route path="/student/calendar" element={<StudentRoute><StudentCalendar /></StudentRoute>} />
                     <Route path="/student/notices" element={<StudentRoute><StudentNotices /></StudentRoute>} />
                     <Route path="/student/doubts" element={<StudentRoute><StudentDoubts /></StudentRoute>} />
+                    <Route path="/student/mcq" element={<StudentRoute><StudentMCQs /></StudentRoute>} />
                     <Route path="/student/documents" element={<StudentRoute><StudentDocuments /></StudentRoute>} />
                     <Route path="/student/requests" element={<StudentRoute><StudentRequests /></StudentRoute>} />
                     <Route path="/student/performance" element={<StudentRoute><StudentPerformance /></StudentRoute>} />

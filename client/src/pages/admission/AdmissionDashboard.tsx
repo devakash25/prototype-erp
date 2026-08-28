@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import api from '@/services/api'
+import { GreetingBanner } from '@/components/GreetingBanner'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
@@ -67,18 +68,15 @@ export function AdmissionDashboard() {
 
   const quickActions = [
     { label: 'Register Enquiry', href: '/admission/new', color: 'bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/20', icon: UserPlus },
-    { label: 'Create Application', href: '/admission/new-application', color: 'bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/20', icon: FileText },
+    { label: 'Create Application', href: '/admission/new', color: 'bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/20', icon: FileText },
     { label: 'Verify Documents', href: '/admission/applications', color: 'bg-orange-500/15 text-orange-400 hover:bg-orange-500/25 border border-orange-500/20', icon: ClipboardCheck },
-    { label: 'Follow-ups', href: '/admission/followups', color: 'bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 border border-purple-500/20', icon: Bell },
+    { label: 'Follow-ups', href: '/admission/follow-ups', color: 'bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 border border-purple-500/20', icon: Bell },
   ]
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Admission Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1">Enquiries, applications & enrollment overview</p>
-        </div>
+      <GreetingBanner />
+      <div className="flex items-center justify-end">
         <button
           onClick={loadDashboard}
           className="flex items-center gap-2 px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-white hover:bg-slate-600"

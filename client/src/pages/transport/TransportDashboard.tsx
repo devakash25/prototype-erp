@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { StatCard } from '@/components/StatCard'
+import { GreetingBanner } from '@/components/GreetingBanner'
 import api from '@/services/api'
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
@@ -71,11 +72,8 @@ export function TransportDashboard() {
 
   return (
     <div className="bg-slate-900 min-h-screen p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Transport Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1">Fleet, routes & driver management overview</p>
-        </div>
+      <GreetingBanner />
+      <div className="flex items-center justify-end">
         <button
           onClick={loadDashboard}
           className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-slate-700 transition-colors"

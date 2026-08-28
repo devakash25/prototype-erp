@@ -1,25 +1,24 @@
 import { prisma } from '../../config/database';
 import { logger } from '../../utils/logger';
 
+interface DateRange {
+  from?: Date;
+  to?: Date;
+}
+
+function getDefaultRange(): { start: Date; end: Date } {
+  const now = new Date();
+  return { start: new Date(now.getFullYear(), 0, 1), end: now };
+}
+
 export class DashboardService {
-  async getExecutiveSummary(institutionId: string) {
+  async getExecutiveSummary(institutionId: string, dateRange?: DateRange) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const yearStart = new Date(now.getFullYear(), 0, 1);
 
-    const [
-      totalStudents,
-      activeStudents,
-      totalEmployees,
-      todayAttendance,
-      todayRevenue,
-      pendingApprovals,
-      openTickets,
-      totalAdmissions,
-      pendingAdmissions,
-      departmentStats,
-    ] = await Promise.all([
+    const [totalStudents, activeStudents, totalEmployees, todayAttendance, todayRevenue, pendingApprovals, openTickets, totalAdmissions, pendingAdmissions, departmentStats] = await Promise.all([
       prisma.student.count({ where: { institutionId, isActive: true } }),
       prisma.student.count({ where: { institutionId, isActive: true } }),
       prisma.employee.count({ where: { institutionId, isActive: true } }),
@@ -32,96 +31,68 @@ export class DashboardService {
       this.getDepartmentStats(institutionId),
     ]);
 
-    return {
-      totalStudents,
-      activeStudents,
-      totalEmployees,
-      todayAttendance,
-      todayRevenue,
-      pendingApprovals,
-      openTickets,
-      totalAdmissions,
-      pendingAdmissions,
-      departmentStats,
-    };
+    return { totalStudents, activeStudents, totalEmployees, todayAttendance, todayRevenue, pendingApprovals, openTickets, totalAdmissions, pendingAdmissions, departmentStats };
   }
 
-  async getRevenueAnalytics(institutionId: string) {
+  async getRevenueAnalytics(institutionId: string, dateRange?: DateRange) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const yearStart = new Date(now.getFullYear(), 0, 1);
 
+    const rangeStart = dateRange?.from || yearStart;
+    const rangeEnd = dateRange?.to || now;
+
     const [todayRevenue, monthRevenue, yearRevenue, totalOutstanding] = await Promise.all([
       this.getRevenueByDateRange(institutionId, today, now),
       this.getRevenueByDateRange(institutionId, monthStart, now),
-      this.getRevenueByDateRange(institutionId, yearStart, now),
+      this.getRevenueByDateRange(institutionId, rangeStart, rangeEnd),
       this.getOutstandingFees(institutionId),
     ]);
 
-    const revenueByType = await this.getRevenueByType(institutionId, yearStart, now);
-    const monthlyTrend = await this.getMonthlyRevenueTrend(institutionId);
+    const revenueByType = await this.getRevenueByType(institutionId, rangeStart, rangeEnd);
+    const monthlyTrend = await this.getMonthlyRevenueTrend(institutionId, dateRange);
     const feeCollectionRate = await this.getFeeCollectionRate(institutionId);
 
-    return {
-      today: todayRevenue,
-      monthly: monthRevenue,
-      yearly: yearRevenue,
-      outstanding: totalOutstanding,
-      byType: revenueByType,
-      monthlyTrend,
-      feeCollectionRate,
-    };
+    return { today: todayRevenue, monthly: monthRevenue, yearly: yearRevenue, outstanding: totalOutstanding, byType: revenueByType, monthlyTrend, feeCollectionRate };
   }
 
-  async getAttendanceAnalytics(institutionId: string) {
+  async getAttendanceAnalytics(institutionId: string, dateRange?: DateRange) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    const days = dateRange?.from && dateRange?.to
+      ? Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      : 30;
 
     const [studentAttendance, employeeAttendance, lowAttendanceStudents, monthlyTrend] = await Promise.all([
       this.getStudentAttendanceStats(institutionId, today),
       this.getEmployeeAttendanceStats(institutionId, today),
       this.getLowAttendanceStudents(institutionId),
-      this.getAttendanceTrend(institutionId, 30),
+      this.getAttendanceTrend(institutionId, days),
     ]);
 
-    return {
-      student: studentAttendance,
-      employee: employeeAttendance,
-      lowAttendanceStudents,
-      monthlyTrend,
-    };
+    return { student: studentAttendance, employee: employeeAttendance, lowAttendanceStudents, monthlyTrend };
   }
 
-  async getAdmissionAnalytics(institutionId: string) {
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
+  async getAdmissionAnalytics(institutionId: string, dateRange?: DateRange) {
     const [pipeline, monthlyTrend, conversionRate] = await Promise.all([
       this.getAdmissionPipeline(institutionId),
-      this.getAdmissionMonthlyTrend(institutionId),
+      this.getAdmissionMonthlyTrend(institutionId, dateRange),
       this.getAdmissionConversionRate(institutionId),
     ]);
 
-    return {
-      pipeline,
-      monthlyTrend,
-      conversionRate,
-    };
+    return { pipeline, monthlyTrend, conversionRate };
   }
 
-  async getAcademicAnalytics(institutionId: string) {
+  async getAcademicAnalytics(institutionId: string, dateRange?: DateRange) {
     const [departmentRankings, examStats, subjectPerformance] = await Promise.all([
       this.getDepartmentRankings(institutionId),
       this.getExamStats(institutionId),
       this.getSubjectPerformance(institutionId),
     ]);
 
-    return {
-      departmentRankings,
-      examStats,
-      subjectPerformance,
-    };
+    return { departmentRankings, examStats, subjectPerformance };
   }
 
   async getHRAnalytics(institutionId: string) {
@@ -190,25 +161,39 @@ export class DashboardService {
     };
   }
 
-  async getHelpdeskAnalytics(institutionId: string) {
+  async getHelpdeskAnalytics(institutionId: string, dateRange?: DateRange) {
+    const where: any = { institutionId };
+    if (dateRange?.from || dateRange?.to) {
+      where.createdAt = {};
+      if (dateRange.from) where.createdAt.gte = dateRange.from;
+      if (dateRange.to) where.createdAt.lte = dateRange.to;
+    }
+
     const [total, open, resolved, avgResolutionTime] = await Promise.all([
-      prisma.helpdeskTicket.count({ where: { institutionId } }),
-      prisma.helpdeskTicket.count({ where: { institutionId, status: 'OPEN' } }),
-      prisma.helpdeskTicket.count({ where: { institutionId, status: 'RESOLVED' } }),
+      prisma.helpdeskTicket.count({ where }),
+      prisma.helpdeskTicket.count({ where: { ...where, status: 'OPEN' } }),
+      prisma.helpdeskTicket.count({ where: { ...where, status: 'RESOLVED' } }),
       this.getAverageResolutionTime(institutionId),
     ]);
 
     return { total, open, resolved, avgResolutionTime };
   }
 
-  async getWorkflowAnalytics(institutionId: string) {
+  async getWorkflowAnalytics(institutionId: string, dateRange?: DateRange) {
+    const where: any = { institutionId };
+    if (dateRange?.from || dateRange?.to) {
+      where.createdAt = {};
+      if (dateRange.from) where.createdAt.gte = dateRange.from;
+      if (dateRange.to) where.createdAt.lte = dateRange.to;
+    }
+
     const [pending, approved, rejected, byType] = await Promise.all([
-      prisma.workflow.count({ where: { institutionId, status: 'PENDING' } }),
-      prisma.workflow.count({ where: { institutionId, status: 'APPROVED' } }),
-      prisma.workflow.count({ where: { institutionId, status: 'REJECTED' } }),
+      prisma.workflow.count({ where: { ...where, status: 'PENDING' } }),
+      prisma.workflow.count({ where: { ...where, status: 'APPROVED' } }),
+      prisma.workflow.count({ where: { ...where, status: 'REJECTED' } }),
       prisma.workflow.groupBy({
         by: ['type'],
-        where: { institutionId },
+        where,
         _count: { type: true },
       }),
     ]);
@@ -262,9 +247,16 @@ export class DashboardService {
     };
   }
 
-  async getRecentActivity(institutionId: string, limit = 20) {
+  async getRecentActivity(institutionId: string, limit = 20, dateRange?: DateRange) {
+    const where: any = { institutionId };
+    if (dateRange?.from || dateRange?.to) {
+      where.createdAt = {};
+      if (dateRange.from) where.createdAt.gte = dateRange.from;
+      if (dateRange.to) where.createdAt.lte = dateRange.to;
+    }
+
     const activities = await prisma.auditLog.findMany({
-      where: { institutionId },
+      where,
       include: {
         user: {
           select: { id: true, fullName: true, avatar: true },
@@ -358,31 +350,49 @@ export class DashboardService {
     return byType;
   }
 
-  private async getMonthlyRevenueTrend(institutionId: string) {
-    const months = [];
+  private async getMonthlyRevenueTrend(institutionId: string, dateRange?: DateRange) {
     const now = new Date();
+    const monthsBack = 12;
+    const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - monthsBack + 1, 1);
+    const rangeStart = dateRange?.from && dateRange?.from > twelveMonthsAgo ? dateRange.from : twelveMonthsAgo;
+    const rangeEnd = dateRange?.to || now;
 
-    for (let i = 11; i >= 0; i--) {
+    const results = await prisma.feePayment.groupBy({
+      by: ['paidAt'],
+      where: {
+        student: { institutionId },
+        paidAt: { gte: rangeStart, lte: rangeEnd },
+        status: 'PAID',
+      },
+      _sum: { paidAmount: true },
+    });
+
+    const monthlyData: Record<string, number> = {};
+    for (let i = monthsBack - 1; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-      const result = await prisma.feePayment.aggregate({
-        where: {
-          student: { institutionId },
-          paidAt: { gte: date, lte: monthEnd },
-          status: 'PAID',
-        },
-        _sum: { paidAmount: true },
-      });
-
-      months.push({
-        month: date.toLocaleString('default', { month: 'short' }),
-        year: date.getFullYear(),
-        amount: Number(result._sum.paidAmount) || 0,
-      });
+      const key = `${date.getFullYear()}-${date.getMonth()}`;
+      monthlyData[key] = 0;
     }
 
-    return months;
+    results.forEach((r) => {
+      if (r.paidAt) {
+        const d = new Date(r.paidAt);
+        const key = `${d.getFullYear()}-${d.getMonth()}`;
+        if (key in monthlyData) {
+          monthlyData[key] += Number(r._sum.paidAmount) || 0;
+        }
+      }
+    });
+
+    return Object.entries(monthlyData).map(([key, amount]) => {
+      const [year, month] = key.split('-').map(Number);
+      const date = new Date(year, month, 1);
+      return {
+        month: date.toLocaleString('default', { month: 'short' }),
+        year,
+        amount,
+      };
+    });
   }
 
   private async getFeeCollectionRate(institutionId: string) {
@@ -495,29 +505,49 @@ export class DashboardService {
   }
 
   private async getAttendanceTrend(institutionId: string, days: number) {
-    const trend = [];
     const now = new Date();
+    const startDate = new Date(now);
+    startDate.setDate(startDate.getDate() - days + 1);
+    startDate.setHours(0, 0, 0, 0);
 
+    const totalStudents = await prisma.student.count({
+      where: { institutionId, isActive: true },
+    });
+
+    if (totalStudents === 0) {
+      return Array.from({ length: days }, (_, i) => {
+        const date = new Date(now);
+        date.setDate(date.getDate() - (days - 1 - i));
+        return { date: date.toISOString().split('T')[0], percentage: 0 };
+      });
+    }
+
+    const attendanceCounts = await prisma.attendance.groupBy({
+      by: ['date', 'status'],
+      where: {
+        student: { institutionId },
+        date: { gte: startDate, lte: now },
+        status: 'PRESENT',
+      },
+      _count: { status: true },
+    });
+
+    const presentByDate: Record<string, number> = {};
+    attendanceCounts.forEach((a) => {
+      const dateKey = new Date(a.date).toISOString().split('T')[0];
+      presentByDate[dateKey] = a._count.status;
+    });
+
+    const trend = [];
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
       date.setHours(0, 0, 0, 0);
-
-      const present = await prisma.attendance.count({
-        where: {
-          student: { institutionId },
-          date,
-          status: 'PRESENT',
-        },
-      });
-
-      const total = await prisma.student.count({
-        where: { institutionId, isActive: true },
-      });
-
+      const dateKey = date.toISOString().split('T')[0];
+      const present = presentByDate[dateKey] || 0;
       trend.push({
-        date: date.toISOString().split('T')[0],
-        percentage: total > 0 ? Math.round((present / total) * 100 * 10) / 10 : 0,
+        date: dateKey,
+        percentage: Math.round((present / totalStudents) * 100 * 10) / 10,
       });
     }
 
@@ -536,29 +566,47 @@ export class DashboardService {
     return { applied, underReview, approved, rejected, enrolled };
   }
 
-  private async getAdmissionMonthlyTrend(institutionId: string) {
-    const months = [];
+  private async getAdmissionMonthlyTrend(institutionId: string, dateRange?: DateRange) {
     const now = new Date();
+    const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+    const rangeStart = dateRange?.from && dateRange?.from > twelveMonthsAgo ? dateRange.from : twelveMonthsAgo;
+    const rangeEnd = dateRange?.to || now;
 
+    const results = await prisma.admission.groupBy({
+      by: ['appliedAt'],
+      where: {
+        institutionId,
+        appliedAt: { gte: rangeStart, lte: rangeEnd },
+      },
+      _count: { appliedAt: true },
+    });
+
+    const monthlyData: Record<string, number> = {};
     for (let i = 11; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-
-      const count = await prisma.admission.count({
-        where: {
-          institutionId,
-          appliedAt: { gte: date, lte: monthEnd },
-        },
-      });
-
-      months.push({
-        month: date.toLocaleString('default', { month: 'short' }),
-        year: date.getFullYear(),
-        count,
-      });
+      const key = `${date.getFullYear()}-${date.getMonth()}`;
+      monthlyData[key] = 0;
     }
 
-    return months;
+    results.forEach((r) => {
+      if (r.appliedAt) {
+        const d = new Date(r.appliedAt);
+        const key = `${d.getFullYear()}-${d.getMonth()}`;
+        if (key in monthlyData) {
+          monthlyData[key] += r._count.appliedAt;
+        }
+      }
+    });
+
+    return Object.entries(monthlyData).map(([key, count]) => {
+      const [year, month] = key.split('-').map(Number);
+      const date = new Date(year, month, 1);
+      return {
+        month: date.toLocaleString('default', { month: 'short' }),
+        year,
+        count,
+      };
+    });
   }
 
   private async getAdmissionConversionRate(institutionId: string) {
@@ -590,20 +638,24 @@ export class DashboardService {
       where: { institutionId },
       include: {
         results: {
-          select: { isPassed: true, marksObtained: true },
+          select: { isPassed: true, marksObtained: true, studentId: true },
         },
       },
     });
 
     let totalResults = 0;
     let passed = 0;
+    let failedStudents = 0;
     let totalMarks = 0;
+    const studentIds = new Set<string>();
 
     examinations.forEach((exam) => {
       exam.results.forEach((result) => {
         totalResults++;
         if (result.isPassed) passed++;
+        if (!result.isPassed) failedStudents++;
         if (result.marksObtained) totalMarks += Number(result.marksObtained);
+        studentIds.add(result.studentId);
       });
     });
 
@@ -612,11 +664,13 @@ export class DashboardService {
       totalResults,
       passPercentage: totalResults > 0 ? Math.round((passed / totalResults) * 100) : 0,
       averageMarks: totalResults > 0 ? Math.round(totalMarks / totalResults) : 0,
+      topPerformers: Math.min(passed, 10),
+      failedStudents,
     };
   }
 
   private async getSubjectPerformance(institutionId: string) {
-    return prisma.subject.findMany({
+    const subjects = await prisma.subject.findMany({
       where: { institutionId },
       select: {
         id: true,
@@ -625,6 +679,29 @@ export class DashboardService {
       },
       take: 10,
     });
+
+    const results = await Promise.all(subjects.map(async (subject) => {
+      const examResults = await prisma.examResult.findMany({
+        where: {
+          subjectId: subject.id,
+          examination: { institutionId },
+        },
+        select: { marksObtained: true, isPassed: true },
+      });
+
+      const total = examResults.length;
+      const passed = examResults.filter(r => r.isPassed).length;
+      const avg = total > 0 ? Math.round(examResults.reduce((sum, r) => sum + Number(r.marksObtained || 0), 0) / total) : 0;
+
+      return {
+        ...subject,
+        avg,
+        pass: passed,
+        total,
+      };
+    }));
+
+    return results;
   }
 
   private async getEmployeeStats(institutionId: string) {

@@ -15,16 +15,23 @@ class AccountantAnalyticsService {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const todayEnd = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+    const weekStart = new Date(now);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    weekStart.setHours(0, 0, 0, 0);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-    const [todayCollection, monthRevenue, pendingFeesResult, studentsPendingList, onlinePayments, cashCounter, refundRequests] = await Promise.all([
+    const [todayCollection, monthRevenue, weekRevenue, pendingFeesResult, studentsPendingList, onlinePayments, cashCounter, chequePayments, failedPayments, refundRequests] = await Promise.all([
       prisma.feePayment.aggregate({
         where: { student: { institutionId }, status: 'PAID', paidAt: { gte: today, lt: todayEnd } },
         _sum: { paidAmount: true },
       }),
       prisma.feePayment.aggregate({
         where: { student: { institutionId }, status: 'PAID', paidAt: { gte: monthStart, lte: monthEnd } },
+        _sum: { paidAmount: true },
+      }),
+      prisma.feePayment.aggregate({
+        where: { student: { institutionId }, status: 'PAID', paidAt: { gte: weekStart } },
         _sum: { paidAmount: true },
       }),
       prisma.feePayment.aggregate({
@@ -43,19 +50,38 @@ class AccountantAnalyticsService {
         where: { student: { institutionId }, paymentMethod: 'CASH', status: 'PAID', paidAt: { gte: today, lt: todayEnd } },
         _sum: { paidAmount: true },
       }),
+      prisma.feePayment.count({
+        where: { student: { institutionId }, paymentMethod: 'CHEQUE', status: 'PAID', paidAt: { gte: monthStart, lte: monthEnd } },
+      }),
+      prisma.feePayment.count({
+        where: { student: { institutionId }, status: 'CANCELLED' },
+      }),
       prisma.refund.count({
         where: { payment: { student: { institutionId } }, status: 'pending' },
       }),
     ]);
 
+    const totalFees = await prisma.feePayment.aggregate({
+      where: { student: { institutionId } }, _sum: { amount: true },
+    });
+    const totalPaid = await prisma.feePayment.aggregate({
+      where: { student: { institutionId }, status: 'PAID' }, _sum: { paidAmount: true },
+    });
+    const totalFeesNum = Number(totalFees._sum.amount || 0);
+    const totalPaidNum = Number(totalPaid._sum.paidAmount || 0);
+
     return {
       todayCollection: Number(todayCollection._sum.paidAmount || 0),
       monthRevenue: Number(monthRevenue._sum.paidAmount || 0),
+      weekCollection: Number(weekRevenue._sum.paidAmount || 0),
       pendingFees: Number(pendingFeesResult._sum.dueAmount || 0),
       studentsPending: studentsPendingList.length,
       onlinePayments,
       cashCounter: Number(cashCounter._sum.paidAmount || 0),
+      chequePayments,
+      failedPayments,
       refundRequests,
+      collectionRate: totalFeesNum > 0 ? Math.round((totalPaidNum / totalFeesNum) * 100) : 0,
     };
   }
 
@@ -291,38 +317,38 @@ class AccountantAnalyticsService {
     const payments = await prisma.feePayment.findMany({
       where: { student: { institutionId }, status: { in: ['PENDING', 'PARTIAL', 'OVERDUE'] } },
       include: {
-        student: { include: { user: { select: { fullName: true } } } },
+        student: { include: { user: { select: { fullName: true } }, course: { select: { name: true } } } },
         feeStructure: { select: { name: true } },
       },
       orderBy: { dueDate: 'asc' },
     });
 
-    const studentMap = new Map<string, any>();
-    let totalOutstanding = 0;
+    const now = new Date();
+    const flatDues = payments.map(p => {
+      const dueDate = p.dueDate ? new Date(p.dueDate) : null;
+      const daysOverdue = dueDate && dueDate < now
+        ? Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
+        : 0;
+      return {
+        studentId: p.studentId,
+        studentName: p.student.user.fullName,
+        admissionNumber: p.student.admissionNumber,
+        course: p.student.course?.name || '',
+        feeType: p.feeStructure.name,
+        amountDue: Number(p.dueAmount),
+        dueDate: p.dueDate,
+        daysOverdue,
+        status: p.status,
+      };
+    });
 
-    for (const p of payments) {
-      const due = Number(p.dueAmount);
-      totalOutstanding += due;
-
-      if (!studentMap.has(p.studentId)) {
-        studentMap.set(p.studentId, {
-          studentId: p.studentId, studentName: p.student.user.fullName, dues: [], totalDue: 0,
-        });
-      }
-      const entry = studentMap.get(p.studentId);
-      entry.dues.push({
-        id: p.id, feeType: p.feeStructure.name, amount: Number(p.amount),
-        paidAmount: Number(p.paidAmount), dueAmount: due, dueDate: p.dueDate, status: p.status,
-      });
-      entry.totalDue += due;
-    }
-
-    return { students: Array.from(studentMap.values()), totalOutstanding };
+    const totalOutstanding = flatDues.reduce((sum, d) => sum + d.amountDue, 0);
+    return { students: flatDues, totalOutstanding };
   }
 
   async getRefunds(userId: string) {
     const { institutionId } = await this.resolve(userId);
-    return prisma.refund.findMany({
+    const refunds = await prisma.refund.findMany({
       where: { payment: { student: { institutionId } } },
       include: {
         payment: {
@@ -334,6 +360,15 @@ class AccountantAnalyticsService {
       },
       orderBy: { createdAt: 'desc' },
     });
+    return refunds.map(r => ({
+      id: r.id,
+      studentName: r.payment.student.user.fullName,
+      admissionNumber: r.payment.student.admissionNumber,
+      amount: Number(r.amount),
+      reason: r.reason,
+      date: r.createdAt,
+      status: r.status,
+    }));
   }
 
   async processRefund(userId: string, refundId: string, action: 'APPROVE' | 'REJECT', notes?: string) {

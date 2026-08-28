@@ -6,46 +6,46 @@ const router = Router();
 
 router.use(authenticate);
 
-// Executive Summary
-router.get('/summary', dashboardController.getExecutiveSummary);
+// Executive Summary — management roles only
+router.get('/summary', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), dashboardController.getExecutiveSummary);
 
-// Revenue Analytics
-router.get('/revenue', dashboardController.getRevenueAnalytics);
+// Revenue Analytics — finance + management
+router.get('/revenue', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), dashboardController.getRevenueAnalytics);
 
-// Attendance Analytics
-router.get('/attendance', dashboardController.getAttendanceAnalytics);
+// Attendance Analytics — management
+router.get('/attendance', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'HOD', 'CEO'), dashboardController.getAttendanceAnalytics);
 
-// Admission Analytics
-router.get('/admissions', dashboardController.getAdmissionAnalytics);
+// Admission Analytics — management + admission
+router.get('/admissions', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ADMISSION_COUNSELLOR', 'CEO'), dashboardController.getAdmissionAnalytics);
 
-// Academic Analytics
-router.get('/academic', dashboardController.getAcademicAnalytics);
+// Academic Analytics — management + HOD
+router.get('/academic', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'HOD', 'CEO'), dashboardController.getAcademicAnalytics);
 
-// HR Analytics
-router.get('/hr', dashboardController.getHRAnalytics);
+// HR Analytics — management + admin
+router.get('/hr', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ADMINISTRATIVE_STAFF', 'CEO'), dashboardController.getHRAnalytics);
 
-// Hostel Analytics
-router.get('/hostel', dashboardController.getHostelAnalytics);
+// Hostel Analytics — management + warden
+router.get('/hostel', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'HOSTEL_WARDEN', 'CEO'), dashboardController.getHostelAnalytics);
 
-// Transport Analytics
-router.get('/transport', dashboardController.getTransportAnalytics);
+// Transport Analytics — management + transport
+router.get('/transport', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'TRANSPORT_MANAGER', 'CEO'), dashboardController.getTransportAnalytics);
 
-// Library Analytics
-router.get('/library', dashboardController.getLibraryAnalytics);
+// Library Analytics — management + librarian
+router.get('/library', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'LIBRARIAN', 'CEO'), dashboardController.getLibraryAnalytics);
 
-// Helpdesk Analytics
-router.get('/helpdesk', dashboardController.getHelpdeskAnalytics);
+// Helpdesk Analytics — management
+router.get('/helpdesk', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ADMINISTRATIVE_STAFF', 'CEO'), dashboardController.getHelpdeskAnalytics);
 
-// Workflow Analytics
-router.get('/workflow', dashboardController.getWorkflowAnalytics);
+// Workflow Analytics — management
+router.get('/workflow', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), dashboardController.getWorkflowAnalytics);
 
-// Notification Analytics
-router.get('/notifications', dashboardController.getNotificationAnalytics);
+// Notification Analytics — management
+router.get('/notifications', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), dashboardController.getNotificationAnalytics);
 
-// Institution Health Score
-router.get('/health-score', dashboardController.getInstitutionHealthScore);
+// Institution Health Score — management only
+router.get('/health-score', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), dashboardController.getInstitutionHealthScore);
 
-// Recent Activity
-router.get('/activity', dashboardController.getRecentActivity);
+// Recent Activity — management
+router.get('/activity', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), dashboardController.getRecentActivity);
 
 export default router;

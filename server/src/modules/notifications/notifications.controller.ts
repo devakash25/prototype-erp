@@ -121,6 +121,23 @@ export class NotificationController {
     }
   }
 
+  async updateNotification(req: Request, res: Response, next: NextFunction) {
+    try {
+      const notification = await notificationService.updateNotification(
+        req.params.id as string,
+        req.body
+      );
+
+      res.json({
+        success: true,
+        data: notification,
+        message: 'Notification updated',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async deleteNotification(req: Request, res: Response, next: NextFunction) {
     try {
       await notificationService.deleteNotification(req.params.id as string);
@@ -132,6 +149,33 @@ export class NotificationController {
     } catch (error) {
       next(error);
     }
+  }
+
+  async getChannels(req: Request, res: Response, next: NextFunction) {
+    try {
+      const institutionId = req.user?.institutionId;
+      if (!institutionId) throw new AppError(401, 'Not authenticated');
+      const data = await notificationService.getChannels(institutionId);
+      res.json({ success: true, data });
+    } catch (error) { next(error); }
+  }
+
+  async getNotificationStats(req: Request, res: Response, next: NextFunction) {
+    try {
+      const institutionId = req.user?.institutionId;
+      if (!institutionId) throw new AppError(401, 'Not authenticated');
+      const data = await notificationService.getNotificationStats(institutionId);
+      res.json({ success: true, data });
+    } catch (error) { next(error); }
+  }
+
+  async updateChannels(req: Request, res: Response, next: NextFunction) {
+    try {
+      const institutionId = req.user?.institutionId;
+      if (!institutionId) throw new AppError(401, 'Not authenticated');
+      const data = await notificationService.updateChannels(institutionId, req.body);
+      res.json({ success: true, data, message: 'Channels updated' });
+    } catch (error) { next(error); }
   }
 }
 

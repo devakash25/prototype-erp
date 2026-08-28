@@ -150,7 +150,8 @@ export function AuthorityManagement() {
     setForm({
       email: user.email, password: '', role: user.role,
       firstName: user.firstName || '', lastName: user.lastName || '',
-      phone: user.phone || '', departmentId: '', designation: '',
+      phone: user.phone || '', departmentId: user.employee?.departmentId || '',
+      designation: user.employee?.designation || '',
       employeeCode: user.employee?.employeeCode || '',
     })
     setShowModal(true)
@@ -161,6 +162,9 @@ export function AuthorityManagement() {
       if (editingUser) {
         await usersApi.update(editingUser.id, {
           firstName: form.firstName, lastName: form.lastName, phone: form.phone,
+          departmentId: form.departmentId || undefined,
+          designation: form.designation || undefined,
+          employeeCode: form.employeeCode || undefined,
         })
       } else {
         await usersApi.create({
@@ -218,7 +222,7 @@ export function AuthorityManagement() {
   })
 
   const employeeRoles = ['DIRECTOR', 'PRINCIPAL', 'HOD', 'TEACHER', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF']
-  const editableRoles = Object.keys(roleLabels).filter(k => k !== 'STUDENT' && k !== 'PARENT' && k !== 'CHIEF_HEAD')
+  const editableRoles = Object.entries(roleLabels).filter(([k]) => k !== 'STUDENT' && k !== 'PARENT' && k !== 'CHIEF_HEAD')
 
   if (loading) {
     return <div className="flex items-center justify-center h-96"><RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" /></div>

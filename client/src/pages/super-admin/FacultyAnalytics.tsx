@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronRight, UserCheck, Calendar, Clock, Download } from 'lucide-react'
+import { ChevronRight, UserCheck, Calendar, Clock, Download, Users, Award } from 'lucide-react'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { cn, exportToCSV } from '@/lib/utils'
 import { useApi } from '@/hooks/useApi'

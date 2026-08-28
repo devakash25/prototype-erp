@@ -4,38 +4,50 @@ import { connectDatabase, disconnectDatabase } from './config/database';
 import { connectRedis } from './config/redis';
 import { logger } from './utils/logger';
 
-async function bootstrap(): Promise<void> {
-  try {
-    // Connect to database
-    await connectDatabase();
+// Vercel serverless — only connect, don't listen
+if (process.env.VERCEL) {
+  logger.info('Running in Vercel serverless mode');
+  connectDatabase().catch(() => {});
+  connectRedis().catch(() => {});
+} else {
+  // Standalone mode — full bootstrap
+  async function bootstrap(): Promise<void> {
+    try {
+      await connectDatabase();
+      await connectRedis();
 
-    // Connect to Redis
-    await connectRedis();
-
-    // Start server
-    const port = parseInt(env.PORT, 10);
-    app.listen(port, () => {
-      logger.info(`🚀 DEV ERP Server running on port ${port}`);
-      logger.info(`📝 Environment: ${env.NODE_ENV}`);
-      logger.info(`🔗 API: http://localhost:${port}/api/v1`);
-    });
-  } catch (error) {
-    logger.error('Failed to start server: ' + (error as Error).message);
-    process.exit(1);
+      const port = parseInt(env.PORT, 10);
+      app.listen(port, () => {
+        logger.info(`DEV ERP Server running on port ${port}`);
+        logger.info(`Environment: ${env.NODE_ENV}`);
+        logger.info(`API: http://localhost:${port}/api/v1`);
+      });
+    } catch (error) {
+      logger.error({ err: error }, 'Failed to start server');
+      process.exit(1);
+    }
   }
+
+  process.on('unhandledRejection', (reason: unknown) => {
+    logger.error({ err: reason }, 'Unhandled promise rejection');
+  });
+
+  process.on('uncaughtException', (error: Error) => {
+    logger.fatal({ err: error }, 'Uncaught exception — shutting down');
+    process.exit(1);
+  });
+
+  process.on('SIGTERM', async () => {
+    logger.info('SIGTERM received. Shutting down gracefully...');
+    await disconnectDatabase();
+    process.exit(0);
+  });
+
+  process.on('SIGINT', async () => {
+    logger.info('SIGINT received. Shutting down gracefully...');
+    await disconnectDatabase();
+    process.exit(0);
+  });
+
+  bootstrap();
 }
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM received. Shutting down gracefully...');
-  await disconnectDatabase();
-  process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-  logger.info('SIGINT received. Shutting down gracefully...');
-  await disconnectDatabase();
-  process.exit(0);
-});
-
-bootstrap();

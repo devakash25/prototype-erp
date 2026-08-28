@@ -64,7 +64,7 @@ router.post('/certificates', async (req: Request, res: Response) => {
 router.patch('/certificates/:id', async (req: Request, res: Response) => {
   try {
     const { status, remarks } = req.body;
-    const data = await AdministrativeService.updateCertificateStatus(req.params.id, status, remarks);
+    const data = await AdministrativeService.updateCertificateStatus(req.params.id as string, status, remarks);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -95,7 +95,7 @@ router.get('/requests/stats', async (req: Request, res: Response) => {
 
 router.patch('/requests/:id', async (req: Request, res: Response) => {
   try {
-    const data = await AdministrativeService.updateStudentRequest(req.params.id, req.body);
+    const data = await AdministrativeService.updateStudentRequest(req.params.id as string, req.body);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -146,7 +146,7 @@ router.post('/meetings', async (req: Request, res: Response) => {
 
 router.patch('/meetings/:id', async (req: Request, res: Response) => {
   try {
-    const data = await AdministrativeService.updateMeeting(req.params.id, req.body);
+    const data = await AdministrativeService.updateMeeting(req.params.id as string, req.body);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -167,7 +167,7 @@ router.get('/workflows', async (req: Request, res: Response) => {
 
 router.patch('/workflows/:id', async (req: Request, res: Response) => {
   try {
-    const data = await AdministrativeService.updateWorkflow(req.params.id, req.body.status);
+    const data = await AdministrativeService.updateWorkflow(req.params.id as string, req.body.status);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -198,7 +198,7 @@ router.get('/complaints', async (req: Request, res: Response) => {
 
 router.patch('/complaints/:id', async (req: Request, res: Response) => {
   try {
-    const data = await AdministrativeService.updateComplaint(req.params.id, req.body);
+    const data = await AdministrativeService.updateComplaint(req.params.id as string, req.body);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });

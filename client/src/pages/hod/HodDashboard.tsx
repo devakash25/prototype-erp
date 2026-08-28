@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useApi } from '@/hooks/useApi'
 import { cn } from '@/lib/utils'
+import { GreetingBanner } from '@/components/GreetingBanner'
 import {
   Users, GraduationCap, Calendar, Clock, TrendingUp,
   AlertTriangle, RefreshCw, CheckCircle, Star, FileText, Zap,
@@ -57,11 +58,8 @@ export function HodDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">HOD Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1">Department overview & key metrics</p>
-        </div>
+      <GreetingBanner />
+      <div className="flex items-center justify-end">
         <button
           onClick={handleRefresh}
           disabled={refreshing}

@@ -24,8 +24,11 @@ class StudentAnalyticsService {
       where: { courseId: student.courseId }, select: { id: true },
     })).map(s => s.id);
 
-    const [todayAttendance, totalAssignments, pendingAssignments, pendingFees, upcomingExams, newNotices, libraryIssues] = await Promise.all([
+    const [todayAttendance, todayDailyPresent, totalAssignments, pendingAssignments, pendingFees, upcomingExams, newNotices, libraryIssues] = await Promise.all([
       prisma.attendance.count({
+        where: { studentId: student.id, date: today, status: 'PRESENT' },
+      }),
+      prisma.dailyAttendance.count({
         where: { studentId: student.id, date: today, status: 'PRESENT' },
       }),
       prisma.assignment.count({ where: { subjectId: { in: subjectIds }, isActive: true } }),
@@ -46,9 +49,15 @@ class StudentAnalyticsService {
       }),
     ]);
 
-    // Attendance rate
-    const totalDays = await prisma.attendance.count({ where: { studentId: student.id } });
-    const presentDays = await prisma.attendance.count({ where: { studentId: student.id, status: 'PRESENT' } });
+    // Attendance rate (combine attendance + dailyAttendance)
+    const [totalDaysOld, presentDaysOld, totalDaysDaily, presentDaysDaily] = await Promise.all([
+      prisma.attendance.count({ where: { studentId: student.id } }),
+      prisma.attendance.count({ where: { studentId: student.id, status: 'PRESENT' } }),
+      prisma.dailyAttendance.count({ where: { studentId: student.id } }),
+      prisma.dailyAttendance.count({ where: { studentId: student.id, status: 'PRESENT' } }),
+    ]);
+    const totalDays = totalDaysOld + totalDaysDaily;
+    const presentDays = presentDaysOld + presentDaysDaily;
     const attendanceRate = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
     // Today's classes
@@ -126,15 +135,43 @@ class StudentAnalyticsService {
     const where: any = { studentId: student.id, date: { gte: since } };
     if (subjectId) where.subjectId = subjectId;
 
-    const records = await prisma.attendance.findMany({
-      where,
-      include: {
-        subject: { select: { name: true, code: true } },
-      },
-      orderBy: { date: 'desc' },
-    });
+    const [records, dailyRecords] = await Promise.all([
+      prisma.attendance.findMany({
+        where,
+        include: {
+          subject: { select: { name: true, code: true } },
+        },
+        orderBy: { date: 'desc' },
+      }),
+      prisma.dailyAttendance.findMany({
+        where: { studentId: student.id, date: { gte: since } },
+        include: {
+          class: { select: { name: true, code: true } },
+        },
+        orderBy: { date: 'desc' },
+      }),
+    ]);
 
-    // Subject-wise summary
+    // Merge daily records into unified format
+    const dailyMerged = dailyRecords.map(r => ({
+      id: r.id,
+      date: r.date,
+      status: r.status,
+      subject: `${r.class.name} (${r.session})`,
+      subjectCode: r.class.code,
+      remarks: r.remarks,
+    }));
+
+    const allRecords = [...records.map(r => ({
+      id: r.id,
+      date: r.date,
+      status: r.status,
+      subject: r.subject.name,
+      subjectCode: r.subject.code,
+      remarks: r.remarks,
+    })), ...dailyMerged].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    // Subject-wise summary (only from subject attendance, not daily)
     const subjectMap = new Map<string, { name: string; code: string; present: number; absent: number; late: number; total: number }>();
     for (const r of records) {
       const key = r.subjectId;
@@ -146,29 +183,22 @@ class StudentAnalyticsService {
       else if (r.status === 'LATE') s.late++;
     }
 
-    const totalPresent = records.filter(r => r.status === 'PRESENT').length;
-    const totalLate = records.filter(r => r.status === 'LATE').length;
-    const overallRate = records.length > 0 ? Math.round(((totalPresent + totalLate) / records.length) * 100) : 0;
+    const totalPresent = allRecords.filter(r => r.status === 'PRESENT').length;
+    const totalLate = allRecords.filter(r => r.status === 'LATE').length;
+    const overallRate = allRecords.length > 0 ? Math.round(((totalPresent + totalLate) / allRecords.length) * 100) : 0;
 
     return {
       overallRate,
-      totalDays: records.length,
+      totalDays: allRecords.length,
       present: totalPresent,
-      absent: records.filter(r => r.status === 'ABSENT').length,
+      absent: allRecords.filter(r => r.status === 'ABSENT').length,
       late: totalLate,
       subjectWise: Array.from(subjectMap.entries()).map(([id, data]) => ({
         subjectId: id,
         ...data,
         rate: data.total > 0 ? Math.round(((data.present + data.late) / data.total) * 100) : 0,
       })),
-      records: records.map(r => ({
-        id: r.id,
-        date: r.date,
-        status: r.status,
-        subject: r.subject.name,
-        subjectCode: r.subject.code,
-        remarks: r.remarks,
-      })),
+      records: allRecords,
     };
   }
 
