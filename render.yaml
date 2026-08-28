@@ -1,9 +1,10 @@
 services:
   - type: web
     name: dev-erp-api
-    runtime: docker
+    runtime: node
     plan: starter
-    dockerfilePath: server/Dockerfile
+    buildCommand: cd server && npm install && npx prisma generate && npm run build
+    startCommand: cd server && npx prisma migrate deploy && node dist/server.js
     envVars:
       - key: NODE_ENV
         value: production
