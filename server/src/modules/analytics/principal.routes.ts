@@ -149,7 +149,7 @@ router.post('/helpdesk/:id/action', wrap(async (req: Request, res: Response) => 
   const user = (req as any).user;
   const id = req.params.id as string;
   const body = req.body as any;
-  const data = await principalAnalyticsService.handleWorkflowAction(id, user.id, body.action, body.comments);
+  const data = await principalAnalyticsService.handleHelpdeskAction(id, user.userId, body.action, body.comments);
   res.json({ success: true, data, message: `Helpdesk ticket ${body.action}d successfully` });
 }));
 
@@ -171,7 +171,7 @@ router.post('/leave/:id/action', wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const id = req.params.id as string;
   const body = req.body as any;
-  const data = await principalAnalyticsService.handleLeaveAction(id, user.id, body.action, body.comments);
+  const data = await principalAnalyticsService.handleLeaveAction(id, user.userId, body.action, body.comments);
   res.json({ success: true, data, message: `Leave request ${body.action}d successfully` });
 }));
 
@@ -194,7 +194,7 @@ router.post('/workflows/:id/action', wrap(async (req: Request, res: Response) =>
   const user = (req as any).user;
   const id = req.params.id as string;
   const body = req.body as any;
-  const data = await principalAnalyticsService.handleWorkflowAction(id, user.id, body.action, body.comments);
+  const data = await principalAnalyticsService.handleWorkflowAction(id, user.userId, body.action, body.comments);
   res.json({ success: true, data, message: `Workflow ${body.action}d successfully` });
 }));
 

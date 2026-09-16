@@ -122,7 +122,7 @@ export class BackupService {
 
   private async exportFaculty(institutionId: string): Promise<string> {
     const faculty = await prisma.user.findMany({
-      where: { institutionId, role: { in: ['TEACHER', 'HOD', 'PRINCIPAL'] } },
+      where: { institutionId, role: { in: ['TEACHER', 'PRINCIPAL'] } },
       select: { fullName: true, email: true, phone: true, role: true },
     });
     const headers = ['fullName', 'email', 'phone', 'role'];

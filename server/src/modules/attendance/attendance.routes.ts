@@ -69,8 +69,8 @@ router.get('/daily', validate(attendanceQuerySchema), wrap(async (req: Request, 
   res.json({ success: true, data });
 }));
 
-// Write endpoints — TEACHER, HOD, PRINCIPAL, CHIEF_HEAD only
-const ATTENDANCE_WRITE_ROLES = ['TEACHER', 'HOD', 'PRINCIPAL', 'CHIEF_HEAD', 'COORDINATOR'];
+// Write endpoints — TEACHER, PRINCIPAL, CHIEF_HEAD only
+const ATTENDANCE_WRITE_ROLES = ['TEACHER', 'PRINCIPAL', 'CHIEF_HEAD', 'COORDINATOR'];
 
 router.post('/enable-subject-mode', authorize(...ATTENDANCE_WRITE_ROLES), validate(modeToggleSchema), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
@@ -108,20 +108,20 @@ router.post('/unlock', authorize(...ATTENDANCE_WRITE_ROLES), validate(lockSchema
   res.json({ success: true, data, message: 'Attendance unlocked' });
 }));
 
-// Teacher-specific endpoints — TEACHER, HOD, PRINCIPAL only
-router.get('/teacher/timetable', authorize('TEACHER', 'HOD', 'PRINCIPAL'), wrap(async (req: Request, res: Response) => {
+// Teacher-specific endpoints — TEACHER, PRINCIPAL only
+router.get('/teacher/timetable', authorize('TEACHER', 'PRINCIPAL'), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const data = await attendanceService.getTimetableForTeacher(user.userId);
   res.json({ success: true, data });
 }));
 
-router.get('/teacher/status', authorize('TEACHER', 'HOD', 'PRINCIPAL'), wrap(async (req: Request, res: Response) => {
+router.get('/teacher/status', authorize('TEACHER', 'PRINCIPAL'), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const data = await attendanceService.getTeacherAttendanceStatus(user.userId);
   res.json({ success: true, data });
 }));
 
-router.get('/teacher/period-students', authorize('TEACHER', 'HOD', 'PRINCIPAL'), wrap(async (req: Request, res: Response) => {
+router.get('/teacher/period-students', authorize('TEACHER', 'PRINCIPAL'), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const entryId = req.query.entryId as string;
   const date = req.query.date as string;
@@ -129,7 +129,7 @@ router.get('/teacher/period-students', authorize('TEACHER', 'HOD', 'PRINCIPAL'),
   res.json({ success: true, data });
 }));
 
-router.post('/teacher/mark-period', authorize('TEACHER', 'HOD', 'PRINCIPAL'), validate(markSubjectAttendanceSchema), wrap(async (req: Request, res: Response) => {
+router.post('/teacher/mark-period', authorize('TEACHER', 'PRINCIPAL'), validate(markSubjectAttendanceSchema), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const { timetableEntryId, date, records } = req.body;
   const data = await attendanceService.markSubjectAttendance(user.userId, timetableEntryId, date, records);

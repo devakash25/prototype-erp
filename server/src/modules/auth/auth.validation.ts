@@ -5,8 +5,9 @@ export const registerSchema = z.object({
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     role: z.enum([
-      'CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'HOD', 'TEACHER',
-      'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN',
+      'CHIEF_HEAD', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER',
+      'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'RECEPTIONIST', 'EXAM_CONTROLLER',
+      'LIBRARIAN', 'HOSTEL_WARDEN',
       'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF', 'STUDENT', 'PARENT',
     ]),
     firstName: z.string().min(1, 'First name is required'),

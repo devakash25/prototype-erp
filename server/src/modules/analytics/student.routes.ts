@@ -105,6 +105,20 @@ router.get('/requests', async (req: Request, res: Response) => {
   res.json({ success: true, data });
 });
 
+router.post('/requests', async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const { title, description, category } = req.body;
+    if (!title || !category) {
+      return res.status(400).json({ success: false, error: { message: 'Title and category are required' } });
+    }
+    const data = await studentAnalyticsService.createRequest(user.userId, { title, description: description || '', category });
+    res.json({ success: true, data, message: 'Request created successfully' });
+  } catch (error: any) {
+    res.status(400).json({ success: false, error: { message: error.message || 'Failed to create request' } });
+  }
+});
+
 router.get('/activity', async (req: Request, res: Response) => {
   const user = (req as any).user;
   const limit = parseInt(req.query.limit as string) || 10;

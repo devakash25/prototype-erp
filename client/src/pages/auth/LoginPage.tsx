@@ -160,18 +160,20 @@ export function LoginPage() {
               <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">Quick Login</span>
               <div className="h-px flex-1 bg-gray-200" />
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {[
-                { role: 'CEO', email: 'ceo@dev-erp.com', password: 'Admin@123', color: 'hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300' },
                 { role: 'Admin', email: 'admin@dev-erp.com', password: 'Admin@123', color: 'hover:bg-green-50 hover:text-green-700 hover:border-green-300' },
-                { role: 'Director', email: 'director@dev-erp.com', password: 'Director@123', color: 'hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300' },
-                { role: 'HOD', email: 'hod.cs@dev-erp.com', password: 'Teacher@123', color: 'hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300' },
                 { role: 'Principal', email: 'principal@dev-erp.com', password: 'Teacher@123', color: 'hover:bg-teal-50 hover:text-teal-700 hover:border-teal-300' },
+                { role: 'Vice Principal', email: 'vice.principal@dev-erp.com', password: 'Teacher@123', color: 'hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300' },
                 { role: 'Teacher', email: 'teacher1@dev-erp.com', password: 'Teacher@123', color: 'hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300' },
                 { role: 'Student', email: 'student1@dev-erp.com', password: 'Student@123', color: 'hover:bg-cyan-50 hover:text-cyan-700 hover:border-cyan-300' },
+                { role: 'Parent', email: 'father@dev-erp.com', password: 'Parent@123', color: 'hover:bg-fuchsia-50 hover:text-fuchsia-700 hover:border-fuchsia-300' },
+                { role: 'Exam Ctrl', email: 'exam.controller@dev-erp.com', password: 'Teacher@123', color: 'hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300' },
                 { role: 'Accountant', email: 'accountant@dev-erp.com', password: 'Teacher@123', color: 'hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300' },
+                { role: 'Receptionist', email: 'receptionist@dev-erp.com', password: 'Teacher@123', color: 'hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300' },
                 { role: 'Admission', email: 'admission@dev-erp.com', password: 'Teacher@123', color: 'hover:bg-pink-50 hover:text-pink-700 hover:border-pink-300' },
                 { role: 'Transport', email: 'transport@dev-erp.com', password: 'Teacher@123', color: 'hover:bg-red-50 hover:text-red-700 hover:border-red-300' },
+                { role: 'Librarian', email: 'librarian@dev-erp.com', password: 'Teacher@123', color: 'hover:bg-lime-50 hover:text-lime-700 hover:border-lime-300' },
               ].map((r) => (
                 <button
                   key={r.role}

@@ -72,7 +72,7 @@ export function AdminDashboard() {
   const upcomingMeetings = data?.upcomingMeetings || []
 
   return (
-    <div className="bg-gray-50 min-h-screen p-6 space-y-6">
+    <div className="space-y-6">
       <GreetingBanner />
       <div className="flex items-center justify-end">
         <button

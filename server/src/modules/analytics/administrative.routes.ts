@@ -6,7 +6,7 @@ const router = Router();
 router.use(authenticate);
 
 const adminOnly = ['ADMINISTRATIVE_STAFF'];
-const allRoles = ['CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ADMINISTRATIVE_STAFF'];
+const allRoles = ['CHIEF_HEAD', 'PRINCIPAL', 'ADMINISTRATIVE_STAFF'];
 
 // Dashboard
 router.get('/dashboard', async (req: Request, res: Response) => {

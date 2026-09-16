@@ -50,8 +50,8 @@ export class UserService {
       const institution = await prisma.institution.findUnique({ where: { id: creator.institutionId }, select: { type: true } });
       if (institution) {
         const allowedRoles: Record<string, string[]> = {
-          SCHOOL: ['MANAGER', 'VICE_MANAGER', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
-          COLLEGE: ['CHIEF_HEAD', 'DIRECTOR', 'HOD', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
+          SCHOOL: ['PRINCIPAL', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
+          COLLEGE: ['CHIEF_HEAD', 'PRINCIPAL', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
         };
         const allowed = allowedRoles[institution.type] || allowedRoles.COLLEGE;
         if (!allowed.includes(data.role)) {
@@ -89,8 +89,9 @@ export class UserService {
 
     // If role is employee-type, create employee record with auto-generated profile ID
     const employeeRoles = [
-      'DIRECTOR', 'MANAGER', 'VICE_MANAGER', 'PRINCIPAL', 'VICE_PRINCIPAL', 'HOD', 'TEACHER', 'ACCOUNTANT',
-      'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN',
+      'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER', 'ACCOUNTANT',
+      'ADMISSION_COUNSELLOR', 'RECEPTIONIST', 'EXAM_CONTROLLER',
+      'LIBRARIAN', 'HOSTEL_WARDEN',
       'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF',
     ];
 
@@ -347,12 +348,13 @@ export class UserService {
 
   private mapRoleToDepartment(role: UserRole): any {
     const mapping: Record<string, any> = {
-      DIRECTOR: 'ADMINISTRATION',
       PRINCIPAL: 'ADMINISTRATION',
-      HOD: 'ACADEMIC',
+      VICE_PRINCIPAL: 'ADMINISTRATION',
       TEACHER: 'ACADEMIC',
       ACCOUNTANT: 'FINANCE',
       ADMISSION_COUNSELLOR: 'ADMINISTRATION',
+      RECEPTIONIST: 'ADMINISTRATION',
+      EXAM_CONTROLLER: 'ACADEMIC',
       LIBRARIAN: 'LIBRARY',
       HOSTEL_WARDEN: 'HOSTEL',
       TRANSPORT_MANAGER: 'TRANSPORT',

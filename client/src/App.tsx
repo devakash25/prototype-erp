@@ -31,19 +31,6 @@ import DataBackupExport from '@/pages/super-admin/DataBackupExport'
 import CustomReportBuilder from '@/pages/super-admin/CustomReportBuilder'
 import RealtimeNotifications from '@/pages/super-admin/RealtimeNotifications'
 import DarkModeEnhancement from '@/pages/super-admin/DarkModeEnhancement'
-import { DirectorDashboard } from '@/pages/director/DirectorDashboard'
-import { DirectorDepartments } from '@/pages/director/DirectorDepartments'
-import { DirectorFaculty } from '@/pages/director/DirectorFaculty'
-import { DirectorStudents } from '@/pages/director/DirectorStudents'
-import { DirectorExaminations } from '@/pages/director/DirectorExaminations'
-import { DirectorAdmissions } from '@/pages/director/DirectorAdmissions'
-import { DirectorFinance } from '@/pages/director/DirectorFinance'
-import { DirectorHR } from '@/pages/director/DirectorHR'
-import { DirectorCampus } from '@/pages/director/DirectorCampus'
-import { DirectorApprovals } from '@/pages/director/DirectorApprovals'
-import { DirectorNotifications } from '@/pages/director/DirectorNotifications'
-import { DirectorCalendar } from '@/pages/director/DirectorCalendar'
-import { DirectorReports } from '@/pages/director/DirectorReports'
 import { PrincipalDashboard } from '@/pages/principal/PrincipalDashboard'
 import { PrincipalDepartments } from '@/pages/principal/PrincipalDepartments'
 import { PrincipalTimetable } from '@/pages/principal/PrincipalTimetable'
@@ -67,27 +54,6 @@ import { PrincipalHelpdesk } from '@/pages/principal/PrincipalHelpdesk'
 import { PrincipalReports } from '@/pages/principal/PrincipalReports'
 import { PrincipalClassCoordinators } from '@/pages/principal/PrincipalClassCoordinators'
 import { PrincipalSubjectAllocation } from '@/pages/principal/PrincipalSubjectAllocation'
-import { HodDashboard } from '@/pages/hod/HodDashboard'
-import { HodDepartment } from '@/pages/hod/HodDepartment'
-import { HodFaculty } from '@/pages/hod/HodFaculty'
-import { HodFacultyWorkload } from '@/pages/hod/HodFacultyWorkload'
-import { HodFacultyAttendance } from '@/pages/hod/HodFacultyAttendance'
-import { HodFacultyPerformance } from '@/pages/hod/HodFacultyPerformance'
-import { HodStudents } from '@/pages/hod/HodStudents'
-import { HodStudentPerformance } from '@/pages/hod/HodStudentPerformance'
-import { HodStudentAttendance } from '@/pages/hod/HodStudentAttendance'
-import { HodCourses } from '@/pages/hod/HodCourses'
-import { HodSubjects } from '@/pages/hod/HodSubjects'
-import { HodTimetable } from '@/pages/hod/HodTimetable'
-import { HodLMS } from '@/pages/hod/HodLMS'
-import { HodAssignments } from '@/pages/hod/HodAssignments'
-import { HodExaminations } from '@/pages/hod/HodExaminations'
-import { HodMarksEntry } from '@/pages/hod/HodMarksEntry'
-import { HodNotices } from '@/pages/hod/HodNotices'
-import { HodApprovals } from '@/pages/hod/HodApprovals'
-import { HodHelpdesk } from '@/pages/hod/HodHelpdesk'
-import { HodCalendar } from '@/pages/hod/HodCalendar'
-import { HodReports } from '@/pages/hod/HodReports'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { TeacherDashboard } from '@/pages/teacher/TeacherDashboard'
 import { TeacherSchedule } from '@/pages/teacher/TeacherSchedule'
@@ -205,6 +171,28 @@ import { HostelAnalytics as HostelWardenAnalytics } from '@/pages/hostel/HostelA
 import { HostelRoomDetail } from '@/pages/hostel/HostelRoomDetail'
 import { HostelActivity } from '@/pages/hostel/HostelActivity'
 import { useEffect } from 'react'
+import { lazy } from 'react'
+
+const VicePrincipalDashboard = lazy(() => import('@/pages/vice-principal/VicePrincipalDashboard'))
+const VicePrincipalAttendance = lazy(() => import('@/pages/vice-principal/VicePrincipalAttendance'))
+const VicePrincipalDiscipline = lazy(() => import('@/pages/vice-principal/VicePrincipalDiscipline'))
+const VicePrincipalSubstitutions = lazy(() => import('@/pages/vice-principal/VicePrincipalSubstitutions'))
+const VicePrincipalDailyReports = lazy(() => import('@/pages/vice-principal/VicePrincipalDailyReports'))
+const VicePrincipalInspections = lazy(() => import('@/pages/vice-principal/VicePrincipalInspections'))
+
+const ExamControllerDashboard = lazy(() => import('@/pages/exam-controller/ExamControllerDashboard'))
+const ExamControllerExams = lazy(() => import('@/pages/exam-controller/ExamControllerExams'))
+const ExamControllerResults = lazy(() => import('@/pages/exam-controller/ExamControllerResults'))
+const ExamControllerSeating = lazy(() => import('@/pages/exam-controller/ExamControllerSeating'))
+const ExamControllerMeritList = lazy(() => import('@/pages/exam-controller/ExamControllerMeritList'))
+const ExamControllerGrades = lazy(() => import('@/pages/exam-controller/ExamControllerGrades'))
+
+const ReceptionistDashboard = lazy(() => import('@/pages/receptionist/ReceptionistDashboard'))
+const ReceptionistVisitors = lazy(() => import('@/pages/receptionist/ReceptionistVisitors'))
+const ReceptionistEnquiries = lazy(() => import('@/pages/receptionist/ReceptionistEnquiries'))
+const ReceptionistPhoneLogs = lazy(() => import('@/pages/receptionist/ReceptionistPhoneLogs'))
+const ReceptionistCertificates = lazy(() => import('@/pages/receptionist/ReceptionistCertificates'))
+const ReceptionistIdCards = lazy(() => import('@/pages/receptionist/ReceptionistIDCards'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -222,9 +210,7 @@ function RoleRoute({ children, allowedRoles }: { children: React.ReactNode; allo
   const { user, isAuthenticated } = useAuthStore()
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (user && !allowedRoles.includes(user.role)) {
-    if (user.role === 'DIRECTOR') return <Navigate to="/director/dashboard" replace />
-    if (user.role === 'PRINCIPAL' || user.role === 'MANAGER' || user.role === 'VICE_MANAGER' || user.role === 'VICE_PRINCIPAL') return <Navigate to="/principal/dashboard" replace />
-    if (user.role === 'HOD') return <Navigate to="/hod/dashboard" replace />
+    if (user.role === 'PRINCIPAL') return <Navigate to="/principal/dashboard" replace />
     if (user.role === 'TEACHER') return <Navigate to="/teacher/dashboard" replace />
     if (user.role === 'STUDENT') return <Navigate to="/student/dashboard" replace />
     if (user.role === 'ACCOUNTANT') return <Navigate to="/accountant/dashboard" replace />
@@ -235,25 +221,20 @@ function RoleRoute({ children, allowedRoles }: { children: React.ReactNode; allo
     if (user.role === 'CEO') return <Navigate to="/ceo/dashboard" replace />
     if (user.role === 'LIBRARIAN') return <Navigate to="/librarian/dashboard" replace />
     if (user.role === 'HOSTEL_WARDEN') return <Navigate to="/hostel/dashboard" replace />
+    if (user.role === 'VICE_PRINCIPAL') return <Navigate to="/vice-principal/dashboard" replace />
+    if (user.role === 'EXAM_CONTROLLER') return <Navigate to="/exam-controller/dashboard" replace />
+    if (user.role === 'RECEPTIONIST') return <Navigate to="/receptionist/dashboard" replace />
     return <Navigate to="/dashboard" replace />
   }
   return <>{children}</>
 }
 
-function DirectorRoute({ children }: { children: React.ReactNode }) {
-  return <RoleRoute allowedRoles={['DIRECTOR']}>{children}</RoleRoute>
-}
-
 function PrincipalRoute({ children }: { children: React.ReactNode }) {
-  return <RoleRoute allowedRoles={['PRINCIPAL', 'MANAGER', 'VICE_MANAGER', 'VICE_PRINCIPAL']}>{children}</RoleRoute>
+  return <RoleRoute allowedRoles={['PRINCIPAL']}>{children}</RoleRoute>
 }
 
 function ChiefHeadRoute({ children }: { children: React.ReactNode }) {
   return <RoleRoute allowedRoles={['CHIEF_HEAD']}>{children}</RoleRoute>
-}
-
-function HodRoute({ children }: { children: React.ReactNode }) {
-  return <RoleRoute allowedRoles={['HOD']}>{children}</RoleRoute>
 }
 
 function TeacherRoute({ children }: { children: React.ReactNode }) {
@@ -296,6 +277,18 @@ function HostelWardenRoute({ children }: { children: React.ReactNode }) {
   return <RoleRoute allowedRoles={['HOSTEL_WARDEN']}>{children}</RoleRoute>
 }
 
+function VicePrincipalRoute({ children }: { children: React.ReactNode }) {
+  return <RoleRoute allowedRoles={['VICE_PRINCIPAL']}>{children}</RoleRoute>
+}
+
+function ExamControllerRoute({ children }: { children: React.ReactNode }) {
+  return <RoleRoute allowedRoles={['EXAM_CONTROLLER']}>{children}</RoleRoute>
+}
+
+function ReceptionistRoute({ children }: { children: React.ReactNode }) {
+  return <RoleRoute allowedRoles={['RECEPTIONIST']}>{children}</RoleRoute>
+}
+
 function NotFound() {
   return (
     <div className="flex items-center justify-center h-96">
@@ -310,9 +303,7 @@ function NotFound() {
 
 function RoleRedirect() {
   const { user } = useAuthStore()
-  if (user?.role === 'DIRECTOR') return <Navigate to="/director/dashboard" replace />
-  if (user?.role === 'PRINCIPAL' || user?.role === 'MANAGER' || user?.role === 'VICE_MANAGER' || user?.role === 'VICE_PRINCIPAL') return <Navigate to="/principal/dashboard" replace />
-  if (user?.role === 'HOD') return <Navigate to="/hod/dashboard" replace />
+  if (user?.role === 'PRINCIPAL') return <Navigate to="/principal/dashboard" replace />
   if (user?.role === 'TEACHER') return <Navigate to="/teacher/dashboard" replace />
   if (user?.role === 'STUDENT') return <Navigate to="/student/dashboard" replace />
   if (user?.role === 'ACCOUNTANT') return <Navigate to="/accountant/dashboard" replace />
@@ -323,6 +314,9 @@ function RoleRedirect() {
   if (user?.role === 'CEO') return <Navigate to="/ceo/dashboard" replace />
   if (user?.role === 'LIBRARIAN') return <Navigate to="/librarian/dashboard" replace />
   if (user?.role === 'HOSTEL_WARDEN') return <Navigate to="/hostel/dashboard" replace />
+  if (user?.role === 'VICE_PRINCIPAL') return <Navigate to="/vice-principal/dashboard" replace />
+  if (user?.role === 'EXAM_CONTROLLER') return <Navigate to="/exam-controller/dashboard" replace />
+  if (user?.role === 'RECEPTIONIST') return <Navigate to="/receptionist/dashboard" replace />
   return <Navigate to="/dashboard" replace />
 }
 
@@ -380,21 +374,6 @@ function App() {
                     <Route path="/realtime-notifications" element={<ChiefHeadRoute><RealtimeNotifications /></ChiefHeadRoute>} />
                     <Route path="/appearance" element={<ChiefHeadRoute><DarkModeEnhancement /></ChiefHeadRoute>} />
 
-                    {/* Director Routes */}
-                    <Route path="/director/dashboard" element={<DirectorRoute><DirectorDashboard /></DirectorRoute>} />
-                    <Route path="/director/departments" element={<DirectorRoute><DirectorDepartments /></DirectorRoute>} />
-                    <Route path="/director/faculty" element={<DirectorRoute><DirectorFaculty /></DirectorRoute>} />
-                    <Route path="/director/students" element={<DirectorRoute><DirectorStudents /></DirectorRoute>} />
-                    <Route path="/director/examinations" element={<DirectorRoute><DirectorExaminations /></DirectorRoute>} />
-                    <Route path="/director/admissions" element={<DirectorRoute><DirectorAdmissions /></DirectorRoute>} />
-                    <Route path="/director/finance" element={<DirectorRoute><DirectorFinance /></DirectorRoute>} />
-                    <Route path="/director/hr" element={<DirectorRoute><DirectorHR /></DirectorRoute>} />
-                    <Route path="/director/campus" element={<DirectorRoute><DirectorCampus /></DirectorRoute>} />
-                    <Route path="/director/approvals" element={<DirectorRoute><DirectorApprovals /></DirectorRoute>} />
-                    <Route path="/director/notifications" element={<DirectorRoute><DirectorNotifications /></DirectorRoute>} />
-                    <Route path="/director/calendar" element={<DirectorRoute><DirectorCalendar /></DirectorRoute>} />
-                    <Route path="/director/reports" element={<DirectorRoute><DirectorReports /></DirectorRoute>} />
-
                     {/* Principal Routes */}
                     <Route path="/principal/dashboard" element={<PrincipalRoute><PrincipalDashboard /></PrincipalRoute>} />
                     <Route path="/principal/departments" element={<PrincipalRoute><PrincipalDepartments /></PrincipalRoute>} />
@@ -419,29 +398,6 @@ function App() {
                     <Route path="/principal/calendar" element={<PrincipalRoute><PrincipalCalendar /></PrincipalRoute>} />
                     <Route path="/principal/helpdesk" element={<PrincipalRoute><PrincipalHelpdesk /></PrincipalRoute>} />
                     <Route path="/principal/reports" element={<PrincipalRoute><PrincipalReports /></PrincipalRoute>} />
-
-                    {/* HOD Routes */}
-                    <Route path="/hod/dashboard" element={<HodRoute><HodDashboard /></HodRoute>} />
-                    <Route path="/hod/department" element={<HodRoute><HodDepartment /></HodRoute>} />
-                    <Route path="/hod/faculty" element={<HodRoute><HodFaculty /></HodRoute>} />
-                    <Route path="/hod/faculty/workload" element={<HodRoute><HodFacultyWorkload /></HodRoute>} />
-                    <Route path="/hod/faculty/attendance" element={<HodRoute><HodFacultyAttendance /></HodRoute>} />
-                    <Route path="/hod/faculty/performance" element={<HodRoute><HodFacultyPerformance /></HodRoute>} />
-                    <Route path="/hod/students" element={<HodRoute><HodStudents /></HodRoute>} />
-                    <Route path="/hod/students/performance" element={<HodRoute><HodStudentPerformance /></HodRoute>} />
-                    <Route path="/hod/students/attendance" element={<HodRoute><HodStudentAttendance /></HodRoute>} />
-                    <Route path="/hod/courses" element={<HodRoute><HodCourses /></HodRoute>} />
-                    <Route path="/hod/subjects" element={<HodRoute><HodSubjects /></HodRoute>} />
-                    <Route path="/hod/timetable" element={<HodRoute><HodTimetable /></HodRoute>} />
-                    <Route path="/hod/lms" element={<HodRoute><HodLMS /></HodRoute>} />
-                    <Route path="/hod/assignments" element={<HodRoute><HodAssignments /></HodRoute>} />
-                    <Route path="/hod/examinations" element={<HodRoute><HodExaminations /></HodRoute>} />
-                    <Route path="/hod/marks-entry" element={<HodRoute><HodMarksEntry /></HodRoute>} />
-                    <Route path="/hod/notices" element={<HodRoute><HodNotices /></HodRoute>} />
-                    <Route path="/hod/approvals" element={<HodRoute><HodApprovals /></HodRoute>} />
-                    <Route path="/hod/helpdesk" element={<HodRoute><HodHelpdesk /></HodRoute>} />
-                    <Route path="/hod/calendar" element={<HodRoute><HodCalendar /></HodRoute>} />
-                    <Route path="/hod/reports" element={<HodRoute><HodReports /></HodRoute>} />
 
                     {/* Profile - All Roles */}
                     <Route path="/profile" element={<ProfilePage />} />
@@ -583,6 +539,30 @@ function App() {
                     <Route path="/hostel/complaints" element={<HostelWardenRoute><HostelComplaints /></HostelWardenRoute>} />
                     <Route path="/hostel/analytics" element={<HostelWardenRoute><HostelWardenAnalytics /></HostelWardenRoute>} />
                     <Route path="/hostel/activity" element={<HostelWardenRoute><HostelActivity /></HostelWardenRoute>} />
+
+                    {/* Vice Principal Routes */}
+                    <Route path="/vice-principal/dashboard" element={<VicePrincipalRoute><VicePrincipalDashboard /></VicePrincipalRoute>} />
+                    <Route path="/vice-principal/attendance" element={<VicePrincipalRoute><VicePrincipalAttendance /></VicePrincipalRoute>} />
+                    <Route path="/vice-principal/discipline" element={<VicePrincipalRoute><VicePrincipalDiscipline /></VicePrincipalRoute>} />
+                    <Route path="/vice-principal/substitutions" element={<VicePrincipalRoute><VicePrincipalSubstitutions /></VicePrincipalRoute>} />
+                    <Route path="/vice-principal/daily-reports" element={<VicePrincipalRoute><VicePrincipalDailyReports /></VicePrincipalRoute>} />
+                    <Route path="/vice-principal/inspections" element={<VicePrincipalRoute><VicePrincipalInspections /></VicePrincipalRoute>} />
+
+                    {/* Exam Controller Routes */}
+                    <Route path="/exam-controller/dashboard" element={<ExamControllerRoute><ExamControllerDashboard /></ExamControllerRoute>} />
+                    <Route path="/exam-controller/exams" element={<ExamControllerRoute><ExamControllerExams /></ExamControllerRoute>} />
+                    <Route path="/exam-controller/results" element={<ExamControllerRoute><ExamControllerResults /></ExamControllerRoute>} />
+                    <Route path="/exam-controller/seating" element={<ExamControllerRoute><ExamControllerSeating /></ExamControllerRoute>} />
+                    <Route path="/exam-controller/merit-list" element={<ExamControllerRoute><ExamControllerMeritList /></ExamControllerRoute>} />
+                    <Route path="/exam-controller/grades" element={<ExamControllerRoute><ExamControllerGrades /></ExamControllerRoute>} />
+
+                    {/* Receptionist Routes */}
+                    <Route path="/receptionist/dashboard" element={<ReceptionistRoute><ReceptionistDashboard /></ReceptionistRoute>} />
+                    <Route path="/receptionist/visitors" element={<ReceptionistRoute><ReceptionistVisitors /></ReceptionistRoute>} />
+                    <Route path="/receptionist/enquiries" element={<ReceptionistRoute><ReceptionistEnquiries /></ReceptionistRoute>} />
+                    <Route path="/receptionist/phone-logs" element={<ReceptionistRoute><ReceptionistPhoneLogs /></ReceptionistRoute>} />
+                    <Route path="/receptionist/certificates" element={<ReceptionistRoute><ReceptionistCertificates /></ReceptionistRoute>} />
+                    <Route path="/receptionist/id-cards" element={<ReceptionistRoute><ReceptionistIdCards /></ReceptionistRoute>} />
 
                     <Route path="*" element={<NotFound />} />
                   </Routes>

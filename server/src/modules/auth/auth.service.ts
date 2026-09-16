@@ -81,7 +81,7 @@ export class AuthService {
     }
 
     // Enabled roles
-    if (!['CEO', 'CHIEF_HEAD', 'DIRECTOR', 'MANAGER', 'VICE_MANAGER', 'PRINCIPAL', 'VICE_PRINCIPAL', 'HOD', 'TEACHER', 'STUDENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF', 'PARENT', 'LIBRARIAN', 'HOSTEL_WARDEN'].includes(user.role)) {
+    if (!['CEO', 'CHIEF_HEAD', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER', 'STUDENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'RECEPTIONIST', 'EXAM_CONTROLLER', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF', 'PARENT', 'LIBRARIAN', 'HOSTEL_WARDEN'].includes(user.role)) {
       throw new UnauthorizedError('Your role is not yet active. Contact your administrator.');
     }
 

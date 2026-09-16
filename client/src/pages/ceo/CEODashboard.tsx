@@ -5,8 +5,9 @@ import {
   Zap, BookOpen, Bus, Building, Briefcase, GraduationCap,
   HeartPulse, Library, Settings,
 } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
 import api from '@/services/api'
-import { GreetingBanner } from '@/components/GreetingBanner'
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-IN', {
@@ -14,38 +15,6 @@ function formatCurrency(amount: number): string {
     currency: 'INR',
     maximumFractionDigits: 0,
   }).format(amount)
-}
-
-const ROLE_ICONS: Record<string, any> = {
-  Student: GraduationCap,
-  Teacher: BookOpen,
-  Parent: HeartPulse,
-  'Head of Department': Briefcase,
-  Principal: Shield,
-  Director: Crown,
-  Accountant: DollarSign,
-  'Admission Counsellor': Users,
-  'Transport Manager': Bus,
-  'Administrative Staff': Settings,
-  Librarian: Library,
-  'Hostel Warden': Building,
-  'Chief Head': Shield,
-}
-
-const ROLE_COLORS: Record<string, string> = {
-  Student: 'from-blue-500 to-cyan-500',
-  Teacher: 'from-green-500 to-emerald-500',
-  Parent: 'from-purple-500 to-pink-500',
-  'Head of Department': 'from-amber-500 to-orange-500',
-  Principal: 'from-red-500 to-rose-500',
-  Director: 'from-indigo-500 to-blue-500',
-  Accountant: 'from-yellow-500 to-amber-500',
-  'Admission Counsellor': 'from-teal-500 to-cyan-500',
-  'Transport Manager': 'from-orange-500 to-red-500',
-  'Administrative Staff': 'from-slate-500 to-gray-500',
-  Librarian: 'from-violet-500 to-purple-500',
-  'Hostel Warden': 'from-pink-500 to-rose-500',
-  'Chief Head': 'from-amber-600 to-yellow-500',
 }
 
 export function CEODashboard() {
@@ -57,7 +26,7 @@ export function CEODashboard() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+        <RefreshCw className="w-8 h-8 text-slate-400 animate-spin" />
       </div>
     )
   }
@@ -68,76 +37,81 @@ export function CEODashboard() {
 
   return (
     <div className="space-y-6">
-      <GreetingBanner />
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-white">CEO Dashboard</h1>
+        <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-3 py-1.5 text-slate-400 hover:text-white border border-slate-700 rounded-lg hover:bg-slate-700">
+          <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />Refresh
+        </button>
+      </div>
 
       {/* Top Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl p-5">
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-blue-600">Total Users</p>
-            <div className="w-10 h-10 rounded-lg bg-blue-500/15 flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-500" />
+            <p className="text-sm text-slate-400">Total Users</p>
+            <div className="w-10 h-10 rounded-lg bg-indigo-500/15 flex items-center justify-center">
+              <Users className="w-5 h-5 text-indigo-400" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-slate-800">{users?.totalUsers || 0}</p>
-          <p className="text-xs text-slate-500 mt-1">Across all roles</p>
+          <p className="text-3xl font-bold text-white">{users?.totalUsers || 0}</p>
+          <p className="text-xs text-slate-400 mt-1">Across all roles</p>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-5">
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-green-600">Active Users</p>
+            <p className="text-sm text-slate-400">Active Users</p>
             <div className="w-10 h-10 rounded-lg bg-green-500/15 flex items-center justify-center">
-              <UserCheck className="w-5 h-5 text-green-500" />
+              <UserCheck className="w-5 h-5 text-green-400" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-green-600">{users?.activeUsers || 0}</p>
-          <p className="text-xs text-slate-500 mt-1">{users?.inactiveUsers || 0} inactive</p>
+          <p className="text-3xl font-bold text-white">{users?.activeUsers || 0}</p>
+          <p className="text-xs text-slate-400 mt-1">{users?.inactiveUsers || 0} inactive</p>
         </div>
 
-        <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-xl p-5">
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-amber-600">Total Revenue</p>
+            <p className="text-sm text-slate-400">Total Revenue</p>
             <div className="w-10 h-10 rounded-lg bg-amber-500/15 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-amber-500" />
+              <TrendingUp className="w-5 h-5 text-amber-400" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-amber-600">{formatCurrency(revenue?.total || 0)}</p>
-          <p className="text-xs text-slate-500 mt-1">{formatCurrency(revenue?.paid || 0)} paid</p>
+          <p className="text-3xl font-bold text-white">{formatCurrency(revenue?.total || 0)}</p>
+          <p className="text-xs text-slate-400 mt-1">{formatCurrency(revenue?.paid || 0)} paid</p>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl p-5">
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-purple-600">Unpaid</p>
-            <div className="w-10 h-10 rounded-lg bg-purple-500/15 flex items-center justify-center">
-              <TrendingDown className="w-5 h-5 text-purple-500" />
+            <p className="text-sm text-slate-400">Unpaid</p>
+            <div className="w-10 h-10 rounded-lg bg-red-500/15 flex items-center justify-center">
+              <TrendingDown className="w-5 h-5 text-red-400" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-purple-600">{formatCurrency(revenue?.unpaid || 0)}</p>
-          <p className="text-xs text-slate-500 mt-1">Outstanding dues</p>
+          <p className="text-3xl font-bold text-white">{formatCurrency(revenue?.unpaid || 0)}</p>
+          <p className="text-xs text-slate-400 mt-1">Outstanding dues</p>
         </div>
       </div>
 
       {/* Active Plan & System Status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active Plan */}
-        <div className="bg-slate-800 rounded-xl p-6">
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-amber-500/15 flex items-center justify-center">
-              <CreditCard className="w-5 h-5 text-amber-500" />
+            <div className="w-10 h-10 rounded-lg bg-indigo-500/15 flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-indigo-400" />
             </div>
             <h2 className="text-lg font-semibold text-white">Active Plan</h2>
           </div>
           {plan ? (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${plan.planType === 'pro' ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-slate-400 to-slate-600'}`}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-indigo-500/15">
                   {plan.planType === 'pro' ? <Crown className="w-6 h-6 text-white" /> : <Star className="w-6 h-6 text-white" />}
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-white">{plan.name}</h3>
                   <p className="text-xs text-slate-400 capitalize">{plan.planType} plan</p>
                 </div>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/15 text-green-400 border border-green-500/30">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
                   <Zap className="w-3 h-3" /> Active
                 </span>
               </div>
@@ -162,7 +136,7 @@ export function CEODashboard() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <CreditCard className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+              <CreditCard className="w-12 h-12 text-slate-500 mx-auto mb-3" />
               <p className="text-slate-400">No active plan</p>
               <p className="text-xs text-slate-500 mt-1">Go to Plan & Subscription to activate one</p>
             </div>
@@ -170,7 +144,7 @@ export function CEODashboard() {
         </div>
 
         {/* ERP System Status */}
-        <div className="bg-slate-800 rounded-xl p-6">
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-lg bg-green-500/15 flex items-center justify-center">
               <Settings className="w-5 h-5 text-green-500" />
@@ -223,10 +197,10 @@ export function CEODashboard() {
       </div>
 
       {/* Users by Role */}
-      <div className="bg-slate-800 rounded-xl p-6">
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-blue-500/15 flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-blue-500" />
+          <div className="w-10 h-10 rounded-lg bg-indigo-500/15 flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-indigo-400" />
           </div>
           <h2 className="text-lg font-semibold text-white">Users by Role</h2>
           <span className="text-sm text-slate-400 ml-auto">{users?.totalUsers || 0} total</span>
@@ -235,7 +209,7 @@ export function CEODashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {users?.roleBreakdown?.map((item: any) => {
             const Icon = ROLE_ICONS[item.role] || Users
-            const color = ROLE_COLORS[item.role] || 'from-slate-500 to-gray-500'
+            const color = ROLE_COLORS[item.role] || 'from-indigo-500 to-slate-600'
             const percentage = users.totalUsers > 0 ? ((item.count / users.totalUsers) * 100).toFixed(1) : '0'
 
             return (

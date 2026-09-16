@@ -3,12 +3,13 @@ import { logger } from '../../utils/logger';
 
 const ROLE_DEFINITIONS = [
   { id: 'CHIEF_HEAD', name: 'Chief Head', description: 'Institution super administrator' },
-  { id: 'DIRECTOR', name: 'Director', description: 'Director of the institution' },
   { id: 'PRINCIPAL', name: 'Principal', description: 'Principal of the institution' },
-  { id: 'HOD', name: 'Head of Department', description: 'Department head' },
+  { id: 'VICE_PRINCIPAL', name: 'Vice Principal', description: 'Vice Principal - operations & discipline' },
   { id: 'TEACHER', name: 'Teacher', description: 'Teaching faculty' },
   { id: 'ACCOUNTANT', name: 'Accountant', description: 'Finance management' },
   { id: 'ADMISSION_COUNSELLOR', name: 'Admission Counsellor', description: 'Admissions handling' },
+  { id: 'RECEPTIONIST', name: 'Receptionist', description: 'Front office & visitor management' },
+  { id: 'EXAM_CONTROLLER', name: 'Exam Controller', description: 'Examination management' },
   { id: 'LIBRARIAN', name: 'Librarian', description: 'Library management' },
   { id: 'HOSTEL_WARDEN', name: 'Hostel Warden', description: 'Hostel management' },
   { id: 'TRANSPORT_MANAGER', name: 'Transport Manager', description: 'Transport management' },

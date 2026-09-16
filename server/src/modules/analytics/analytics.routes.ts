@@ -200,7 +200,7 @@ router.get('/calendar/upcoming', async (req, res, next) => {
 });
 
 // Finance — management + finance
-router.get('/finance/overview', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req, res, next) => {
+router.get('/finance/overview', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req, res, next) => {
   try {
     const institutionId = getInstitutionId(req);
     const [totalCollected, totalPending, totalStudents] = await Promise.all([
@@ -217,7 +217,7 @@ router.get('/finance/overview', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL',
   } catch (e) { next(e); }
 });
 
-router.get('/finance/revenue', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req, res, next) => {
+router.get('/finance/revenue', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req, res, next) => {
   try {
     const institutionId = getInstitutionId(req);
     const payments = await prisma.feePayment.findMany({
@@ -236,14 +236,14 @@ router.get('/finance/revenue', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 
   } catch (e) { next(e); }
 });
 
-router.get('/finance/expenses', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req, res, next) => {
+router.get('/finance/expenses', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req, res, next) => {
   try {
     const institutionId = getInstitutionId(req);
     res.json({ success: true, data: { message: 'Expense tracking not yet implemented', total: 0 } });
   } catch (e) { next(e); }
 });
 
-router.get('/finance/collections', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req, res, next) => {
+router.get('/finance/collections', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req, res, next) => {
   try {
     const institutionId = getInstitutionId(req);
     const [today, thisWeek, thisMonth] = await Promise.all([
@@ -260,7 +260,7 @@ router.get('/finance/collections', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPA
 });
 
 // Students — management
-router.get('/students/overview', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), async (req, res, next) => {
+router.get('/students/overview', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), async (req, res, next) => {
   try {
     const institutionId = getInstitutionId(req);
     const [total, active, departments] = await Promise.all([
@@ -272,7 +272,7 @@ router.get('/students/overview', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL'
   } catch (e) { next(e); }
 });
 
-router.get('/students/demographics', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), async (req, res, next) => {
+router.get('/students/demographics', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), async (req, res, next) => {
   try {
     const institutionId = getInstitutionId(req);
     const [byGender, byCategory] = await Promise.all([
@@ -286,7 +286,7 @@ router.get('/students/demographics', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCI
   } catch (e) { next(e); }
 });
 
-router.get('/students/performance', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'HOD', 'CEO'), async (req, res, next) => {
+router.get('/students/performance', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), async (req, res, next) => {
   try {
     const institutionId = getInstitutionId(req);
     const results = await prisma.examResult.findMany({
@@ -302,7 +302,7 @@ router.get('/students/performance', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIP
   } catch (e) { next(e); }
 });
 
-router.get('/students/attendance', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'HOD', 'CEO'), async (req, res, next) => {
+router.get('/students/attendance', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), async (req, res, next) => {
   try {
     const institutionId = getInstitutionId(req);
     const [present, absent] = await Promise.all([
@@ -314,7 +314,7 @@ router.get('/students/attendance', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPA
   } catch (e) { next(e); }
 });
 
-router.get('/students/fees', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req, res, next) => {
+router.get('/students/fees', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req, res, next) => {
   try {
     const institutionId = getInstitutionId(req);
     const [paid, pending, overdue] = await Promise.all([

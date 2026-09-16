@@ -5,6 +5,7 @@ import {
   RefreshCw, ArrowRight, LogIn, LogOut, Plus, Eye, MessageSquare,
   CalendarDays,
 } from 'lucide-react'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 import api from '@/services/api'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
@@ -19,13 +20,17 @@ export function HostelDashboard() {
     loadDashboard()
   }, [])
 
+  const [error, setError] = useState(false)
+
   const loadDashboard = async () => {
     setLoading(true)
+    setError(false)
     try {
       const res = await api.get('/hostel/dashboard')
       setData(res.data)
     } catch (err) {
       console.error(err)
+      setError(true)
     }
     setLoading(false)
   }
@@ -34,6 +39,18 @@ export function HostelDashboard() {
     return (
       <div className="flex items-center justify-center h-96">
         <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <AlertTriangle className="h-12 w-12 text-red-500" />
+        <p className="text-lg text-slate-400">Failed to load dashboard</p>
+        <button onClick={loadDashboard} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+          <RefreshCw className="h-4 w-4" /> Retry
+        </button>
       </div>
     )
   }
@@ -78,7 +95,7 @@ export function HostelDashboard() {
       <div className="flex items-center justify-end">
         <button
           onClick={loadDashboard}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+          className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-slate-700"
         >
           <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
           Refresh
@@ -90,12 +107,12 @@ export function HostelDashboard() {
         {kpiCards.map((card) => (
           <div
             key={card.title}
-            className="bg-white rounded-xl border border-gray-200 p-5"
+            className="bg-slate-800 rounded-xl border border-slate-700 p-5"
           >
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-gray-500">{card.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
+                <p className="text-sm text-slate-400">{card.title}</p>
+                <p className="text-2xl font-bold text-white mt-1">{card.value}</p>
               </div>
               <div className={cn('p-3 rounded-xl', card.color)}>
                 <card.icon className="w-5 h-5 text-white" />
@@ -105,23 +122,54 @@ export function HostelDashboard() {
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {quickActions.map((action) => (
-            <Link
-              key={action.label}
-              to={action.href}
-              className={cn(
-                'flex flex-col items-center gap-2 p-4 rounded-xl transition-colors',
-                action.color
-              )}
-            >
-              <action.icon className="h-6 w-6" />
-              <span className="text-sm font-medium">{action.label}</span>
-            </Link>
-          ))}
+      {/* Occupancy Pie Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
+          <h2 className="text-lg font-semibold text-white mb-4">Room Occupancy</h2>
+          {(occupiedRooms > 0 || vacantRooms > 0) ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Occupied', value: occupiedRooms },
+                    { name: 'Vacant', value: vacantRooms },
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={85}
+                  dataKey="value"
+                >
+                  <Cell fill="#f59e0b" />
+                  <Cell fill="#10b981" />
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-slate-400">No occupancy data</div>
+          )}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
+          <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 gap-3">
+            {quickActions.map((action) => (
+              <Link
+                key={action.label}
+                to={action.href}
+                className={cn(
+                  'flex items-center gap-3 p-4 rounded-xl transition-colors',
+                  action.color
+                )}
+              >
+                <action.icon className="h-5 w-5" />
+                <span className="text-sm font-medium">{action.label}</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 

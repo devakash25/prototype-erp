@@ -183,14 +183,14 @@ function OverviewTab({ courseId, students, academics, attendance, studentsLoadin
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="bg-white rounded-xl border border-gray-200 p-5">
+          <div key={kpi.label} className="bg-slate-800 rounded-xl border border-slate-700 p-5">
             <div className="flex items-center gap-3">
-              <div className={cn('p-2 rounded-lg', `bg-${kpi.color}-50`)}>
-                <kpi.icon className={cn('w-5 h-5', `text-${kpi.color}-600`)} />
+              <div className={cn('p-2 rounded-lg', kpi.color === 'blue' ? 'bg-indigo-500/10 border-indigo-500/20' : kpi.color === 'green' ? 'bg-green-500/10 border-green-500/20' : kpi.color === 'purple' ? 'bg-purple-500/10 border-purple-500/20' : kpi.color === 'amber' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-red-500/10 border-red-500/20')}>
+                <kpi.icon className={cn('w-5 h-5', kpi.color === 'blue' ? 'text-indigo-400' : kpi.color === 'green' ? 'text-green-400' : kpi.color === 'purple' ? 'text-purple-400' : kpi.color === 'amber' ? 'text-amber-400' : 'text-red-400')} />
               </div>
               <div>
-                <p className="text-sm text-gray-500">{kpi.label}</p>
-                <p className="text-xl font-bold text-gray-900">{kpi.value}</p>
+                <p className="text-sm text-slate-400">{kpi.label}</p>
+                <p className="text-xl font-bold text-white">{kpi.value}</p>
               </div>
             </div>
           </div>
@@ -373,24 +373,23 @@ function AcademicsTab({ data, loading }: any) {
       </div>
 
       {data.subjectPerformance?.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-sm font-medium text-gray-900 mb-4">Subject-wise Performance</h3>
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+          <h3 className="text-sm font-medium text-slate-400 mb-4">Subject-wise Performance</h3>
           <div className="space-y-3">
             {data.subjectPerformance.map((sp: any) => {
-              const subject = data.courseName || 'Subject'
               return (
-                <div key={sp.subjectId} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                <div key={sp.subjectId} className="flex items-center gap-4 p-4 rounded-lg bg-slate-700/50">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-900">Subject {sp.subjectId.slice(0, 8)}</span>
+                      <span className="text-sm font-medium text-slate-400">Subject {sp.subjectId}</span>
                       <div className="flex items-center gap-4">
-                        <span className="text-sm text-gray-500">Avg: <strong className="text-gray-900">{sp.avgMarks}</strong></span>
-                        <span className="text-sm text-gray-500">Pass: <strong className="text-green-600">{sp.passRate}%</strong></span>
-                        <span className="text-xs text-gray-400">({sp.totalResults} results)</span>
+                        <span className="text-sm text-slate-500">Avg: <strong className="text-slate-300">{sp.avgMarks}</strong></span>
+                        <span className="text-sm text-slate-500">Pass: <strong className="text-green-400">{sp.passRate}%</strong></span>
+                        <span className="text-xs text-slate-400">({sp.totalResults} results)</span>
                       </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${Math.min(100, sp.avgMarks)}%` }} />
+                    <div className="w-full bg-slate-700 rounded-full h-2">
+                      <div className="bg-indigo-400 h-2 rounded-full" style={{ width: `${Math.min(100, sp.avgMarks)}%` }} />
                     </div>
                   </div>
                 </div>

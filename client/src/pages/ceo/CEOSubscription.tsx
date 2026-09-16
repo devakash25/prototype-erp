@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CreditCard, RefreshCw, Crown, Star, Zap, Check, X,
-  ArrowRight, Sparkles, Edit3, ChevronDown, ChevronRight, Save, Trash2,
+  ArrowRight, Sparkles, Edit3, ChevronDown, ChevronRight, Save, Trash2, AlertTriangle,
 } from 'lucide-react'
 import api from '@/services/api'
 import { FEATURE_REGISTRY } from '@/config/features'
@@ -29,9 +29,8 @@ const totalFeatures = FEATURE_REGISTRY.reduce((s, g) => s + g.features.length, 0
 
 const ROLE_LABELS: Record<string, string> = {
   CHIEF_HEAD: 'Chief Head',
-  DIRECTOR: 'Director',
   PRINCIPAL: 'Principal',
-  HOD: 'Head of Department',
+  VICE_PRINCIPAL: 'Vice Principal',
   TEACHER: 'Teacher',
   STUDENT: 'Student',
   PARENT: 'Parent',
@@ -41,6 +40,9 @@ const ROLE_LABELS: Record<string, string> = {
   ADMINISTRATIVE_STAFF: 'Administrative Staff',
   LIBRARIAN: 'Librarian',
   HOSTEL_WARDEN: 'Hostel Warden',
+  RECEPTIONIST: 'Receptionist',
+  EXAM_CONTROLLER: 'Exam Controller',
+  CEO: 'CEO',
 }
 
 export function CEOSubscription() {
@@ -52,7 +54,7 @@ export function CEOSubscription() {
   const [expandedRoles, setExpandedRoles] = useState<string[]>([])
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
-  const { data: plans, isLoading } = useQuery({
+  const { data: plans, isLoading, error } = useQuery({
     queryKey: ['ceo-plans'],
     queryFn: () => api.get('/ceo/plans').then((res) => res.data),
   })
@@ -301,7 +303,17 @@ export function CEOSubscription() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+        <RefreshCw className="w-8 h-8 text-slate-400 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <AlertTriangle className="h-12 w-12 text-amber-400" />
+        <p className="text-lg text-slate-300">Failed to load subscription plans</p>
+        <button onClick={() => window.location.reload()} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Retry</button>
       </div>
     )
   }
@@ -310,17 +322,17 @@ export function CEOSubscription() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Plan & Subscription</h1>
-          <p className="text-slate-500 text-sm mt-1">Choose a plan for your institution</p>
+          <h1 className="text-2xl font-bold text-white">Plan & Subscription</h1>
+          <p className="text-slate-400 text-sm mt-1">Choose a plan for your institution</p>
         </div>
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center">
-          <CreditCard className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-slate-800 mb-2">No Plans Available</h2>
-          <p className="text-slate-500 mb-6">Initialize the system with default Free and Pro plans.</p>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center">
+          <CreditCard className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-white mb-2">No Plans Available</h2>
+          <p className="text-slate-400 mb-6">Initialize the system with default Free and Pro plans.</p>
           <button
             onClick={() => initMutation.mutate()}
             disabled={initMutation.isPending}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all mx-auto"
+            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-all mx-auto"
           >
             <Sparkles className="w-5 h-5" />
             {initMutation.isPending ? 'Creating Plans...' : 'Initialize Plans'}
@@ -337,7 +349,7 @@ export function CEOSubscription() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">{isCreate ? 'Create New Plan' : 'Edit Plan'}</h1>
+            <h1 className="text-2xl font-bold text-white">{isCreate ? 'Create New Plan' : 'Edit Plan'}</h1>
             <p className="text-slate-400 text-sm mt-1">Configure plan details, features, and role pricing</p>
           </div>
           <div className="flex gap-3">
@@ -350,7 +362,7 @@ export function CEOSubscription() {
             <button
               onClick={saveEdit}
               disabled={updateMutation.isPending || updatePricingMutation.isPending || createMutation.isPending || !editForm.name.trim()}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
             >
               <Save className="w-4 h-4" />
               {updateMutation.isPending || updatePricingMutation.isPending || createMutation.isPending ? 'Saving...' : isCreate ? 'Create Plan' : 'Save Changes'}
@@ -359,8 +371,8 @@ export function CEOSubscription() {
         </div>
 
         {/* Plan Details */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-6">
-          <h2 className="text-lg font-semibold text-slate-800">Plan Details</h2>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-6">
+          <h2 className="text-lg font-semibold text-white">Plan Details</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm text-slate-400 mb-1">Plan Name</label>
@@ -369,7 +381,7 @@ export function CEOSubscription() {
                 value={editForm.name}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                 placeholder="e.g. Enterprise, Starter..."
-                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500 placeholder:text-slate-500"
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-indigo-500 placeholder:text-slate-500"
               />
             </div>
             <div>
@@ -377,7 +389,7 @@ export function CEOSubscription() {
               <select
                 value={editForm.planType}
                 onChange={(e) => setEditForm({ ...editForm, planType: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
               >
                 <option value="basic">Basic</option>
                 <option value="pro">Pro</option>
@@ -391,7 +403,7 @@ export function CEOSubscription() {
                 value={editForm.description}
                 onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                 placeholder="Brief description of this plan"
-                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500 placeholder:text-slate-500"
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-indigo-500 placeholder:text-slate-500"
               />
             </div>
             <div>
@@ -400,7 +412,7 @@ export function CEOSubscription() {
                 type="number"
                 value={editForm.userLimit}
                 onChange={(e) => setEditForm({ ...editForm, userLimit: Number(e.target.value) })}
-                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
               />
             </div>
             <div>
@@ -409,20 +421,20 @@ export function CEOSubscription() {
                 type="number"
                 value={editForm.storageLimitGB}
                 onChange={(e) => setEditForm({ ...editForm, storageLimitGB: Number(e.target.value) })}
-                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
               />
             </div>
           </div>
         </div>
 
         {/* Feature Selection */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-800">Feature Selection</h2>
+            <h2 className="text-lg font-semibold text-white">Feature Selection</h2>
             <div className="flex gap-2">
               <button
                 onClick={() => setEditForm({ ...editForm, modules: FEATURE_REGISTRY.flatMap((g) => g.features.map((f) => f.id)) })}
-                className="text-xs px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-lg hover:bg-blue-500/20 transition-colors"
+                className="text-xs px-3 py-1.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 rounded-lg hover:bg-indigo-500/20 transition-colors"
               >
                 Select All
               </button>
@@ -445,11 +457,11 @@ export function CEOSubscription() {
               const isExpanded = expandedRoles.includes(group.role)
 
               return (
-                <div key={group.role} className="bg-slate-50 rounded-lg overflow-hidden">
+                <div key={group.role} className="bg-slate-700/50 rounded-lg overflow-hidden">
                   <div className="flex items-center gap-3 px-4 py-3">
                     <button
                       onClick={() => toggleExpandedRole(group.role)}
-                      className="text-slate-400 hover:text-slate-200 transition-colors"
+                      className="text-slate-400 hover:text-white transition-colors"
                     >
                       {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                     </button>
@@ -458,9 +470,9 @@ export function CEOSubscription() {
                       checked={allSelected}
                       ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected }}
                       onChange={() => toggleRoleFeatures(group.role, !allSelected)}
-                      className="w-4 h-4 rounded border-slate-500 text-blue-500 focus:ring-blue-500 bg-slate-600"
+                      className="w-4 h-4 rounded border-slate-500 text-indigo-500 focus:ring-indigo-500 bg-slate-600"
                     />
-                    <span className="text-sm font-medium text-slate-800 flex-1">{group.label}</span>
+                    <span className="text-sm font-medium text-white flex-1">{group.label}</span>
                     <span className="text-xs text-slate-400">
                       {group.features.filter((f) => editForm.modules.includes(f.id)).length} / {group.features.length}
                     </span>
@@ -471,7 +483,7 @@ export function CEOSubscription() {
                       <div className="flex gap-2 mb-2">
                         <button
                           onClick={() => toggleRoleFeatures(group.role, true)}
-                          className="text-xs px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-md hover:bg-blue-500/20 transition-colors"
+                          className="text-xs px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 rounded-md hover:bg-indigo-500/20 transition-colors"
                         >
                           Select All
                         </button>
@@ -488,15 +500,15 @@ export function CEOSubscription() {
                             key={feature.id}
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors ${
                               editForm.modules.includes(feature.id)
-                                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
+                                ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30'
+                                : 'bg-slate-700 text-slate-400 border border-slate-600 hover:border-slate-500'
                             }`}
                           >
                             <input
                               type="checkbox"
                               checked={editForm.modules.includes(feature.id)}
                               onChange={() => toggleFeature(feature.id)}
-                              className="w-3 h-3 rounded border-slate-500 text-blue-500 focus:ring-blue-500 bg-slate-600"
+                              className="w-3 h-3 rounded border-slate-500 text-indigo-500 focus:ring-indigo-500 bg-slate-600"
                             />
                             {feature.label}
                           </label>
@@ -511,18 +523,18 @@ export function CEOSubscription() {
         </div>
 
         {/* Role Pricing */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-slate-800">Role Pricing</h2>
-          <p className="text-sm text-slate-500">Set per-seat pricing for each role. Monthly total is calculated automatically.</p>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-white">Role Pricing</h2>
+          <p className="text-sm text-slate-400">Set per-seat pricing for each role. Monthly total is calculated automatically.</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 text-slate-500 font-medium">Role</th>
-                  <th className="text-left py-3 text-slate-500 font-medium">Enabled</th>
-                  <th className="text-right py-3 text-slate-500 font-medium">Price/Seat (₹)</th>
-                  <th className="text-right py-3 text-slate-500 font-medium">Users</th>
-                  <th className="text-right py-3 text-slate-500 font-medium">Monthly</th>
+                <tr className="border-b border-slate-700">
+                  <th className="text-left py-3 text-slate-400 font-medium">Role</th>
+                  <th className="text-left py-3 text-slate-400 font-medium">Enabled</th>
+                  <th className="text-right py-3 text-slate-400 font-medium">Price/Seat (₹)</th>
+                  <th className="text-right py-3 text-slate-400 font-medium">Users</th>
+                  <th className="text-right py-3 text-slate-400 font-medium">Monthly</th>
                 </tr>
               </thead>
               <tbody>
@@ -530,8 +542,8 @@ export function CEOSubscription() {
                   const users = roleUserCounts[rp.role] || 0
                   const monthly = rp.isEnabled ? rp.pricePerSeat * users : 0
                   return (
-                    <tr key={rp.role} className="border-b border-slate-100">
-                      <td className="py-3 text-slate-800">{ROLE_LABELS[rp.role] || rp.role}</td>
+                    <tr key={rp.role} className="border-b border-slate-700/50">
+                      <td className="py-3 text-white">{ROLE_LABELS[rp.role] || rp.role}</td>
                       <td className="py-3">
                         <button
                           onClick={() => {
@@ -553,10 +565,10 @@ export function CEOSubscription() {
                           value={rp.pricePerSeat}
                           disabled={!rp.isEnabled}
                           onChange={(e) => updateRolePrice(rp.role, Number(e.target.value))}
-                          className="w-24 px-3 py-1.5 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 text-right focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-24 px-3 py-1.5 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 text-right focus:outline-none focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                       </td>
-                      <td className="py-3 text-right text-slate-300">{users}</td>
+                      <td className="py-3 text-right text-slate-400">{users}</td>
                       <td className="py-3 text-right text-green-400 font-medium">{formatCurrency(monthly)}</td>
                     </tr>
                   )
@@ -567,20 +579,20 @@ export function CEOSubscription() {
         </div>
 
         {/* Pricing Summary */}
-        <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-slate-800">Calculated Pricing</h2>
-          <p className="text-sm text-slate-500">Auto-calculated from role pricing × actual user count</p>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-white">Calculated Pricing</h2>
+          <p className="text-sm text-slate-400">Auto-calculated from role pricing × actual user count</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white rounded-lg p-4">
-              <p className="text-sm text-slate-500 mb-1">Monthly Total</p>
-              <p className="text-3xl font-bold text-green-600">{formatCurrency(pricing.totalMonthly)}</p>
-              <p className="text-xs text-slate-500 mt-1">Sum of (price per seat × users) for enabled roles</p>
+            <div className="bg-slate-700/50 rounded-lg p-4">
+              <p className="text-sm text-slate-400 mb-1">Monthly Total</p>
+              <p className="text-3xl font-bold text-green-400">{formatCurrency(pricing.totalMonthly)}</p>
+              <p className="text-xs text-slate-400 mt-1">Sum of (price per seat × users) for enabled roles</p>
             </div>
-            <div className="bg-white rounded-lg p-4">
-              <p className="text-sm text-slate-500 mb-1">Annual Total (10% discount)</p>
-              <p className="text-3xl font-bold text-green-600">{formatCurrency(pricing.totalAnnual)}</p>
-              <p className="text-xs text-slate-500 mt-1">Monthly × 12 with 10% annual discount</p>
+            <div className="bg-slate-700/50 rounded-lg p-4">
+              <p className="text-sm text-slate-400 mb-1">Annual Total (10% discount)</p>
+              <p className="text-3xl font-bold text-green-400">{formatCurrency(pricing.totalAnnual)}</p>
+              <p className="text-xs text-slate-400 mt-1">Monthly × 12 with 10% annual discount</p>
             </div>
           </div>
 
@@ -588,7 +600,7 @@ export function CEOSubscription() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-600">
+                  <tr className="border-b border-slate-700">
                     <th className="text-left py-2 text-slate-400 font-medium">Role</th>
                     <th className="text-right py-2 text-slate-400 font-medium">Price/Seat</th>
                     <th className="text-right py-2 text-slate-400 font-medium">Users</th>
@@ -607,9 +619,9 @@ export function CEOSubscription() {
                 </tbody>
                 <tfoot>
                   <tr className="border-t border-slate-600 font-semibold">
-                    <td className="py-2 text-slate-100">Total</td>
+                    <td className="py-2 text-white">Total</td>
                     <td className="py-2 text-right"></td>
-                    <td className="py-2 text-right text-slate-100">
+                    <td className="py-2 text-right text-white">
                       {pricing.breakdown.reduce((s, r) => s + r.users, 0)}
                     </td>
                     <td className="py-2 text-right text-green-400">{formatCurrency(pricing.totalMonthly)}</td>
@@ -628,14 +640,14 @@ export function CEOSubscription() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Plan & Subscription</h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-white">Plan & Subscription</h1>
+          <p className="text-slate-400 text-sm mt-1">
             Only one plan can be active at a time. Prices are auto-calculated from role pricing × user counts.
           </p>
         </div>
         <button
           onClick={startCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
         >
           <CreditCard className="w-4 h-4" />
           Create Plan
@@ -643,13 +655,13 @@ export function CEOSubscription() {
       </div>
 
       {activePlanId && (
-        <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-4 flex items-center gap-3">
+        <div className="bg-slate-800 border border-green-500/30 rounded-xl p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
             <Check className="w-5 h-5 text-green-400" />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-green-600 font-medium">Active Plan</p>
-            <p className="text-slate-800">
+            <p className="text-sm text-green-400 font-medium">Active Plan</p>
+            <p className="text-white">
               {plans.find((p: any) => p.id === activePlanId)?.name || 'Unknown'} is currently active
               <span className="text-slate-400 ml-2">
                 ({activeFeatures?.features?.length || 0} / {totalFeatures} features enabled)
@@ -664,8 +676,8 @@ export function CEOSubscription() {
           const isActive = activePlanId === plan.id
           const isPro = plan.planType === 'pro'
           return (
-            <div key={plan.id} className={`relative bg-white border rounded-2xl p-8 transition-all ${
-              isActive ? (isPro ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-green-400 ring-2 ring-green-400/20') : 'border-slate-200 hover:border-slate-300'
+            <div key={plan.id} className={`relative bg-slate-800 border rounded-2xl p-8 transition-all ${
+              isActive ? (isPro ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-green-500 ring-2 ring-green-500/20') : 'border-slate-700 hover:border-slate-600'
             }`}>
               {isActive && (
                 <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 text-white text-xs font-bold rounded-full flex items-center gap-1 ${isPro ? 'bg-amber-500' : 'bg-green-500'}`}>
@@ -675,31 +687,31 @@ export function CEOSubscription() {
               )}
 
               <div className="flex items-center gap-3 mb-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isPro ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-slate-400 to-slate-600'}`}>
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isPro ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-slate-500 to-slate-700'}`}>
                   {isPro ? <Crown className="w-6 h-6 text-white" /> : <Star className="w-6 h-6 text-white" />}
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-xl font-bold text-slate-800">{plan.name}</h2>
-                  <p className="text-xs text-slate-500">{plan.planType}</p>
+                  <h2 className="text-xl font-bold text-white">{plan.name}</h2>
+                  <p className="text-xs text-slate-400">{plan.planType}</p>
                 </div>
                 <button
                   onClick={() => startEdit(plan)}
-                  className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors"
                 >
                   <Edit3 className="w-4 h-4" />
                 </button>
               </div>
 
-              <p className="text-sm text-slate-500 mb-6">
+              <p className="text-sm text-slate-400 mb-6">
                 {plan.description || 'No description'}
               </p>
 
               <div className="mb-6">
                 <div className="flex items-baseline gap-1 mb-1">
-                  <span className="text-3xl font-bold text-slate-800">{formatCurrency(Number(plan.monthlyPrice))}</span>
-                  <span className="text-sm text-slate-500">/month</span>
+                  <span className="text-3xl font-bold text-white">{formatCurrency(Number(plan.monthlyPrice))}</span>
+                  <span className="text-sm text-slate-400">/month</span>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-400">
                   {formatCurrency(Number(plan.annualPrice))}/year
                   {Number(plan.annualPrice) > 0 && <span className="text-green-400 ml-1">(save 10%)</span>}
                 </p>
@@ -707,22 +719,22 @@ export function CEOSubscription() {
 
               <div className="space-y-3 mb-6">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Features</span>
-                  <span className="text-slate-800 font-medium">{plan.featureCount} / {totalFeatures}</span>
+                  <span className="text-slate-400">Features</span>
+                  <span className="text-white font-medium">{plan.featureCount} / {totalFeatures}</span>
                 </div>
-                <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full ${isPro ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-slate-500'}`}
                     style={{ width: `${(plan.featureCount / totalFeatures) * 100}%` }}
                   />
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Roles</span>
-                  <span className="text-slate-800 font-medium">{plan.enabledRoles} roles</span>
+                  <span className="text-slate-400">Roles</span>
+                  <span className="text-white font-medium">{plan.enabledRoles} roles</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">User Limit</span>
-                  <span className="text-slate-800 font-medium">{plan.userLimit} users</span>
+                  <span className="text-slate-400">User Limit</span>
+                  <span className="text-white font-medium">{plan.userLimit} users</span>
                 </div>
               </div>
 
@@ -732,10 +744,10 @@ export function CEOSubscription() {
                   disabled={activateMutation.isPending || isActive}
                   className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     isActive
-                      ? 'bg-green-500/10 text-green-600 border border-green-300 cursor-default'
+                      ? 'bg-green-500/10 text-green-400 border border-green-500/30 cursor-default'
                       : isPro
                         ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 border border-amber-500/50'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
                   } disabled:opacity-50`}
                 >
                   {isActive ? (
@@ -748,7 +760,7 @@ export function CEOSubscription() {
                 </button>
                 <button
                   onClick={() => setShowSummary(showSummary === plan.id ? null : plan.id)}
-                  className="px-4 py-3 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 transition-all"
+                  className="px-4 py-3 rounded-xl text-sm font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600 transition-all"
                 >
                   Details
                 </button>
@@ -786,18 +798,18 @@ export function CEOSubscription() {
 
       {showSummary && planSummary && (
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-slate-100 mb-4">
+          <h3 className="text-lg font-semibold text-white mb-4">
             {planSummary.plan.name} Plan - Detailed Breakdown
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-slate-700/50 rounded-lg p-4">
               <p className="text-sm text-slate-400">Features Enabled</p>
-              <p className="text-2xl font-bold text-slate-100">
+              <p className="text-2xl font-bold text-white">
                 {planSummary.features.enabled}
                 <span className="text-sm font-normal text-slate-500"> / {planSummary.features.total}</span>
               </p>
               <div className="w-full h-2 bg-slate-600 rounded-full mt-2 overflow-hidden">
-                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${planSummary.features.percentage}%` }} />
+                <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${planSummary.features.percentage}%` }} />
               </div>
             </div>
             <div className="bg-slate-700/50 rounded-lg p-4">
@@ -807,7 +819,7 @@ export function CEOSubscription() {
             </div>
             <div className="bg-slate-700/50 rounded-lg p-4">
               <p className="text-sm text-slate-400">Active Users</p>
-              <p className="text-2xl font-bold text-slate-100">
+              <p className="text-2xl font-bold text-white">
                 {planSummary.roleBreakdown.reduce((s: number, r: any) => s + r.actualUsers, 0)}
               </p>
               <p className="text-xs text-slate-500 mt-1">
@@ -837,9 +849,9 @@ export function CEOSubscription() {
               </tbody>
               <tfoot>
                 <tr className="border-t border-slate-600 font-semibold">
-                  <td className="py-2 text-slate-100">Total</td>
+                  <td className="py-2 text-white">Total</td>
                   <td className="py-2 text-right"></td>
-                  <td className="py-2 text-right text-slate-100">
+                  <td className="py-2 text-right text-white">
                     {planSummary.roleBreakdown.reduce((s: number, r: any) => s + r.actualUsers, 0)}
                   </td>
                   <td className="py-2 text-right text-green-400">{formatCurrency(planSummary.pricing.totalMonthly)}</td>

@@ -12,22 +12,12 @@ const ALL_FEATURES: Record<string, string[]> = {
     'chief_head.template_manager', 'chief_head.realtime_notifications', 'chief_head.system_settings', 'chief_head.permission_manager', 'chief_head.bulk_operations',
     'chief_head.data_backup_export', 'chief_head.audit_log', 'chief_head.appearance',
   ],
-  DIRECTOR: [
-    'director.dashboard', 'director.department_performance', 'director.faculty_monitoring', 'director.student_analytics', 'director.examinations',
-    'director.admissions', 'director.finance_view', 'director.hr_overview', 'director.campus_services', 'director.pending_approvals',
-    'director.notifications', 'director.calendar', 'director.reports',
-  ],
   PRINCIPAL: [
     'principal.dashboard', 'principal.departments', 'principal.timetable', 'principal.attendance', 'principal.lms',
     'principal.faculty_status', 'principal.class_coordinators', 'principal.subject_allocation', 'principal.leave_management', 'principal.performance',
     'principal.students', 'principal.admissions', 'principal.exam_dashboard', 'principal.finance_view', 'principal.discipline',
     'principal.hostel', 'principal.library', 'principal.transport', 'principal.approvals', 'principal.notifications',
     'principal.calendar', 'principal.helpdesk', 'principal.reports',
-  ],
-  HOD: [
-    'hod.dashboard', 'hod.department_overview', 'hod.timetable', 'hod.teachers', 'hod.workload', 'hod.faculty_attendance', 'hod.faculty_performance',
-    'hod.students', 'hod.student_performance', 'hod.student_attendance', 'hod.courses', 'hod.subjects', 'hod.lms', 'hod.assignments',
-    'hod.exams', 'hod.marks_entry', 'hod.notices', 'hod.approvals', 'hod.helpdesk', 'hod.calendar', 'hod.reports',
   ],
   TEACHER: [
     'teacher.dashboard', 'teacher.todays_schedule', 'teacher.my_classes', 'teacher.subjects', 'teacher.take_attendance',
@@ -69,19 +59,32 @@ const ALL_FEATURES: Record<string, string[]> = {
   HOSTEL_WARDEN: [
     'hostel.dashboard', 'hostel.buildings', 'hostel.rooms', 'hostel.students', 'hostel.complaints', 'hostel.analytics', 'hostel.activity',
   ],
+  VICE_PRINCIPAL: [
+    'vice_principal.dashboard', 'vice_principal.attendance', 'vice_principal.discipline',
+    'vice_principal.substitutions', 'vice_principal.daily_reports', 'vice_principal.inspections',
+  ],
+  EXAM_CONTROLLER: [
+    'exam_controller.dashboard', 'exam_controller.exams', 'exam_controller.results',
+    'exam_controller.seating_plan', 'exam_controller.merit_list', 'exam_controller.grade_calculator',
+  ],
+  RECEPTIONIST: [
+    'receptionist.dashboard', 'receptionist.visitors', 'receptionist.enquiries',
+    'receptionist.phone_logs', 'receptionist.certificates', 'receptionist.id_cards',
+  ],
 };
 
 // Free plan - minimal features per role
 const FREE_PLAN_FEATURES: Record<string, string[]> = {
   CHIEF_HEAD: ['chief_head.dashboard', 'chief_head.authority_management', 'chief_head.fee_structure', 'chief_head.system_settings'],
-  DIRECTOR: ['director.dashboard', 'director.department_performance', 'director.faculty_monitoring'],
   PRINCIPAL: ['principal.dashboard', 'principal.departments', 'principal.attendance', 'principal.faculty_status', 'principal.students'],
-  HOD: ['hod.dashboard', 'hod.department_overview', 'hod.teachers', 'hod.students'],
+  VICE_PRINCIPAL: ['vice_principal.dashboard', 'vice_principal.attendance', 'vice_principal.discipline'],
   TEACHER: ['teacher.dashboard', 'teacher.todays_schedule', 'teacher.take_attendance', 'teacher.student_list'],
   STUDENT: ['student.dashboard', 'student.my_subjects', 'student.timetable', 'student.attendance', 'student.fee_status'],
   PARENT: ['parent.dashboard', 'parent.children', 'parent.attendance', 'parent.fees'],
   ACCOUNTANT: ['accountant.dashboard', 'accountant.collect_fees', 'accountant.student_ledger', 'accountant.outstanding_dues'],
   ADMISSION_COUNSELLOR: ['admission.dashboard', 'admission.all_applications', 'admission.new_application'],
+  RECEPTIONIST: ['receptionist.dashboard', 'receptionist.visitors', 'receptionist.enquiries'],
+  EXAM_CONTROLLER: ['exam_controller.dashboard', 'exam_controller.exams', 'exam_controller.results'],
   TRANSPORT_MANAGER: ['transport.dashboard', 'transport.vehicles', 'transport.drivers', 'transport.routes'],
   ADMINISTRATIVE_STAFF: ['administrative.dashboard', 'administrative.student_requests', 'administrative.certificates'],
   LIBRARIAN: ['librarian.dashboard', 'librarian.books', 'librarian.issue_book'],
@@ -100,8 +103,8 @@ export class CEOService {
 
   async getUserStats() {
     const [
-      totalUsers, totalStudents, totalTeachers, totalParents, totalHODs,
-      totalPrincipals, totalDirectors, totalAccountants, totalAdmissions,
+      totalUsers, totalStudents, totalTeachers, totalParents,
+      totalPrincipals, totalAccountants, totalAdmissions,
       totalTransport, totalAdministrative, totalLibrarians, totalHostelWardens,
       totalChiefHeads, activeUsers, inactiveUsers,
     ] = await Promise.all([
@@ -109,9 +112,7 @@ export class CEOService {
       prisma.user.count({ where: { role: 'STUDENT' } }),
       prisma.user.count({ where: { role: 'TEACHER' } }),
       prisma.user.count({ where: { role: 'PARENT' } }),
-      prisma.user.count({ where: { role: 'HOD' } }),
       prisma.user.count({ where: { role: 'PRINCIPAL' } }),
-      prisma.user.count({ where: { role: 'DIRECTOR' } }),
       prisma.user.count({ where: { role: 'ACCOUNTANT' } }),
       prisma.user.count({ where: { role: 'ADMISSION_COUNSELLOR' } }),
       prisma.user.count({ where: { role: 'TRANSPORT_MANAGER' } }),
@@ -129,9 +130,7 @@ export class CEOService {
         { role: 'Student', count: totalStudents },
         { role: 'Teacher', count: totalTeachers },
         { role: 'Parent', count: totalParents },
-        { role: 'HOD', count: totalHODs },
         { role: 'Principal', count: totalPrincipals },
-        { role: 'Director', count: totalDirectors },
         { role: 'Accountant', count: totalAccountants },
         { role: 'Admission Counsellor', count: totalAdmissions },
         { role: 'Transport Manager', count: totalTransport },
@@ -294,8 +293,8 @@ export class CEOService {
 
   async getRoleUserCounts(): Promise<Record<string, number>> {
     const roleMap: Record<string, string> = {
-      STUDENT: 'STUDENT', TEACHER: 'TEACHER', PARENT: 'PARENT', HOD: 'HOD',
-      PRINCIPAL: 'PRINCIPAL', DIRECTOR: 'DIRECTOR', ACCOUNTANT: 'ACCOUNTANT',
+      STUDENT: 'STUDENT', TEACHER: 'TEACHER', PARENT: 'PARENT',
+      PRINCIPAL: 'PRINCIPAL', ACCOUNTANT: 'ACCOUNTANT',
       ADMISSION_COUNSELLOR: 'ADMISSION_COUNSELLOR', TRANSPORT_MANAGER: 'TRANSPORT_MANAGER',
       ADMINISTRATIVE_STAFF: 'ADMINISTRATIVE_STAFF', LIBRARIAN: 'LIBRARIAN',
       HOSTEL_WARDEN: 'HOSTEL_WARDEN', CHIEF_HEAD: 'CHIEF_HEAD',
@@ -475,9 +474,7 @@ export class CEOService {
         rolePricing: {
           create: [
             { role: 'CHIEF_HEAD', pricePerSeat: 0, isEnabled: true },
-            { role: 'DIRECTOR', pricePerSeat: 0, isEnabled: true },
             { role: 'PRINCIPAL', pricePerSeat: 0, isEnabled: true },
-            { role: 'HOD', pricePerSeat: 0, isEnabled: true },
             { role: 'TEACHER', pricePerSeat: 0, isEnabled: true },
             { role: 'STUDENT', pricePerSeat: 0, isEnabled: true },
             { role: 'PARENT', pricePerSeat: 0, isEnabled: true },
@@ -511,9 +508,7 @@ export class CEOService {
         rolePricing: {
           create: [
             { role: 'CHIEF_HEAD', pricePerSeat: 800, isEnabled: true },
-            { role: 'DIRECTOR', pricePerSeat: 600, isEnabled: true },
             { role: 'PRINCIPAL', pricePerSeat: 500, isEnabled: true },
-            { role: 'HOD', pricePerSeat: 400, isEnabled: true },
             { role: 'TEACHER', pricePerSeat: 300, isEnabled: true },
             { role: 'STUDENT', pricePerSeat: 75, isEnabled: true },
             { role: 'PARENT', pricePerSeat: 0, isEnabled: true },

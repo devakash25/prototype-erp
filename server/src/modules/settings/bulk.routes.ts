@@ -8,7 +8,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 const router = Router();
 router.use(authenticate);
 
-router.get('/template/:type', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT'), (req: Request, res: Response, next: NextFunction) => {
+router.get('/template/:type', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT'), (req: Request, res: Response, next: NextFunction) => {
   try {
     const type = req.params.type as string;
     const csv = bulkService.getTemplate(type);

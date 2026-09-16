@@ -52,12 +52,34 @@ export function CEOUsers() {
     queryFn: () => api.get('/ceo/user-stats').then(res => res.data),
   })
 
-  const { data: usersData, isLoading: usersLoading } = useQuery({
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ['ceo-users', search, roleFilter, statusFilter, page],
     queryFn: () => api.get('/ceo/users', {
       params: { search, role: roleFilter, status: statusFilter, page, limit: 20 },
     }).then(res => res.data),
   })
+
+  const toRoleKey = (role: string) => {
+    const map: Record<string, string> = {
+      Student: 'STUDENT',
+      Teacher: 'TEACHER',
+      Parent: 'PARENT',
+      'Head of Department': 'HOD',
+      Principal: 'PRINCIPAL',
+      CEO: 'CEO',
+      Accountant: 'ACCOUNTANT',
+      'Admission Counsellor': 'ADMISSION_COUNSELLOR',
+      'Transport Manager': 'TRANSPORT_MANAGER',
+      'Administrative Staff': 'ADMINISTRATIVE_STAFF',
+      Librarian: 'LIBRARIAN',
+      'Hostel Warden': 'HOSTEL_WARDEN',
+      'Chief Head': 'CHIEF_HEAD',
+      'Vice Principal': 'VICE_PRINCIPAL',
+      Receptionist: 'RECEPTIONIST',
+      'Exam Controller': 'EXAM_CONTROLLER',
+    }
+    return map[role] || role.toUpperCase()
+  }
 
   const toggleMutation = useMutation({
     mutationFn: (id: string) => api.patch(`/ceo/users/${id}/toggle-status`),
@@ -139,7 +161,7 @@ export function CEOUsers() {
               <button
                 key={item.role}
                 onClick={() => {
-                  setRoleFilter(roleFilter === item.role.toUpperCase().replace(' ', '_').replace('COUNSELLOR', 'COUNSELLOR') ? '' : item.role.toUpperCase().replace(' ', '_').replace('COUNSELLOR', 'COUNSELLOR'))
+                  setRoleFilter(roleFilter === toRoleKey(item.role) ? '' : toRoleKey(item.role))
                   setPage(1)
                 }}
                 className={`${color} border rounded-xl p-4 flex items-center gap-3 hover:opacity-80 transition-opacity text-left`}
@@ -239,7 +261,13 @@ export function CEOUsers() {
 
         {usersLoading ? (
           <div className="flex items-center justify-center py-12">
-            <RefreshCw className="w-6 h-6 text-blue-500 animate-spin" />
+            <RefreshCw className="w-6 h-6 text-slate-400 animate-spin" />
+          </div>
+        ) : usersError ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-3">
+            <AlertTriangle className="h-8 w-8 text-amber-400" />
+            <p className="text-slate-400">Failed to load users</p>
+            <button onClick={() => window.location.reload()} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Retry</button>
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-12 text-slate-500">No users found</div>

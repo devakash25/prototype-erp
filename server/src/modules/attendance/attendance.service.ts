@@ -578,7 +578,7 @@ class AttendanceService {
       userIds = targetUserIds;
     } else {
       const roleMap: Record<string, string[]> = {
-        TEACHERS: ['TEACHER', 'HOD'],
+        TEACHERS: ['TEACHER'],
       };
       const roles = roleMap[target] || [];
       if (roles.length) {

@@ -8,7 +8,7 @@ import { AppError } from '../../utils/errors';
 const router = Router();
 router.use(authenticate);
 
-router.get('/', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const institutionId = req.user?.institutionId;
     if (!institutionId) throw new AppError(400, 'Institution not found');
@@ -17,7 +17,7 @@ router.get('/', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), async (
   } catch (error) { next(error); }
 });
 
-router.get('/permissions', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), async (req: Request, res: Response, next: NextFunction) => {
+router.get('/permissions', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const institutionId = req.user?.institutionId;
     if (!institutionId) throw new AppError(400, 'Institution not found');
@@ -26,7 +26,7 @@ router.get('/permissions', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO
   } catch (error) { next(error); }
 });
 
-router.get('/:roleId/permissions', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:roleId/permissions', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const institutionId = req.user?.institutionId;
     if (!institutionId) throw new AppError(400, 'Institution not found');

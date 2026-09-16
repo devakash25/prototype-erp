@@ -18,7 +18,7 @@ class ParentMessagingService {
       const parent = await prisma.parent.findFirst({ where: { userId, isActive: true }, select: { id: true } });
       parentId = parent?.id || null;
     }
-    if (user.role === 'TEACHER' || user.role === 'HOD') {
+    if (user.role === 'TEACHER') {
       const emp = await prisma.employee.findFirst({ where: { userId, isActive: true }, select: { id: true } });
       employeeId = emp?.id || null;
     }

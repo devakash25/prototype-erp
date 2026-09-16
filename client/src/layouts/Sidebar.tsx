@@ -11,6 +11,7 @@ import {
   BookOpenCheck, UserCog, AlertTriangle, Settings, FileCheck, Star,
   MapPin, Wrench, RotateCcw, Bed, CreditCard,
   Search, Database, MessageSquare, Palette, Eye, MessageCircle,
+  ArrowLeftRight, Grid3X3, Trophy, Calculator, Phone,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -103,46 +104,6 @@ const chiefHeadNavigation: NavItem[] = [
   },
 ]
 
-const directorNavigation: NavItem[] = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/director/dashboard' },
-  {
-    label: 'Academic',
-    icon: GraduationCap,
-    children: [
-      { label: 'Department Performance', icon: Target, href: '/director/departments' },
-      { label: 'Faculty Monitoring', icon: Users, href: '/director/faculty' },
-      { label: 'Student Analytics', icon: UserCheck, href: '/director/students' },
-      { label: 'Examinations', icon: Award, href: '/director/examinations' },
-    ],
-  },
-  {
-    label: 'Operations',
-    icon: Building,
-    children: [
-      { label: 'Admissions', icon: UserPlus, href: '/director/admissions' },
-      { label: 'Finance View', icon: DollarSign, href: '/director/finance' },
-      { label: 'HR Overview', icon: ClipboardCheck, href: '/director/hr' },
-      { label: 'Campus Services', icon: School, href: '/director/campus' },
-    ],
-  },
-  {
-    label: 'Management',
-    icon: Shield,
-    children: [
-      { label: 'Pending Approvals', icon: ClipboardList, href: '/director/approvals' },
-      { label: 'Notifications', icon: Bell, href: '/director/notifications' },
-      { label: 'Calendar', icon: Calendar, href: '/director/calendar' },
-    ],
-  },
-  {
-    label: 'Reports',
-    icon: FileText,
-    children: [
-      { label: 'Reports', icon: FileText, href: '/director/reports' },
-    ],
-  },
-]
-
 const principalNavigation: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/principal/dashboard' },
   {
@@ -207,132 +168,6 @@ const principalNavigation: NavItem[] = [
     icon: FileText,
     children: [
       { label: 'Reports', icon: FileText, href: '/principal/reports' },
-    ],
-  },
-]
-
-// School-specific roles (use principal routes for now since similar function)
-const managerNavigation: NavItem[] = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/principal/dashboard' },
-  {
-    label: 'Academic',
-    icon: GraduationCap,
-    children: [
-      { label: 'Departments', icon: Building, href: '/principal/departments' },
-      { label: 'Timetable', icon: Clock, href: '/principal/timetable' },
-      { label: 'Attendance', icon: UserCheck, href: '/principal/attendance' },
-      { label: 'LMS', icon: BookOpenCheck, href: '/principal/lms' },
-    ],
-  },
-  {
-    label: 'Faculty',
-    icon: Users,
-    children: [
-      { label: 'Faculty Status', icon: Users, href: '/principal/faculty' },
-      { label: 'Leave Management', icon: ClipboardList, href: '/principal/leave' },
-    ],
-  },
-  {
-    label: 'Students',
-    icon: GraduationCap,
-    children: [
-      { label: 'Student List', icon: Users, href: '/principal/students' },
-      { label: 'Performance', icon: TrendingUp, href: '/principal/students/performance' },
-      { label: 'Attendance', icon: UserCheck, href: '/principal/students/attendance' },
-    ],
-  },
-  {
-    label: 'Examinations',
-    icon: Award,
-    children: [
-      { label: 'Exam Schedule', icon: Calendar, href: '/principal/exams' },
-      { label: 'Results', icon: TrendingUp, href: '/principal/results' },
-      { label: 'Marks Entry', icon: ClipboardCheck, href: '/principal/marks-entry' },
-    ],
-  },
-  {
-    label: 'Management',
-    icon: Shield,
-    children: [
-      { label: 'Notices', icon: Bell, href: '/principal/notices' },
-      { label: 'Approvals', icon: ClipboardCheck, href: '/principal/approvals' },
-      { label: 'Calendar', icon: Calendar, href: '/principal/calendar' },
-    ],
-  },
-  {
-    label: 'Reports',
-    icon: FileText,
-    children: [
-      { label: 'Reports', icon: FileText, href: '/principal/reports' },
-    ],
-  },
-]
-
-const viceManagerNavigation: NavItem[] = managerNavigation
-const vicePrincipalNavigation: NavItem[] = principalNavigation
-
-const hodNavigation: NavItem[] = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/hod/dashboard' },
-  {
-    label: 'Department',
-    icon: Building,
-    children: [
-      { label: 'Overview', icon: Building, href: '/hod/department' },
-      { label: 'Timetable', icon: Clock, href: '/hod/timetable' },
-    ],
-  },
-  {
-    label: 'Faculty',
-    icon: Users,
-    children: [
-      { label: 'Teachers', icon: Users, href: '/hod/faculty' },
-      { label: 'Workload', icon: ClipboardCheck, href: '/hod/faculty/workload' },
-      { label: 'Attendance', icon: UserCheck, href: '/hod/faculty/attendance' },
-      { label: 'Performance', icon: Star, href: '/hod/faculty/performance' },
-    ],
-  },
-  {
-    label: 'Students',
-    icon: GraduationCap,
-    children: [
-      { label: 'Students', icon: Users, href: '/hod/students' },
-      { label: 'Performance', icon: TrendingUp, href: '/hod/students/performance' },
-      { label: 'Attendance', icon: UserCheck, href: '/hod/students/attendance' },
-    ],
-  },
-  {
-    label: 'Academics',
-    icon: BookOpen,
-    children: [
-      { label: 'Courses', icon: School, href: '/hod/courses' },
-      { label: 'Subjects', icon: BookOpen, href: '/hod/subjects' },
-      { label: 'LMS', icon: BookOpenCheck, href: '/hod/lms' },
-      { label: 'Assignments', icon: FileCheck, href: '/hod/assignments' },
-    ],
-  },
-  {
-    label: 'Examinations',
-    icon: Award,
-    children: [
-      { label: 'Exams', icon: Award, href: '/hod/examinations' },
-      { label: 'Marks Entry', icon: ClipboardCheck, href: '/hod/marks-entry' },
-    ],
-  },
-  {
-    label: 'Management',
-    icon: Shield,
-    children: [
-      { label: 'Notices', icon: Bell, href: '/hod/notices' },
-      { label: 'Approvals', icon: ClipboardList, href: '/hod/approvals' },
-      { label: 'Helpdesk', icon: HelpCircle, href: '/hod/helpdesk' },
-      { label: 'Calendar', icon: Calendar, href: '/hod/calendar' },
-    ],
-  },
-  {
-    label: 'Reports',
-    icon: FileText,
-    children: [
-      { label: 'Reports', icon: FileText, href: '/hod/reports' },
     ],
   },
 ]
@@ -690,6 +525,33 @@ const ceoNavigation: NavItem[] = [
   { label: 'Charges & Payments', icon: DollarSign, href: '/ceo/charges' },
 ]
 
+const vicePrincipalNavigation: NavItem[] = [
+  { label: 'Dashboard', icon: LayoutDashboard, href: '/vice-principal/dashboard' },
+  { label: 'Attendance', icon: Users, href: '/vice-principal/attendance' },
+  { label: 'Discipline', icon: Shield, href: '/vice-principal/discipline' },
+  { label: 'Substitutions', icon: ArrowLeftRight, href: '/vice-principal/substitutions' },
+  { label: 'Daily Reports', icon: FileText, href: '/vice-principal/daily-reports' },
+  { label: 'Inspections', icon: ClipboardCheck, href: '/vice-principal/inspections' },
+]
+
+const examControllerNavigation: NavItem[] = [
+  { label: 'Dashboard', icon: LayoutDashboard, href: '/exam-controller/dashboard' },
+  { label: 'Exams', icon: FileText, href: '/exam-controller/exams' },
+  { label: 'Results', icon: Award, href: '/exam-controller/results' },
+  { label: 'Seating Plan', icon: Grid3X3, href: '/exam-controller/seating' },
+  { label: 'Merit List', icon: Trophy, href: '/exam-controller/merit-list' },
+  { label: 'Grade Calculator', icon: Calculator, href: '/exam-controller/grades' },
+]
+
+const receptionistNavigation: NavItem[] = [
+  { label: 'Dashboard', icon: LayoutDashboard, href: '/receptionist/dashboard' },
+  { label: 'Visitors', icon: Users, href: '/receptionist/visitors' },
+  { label: 'Enquiries', icon: HelpCircle, href: '/receptionist/enquiries' },
+  { label: 'Phone Logs', icon: Phone, href: '/receptionist/phone-logs' },
+  { label: 'Certificates', icon: Award, href: '/receptionist/certificates' },
+  { label: 'ID Cards', icon: CreditCard, href: '/receptionist/id-cards' },
+]
+
 // Maps each role's href to its feature ID for feature gating
 const HREF_TO_FEATURE: Record<string, Record<string, string>> = {
   CHIEF_HEAD: {
@@ -721,21 +583,6 @@ const HREF_TO_FEATURE: Record<string, Record<string, string>> = {
     '/audit-log': 'chief_head.audit_log',
     '/appearance': 'chief_head.appearance',
   },
-  DIRECTOR: {
-    '/director/dashboard': 'director.dashboard',
-    '/director/departments': 'director.department_performance',
-    '/director/faculty': 'director.faculty_monitoring',
-    '/director/students': 'director.student_analytics',
-    '/director/examinations': 'director.examinations',
-    '/director/admissions': 'director.admissions',
-    '/director/finance': 'director.finance_view',
-    '/director/hr': 'director.hr_overview',
-    '/director/campus': 'director.campus_services',
-    '/director/approvals': 'director.pending_approvals',
-    '/director/notifications': 'director.notifications',
-    '/director/calendar': 'director.calendar',
-    '/director/reports': 'director.reports',
-  },
   PRINCIPAL: {
     '/principal/dashboard': 'principal.dashboard',
     '/principal/departments': 'principal.departments',
@@ -760,86 +607,6 @@ const HREF_TO_FEATURE: Record<string, Record<string, string>> = {
     '/principal/calendar': 'principal.calendar',
     '/principal/helpdesk': 'principal.helpdesk',
     '/principal/reports': 'principal.reports',
-  },
-  MANAGER: {
-    '/principal/dashboard': 'principal.dashboard',
-    '/principal/departments': 'principal.departments',
-    '/principal/timetable': 'principal.timetable',
-    '/principal/attendance': 'principal.attendance',
-    '/principal/lms': 'principal.lms',
-    '/principal/faculty': 'principal.faculty_status',
-    '/principal/leave': 'principal.leave_management',
-    '/principal/students': 'principal.students',
-    '/principal/performance': 'principal.performance',
-    '/principal/examinations': 'principal.exam_dashboard',
-    '/principal/notices': 'principal.notifications',
-    '/principal/approvals': 'principal.approvals',
-    '/principal/calendar': 'principal.calendar',
-    '/principal/reports': 'principal.reports',
-  },
-  VICE_MANAGER: {
-    '/principal/dashboard': 'principal.dashboard',
-    '/principal/departments': 'principal.departments',
-    '/principal/timetable': 'principal.timetable',
-    '/principal/attendance': 'principal.attendance',
-    '/principal/lms': 'principal.lms',
-    '/principal/faculty': 'principal.faculty_status',
-    '/principal/leave': 'principal.leave_management',
-    '/principal/students': 'principal.students',
-    '/principal/performance': 'principal.performance',
-    '/principal/examinations': 'principal.exam_dashboard',
-    '/principal/notices': 'principal.notifications',
-    '/principal/approvals': 'principal.approvals',
-    '/principal/calendar': 'principal.calendar',
-    '/principal/reports': 'principal.reports',
-  },
-  VICE_PRINCIPAL: {
-    '/principal/dashboard': 'principal.dashboard',
-    '/principal/departments': 'principal.departments',
-    '/principal/timetable': 'principal.timetable',
-    '/principal/attendance': 'principal.attendance',
-    '/principal/lms': 'principal.lms',
-    '/principal/faculty': 'principal.faculty_status',
-    '/principal/class-coordinators': 'principal.class_coordinators',
-    '/principal/subject-allocation': 'principal.subject_allocation',
-    '/principal/leave': 'principal.leave_management',
-    '/principal/performance': 'principal.performance',
-    '/principal/students': 'principal.students',
-    '/principal/admissions': 'principal.admissions',
-    '/principal/examinations': 'principal.exam_dashboard',
-    '/principal/finance': 'principal.finance_view',
-    '/principal/discipline': 'principal.discipline',
-    '/principal/hostel': 'principal.hostel',
-    '/principal/library': 'principal.library',
-    '/principal/transport': 'principal.transport',
-    '/principal/approvals': 'principal.approvals',
-    '/principal/notifications': 'principal.notifications',
-    '/principal/calendar': 'principal.calendar',
-    '/principal/helpdesk': 'principal.helpdesk',
-    '/principal/reports': 'principal.reports',
-  },
-  HOD: {
-    '/hod/dashboard': 'hod.dashboard',
-    '/hod/department': 'hod.department_overview',
-    '/hod/timetable': 'hod.timetable',
-    '/hod/faculty': 'hod.teachers',
-    '/hod/faculty/workload': 'hod.workload',
-    '/hod/faculty/attendance': 'hod.faculty_attendance',
-    '/hod/faculty/performance': 'hod.faculty_performance',
-    '/hod/students': 'hod.students',
-    '/hod/students/performance': 'hod.student_performance',
-    '/hod/students/attendance': 'hod.student_attendance',
-    '/hod/courses': 'hod.courses',
-    '/hod/subjects': 'hod.subjects',
-    '/hod/lms': 'hod.lms',
-    '/hod/assignments': 'hod.assignments',
-    '/hod/examinations': 'hod.exams',
-    '/hod/marks-entry': 'hod.marks_entry',
-    '/hod/notices': 'hod.notices',
-    '/hod/approvals': 'hod.approvals',
-    '/hod/helpdesk': 'hod.helpdesk',
-    '/hod/calendar': 'hod.calendar',
-    '/hod/reports': 'hod.reports',
   },
   TEACHER: {
     '/teacher/dashboard': 'teacher.dashboard',
@@ -970,6 +737,30 @@ const HREF_TO_FEATURE: Record<string, Record<string, string>> = {
     '/hostel/analytics': 'hostel.analytics',
     '/hostel/activity': 'hostel.activity',
   },
+  VICE_PRINCIPAL: {
+    '/vice-principal/dashboard': 'vice_principal.dashboard',
+    '/vice-principal/attendance': 'vice_principal.attendance',
+    '/vice-principal/discipline': 'vice_principal.discipline',
+    '/vice-principal/substitutions': 'vice_principal.substitutions',
+    '/vice-principal/daily-reports': 'vice_principal.daily_reports',
+    '/vice-principal/inspections': 'vice_principal.inspections',
+  },
+  EXAM_CONTROLLER: {
+    '/exam-controller/dashboard': 'exam_controller.dashboard',
+    '/exam-controller/exams': 'exam_controller.exams',
+    '/exam-controller/results': 'exam_controller.results',
+    '/exam-controller/seating': 'exam_controller.seating_plan',
+    '/exam-controller/merit-list': 'exam_controller.merit_list',
+    '/exam-controller/grades': 'exam_controller.grade_calculator',
+  },
+  RECEPTIONIST: {
+    '/receptionist/dashboard': 'receptionist.dashboard',
+    '/receptionist/visitors': 'receptionist.visitors',
+    '/receptionist/enquiries': 'receptionist.enquiries',
+    '/receptionist/phone-logs': 'receptionist.phone_logs',
+    '/receptionist/certificates': 'receptionist.certificates',
+    '/receptionist/id-cards': 'receptionist.id_cards',
+  },
 }
 
 const librarianNavigation: NavItem[] = [
@@ -1007,14 +798,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const unreadCount = notifCount?.count || 0
 
   const rawNavigation = user?.role === 'CEO' ? ceoNavigation
-    : user?.role === 'MANAGER' ? managerNavigation
-    : user?.role === 'VICE_MANAGER' ? viceManagerNavigation
-    : user?.role === 'VICE_PRINCIPAL' ? vicePrincipalNavigation
     : user?.role === 'LIBRARIAN' ? librarianNavigation
     : user?.role === 'HOSTEL_WARDEN' ? hostelWardenNavigation
-    : user?.role === 'DIRECTOR' ? directorNavigation
     : user?.role === 'PRINCIPAL' ? principalNavigation
-    : user?.role === 'HOD' ? hodNavigation
+    : user?.role === 'VICE_PRINCIPAL' ? vicePrincipalNavigation
+    : user?.role === 'EXAM_CONTROLLER' ? examControllerNavigation
+    : user?.role === 'RECEPTIONIST' ? receptionistNavigation
     : user?.role === 'TEACHER' ? teacherNavigation
     : user?.role === 'STUDENT' ? studentNavigation
     : user?.role === 'ACCOUNTANT' ? accountantNavigation

@@ -91,12 +91,12 @@ export function AdmissionDashboard() {
         {kpiCards.map((card) => (
           <div
             key={card.title}
-            className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+            className="bg-slate-800 rounded-xl border border-slate-700 p-5"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">{card.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
+                <p className="text-sm font-medium text-slate-400">{card.title}</p>
+                <p className="text-2xl font-bold text-white mt-1">{card.value}</p>
               </div>
               <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', card.color)}>
                 <card.icon className="w-6 h-6 text-white" />

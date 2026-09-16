@@ -14,7 +14,7 @@ class AssignmentService {
     let employeeId: string | null = null;
     let studentId: string | null = null;
 
-    if (user.role === 'TEACHER' || user.role === 'HOD') {
+    if (user.role === 'TEACHER') {
       const emp = await prisma.employee.findFirst({
         where: { userId, isActive: true },
         select: { id: true },

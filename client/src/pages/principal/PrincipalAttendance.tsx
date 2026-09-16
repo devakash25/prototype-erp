@@ -1,54 +1,115 @@
-import { useState, useEffect } from 'react'
-import { RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react'
+import { RefreshCw, CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import api from '@/services/api'
+import { useApi } from '@/hooks/useApi'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
 export function PrincipalAttendance() {
-  const [trend, setTrend] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  useEffect(() => { loadData() }, [])
-  const loadData = async () => { setLoading(true); try { const r = await api.get('/principal/attendance-trend?days=14'); setTrend(r.data.data || []) } catch(e) { console.error(e) } setLoading(false) }
-  if (loading) return <div className="flex items-center justify-center h-96"><RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" /></div>
-  const avg = trend.length > 0 ? Math.round(trend.reduce((s, d) => s + d.rate, 0) / trend.length) : 0
+  const { data: trend, loading, error, refetch } = useApi('/principal/attendance-trend?days=14')
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <AlertCircle className="w-12 h-12 text-red-500" />
+        <p className="text-slate-400">{error}</p>
+        <button
+          onClick={refetch}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white hover:bg-slate-700"
+        >
+          <RefreshCw className="w-4 h-4" /> Retry
+        </button>
+      </div>
+    )
+  }
+
+  const trendData = trend || []
+  const avg = trendData.length > 0 ? Math.round(trendData.reduce((s: number, d: any) => s + d.rate, 0) / trendData.length) : 0
+  const latestRate = trendData.length > 0 ? trendData[trendData.length - 1].rate : 0
+  const belowThreshold = trendData.filter((d: any) => d.rate < 75).length
+
+  const chartData = trendData.map((day: any) => ({
+    day: day.day,
+    rate: day.rate,
+  }))
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-900">Attendance Dashboard</h1><p className="text-gray-500 text-sm">Student attendance monitoring & trends</p></div>
-        <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm hover:bg-gray-50"><RefreshCw className="w-4 h-4" />Refresh</button>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Attendance Dashboard</h1>
+          <p className="text-slate-400 text-sm">Student attendance monitoring & trends</p>
+        </div>
+        <button
+          onClick={refetch}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-400 hover:bg-slate-700"
+        >
+          <RefreshCw className="w-4 h-4" /> Refresh
+        </button>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center"><CheckCircle className="w-5 h-5 text-green-600" /></div>
-            <div><p className="text-2xl font-bold text-green-700">{avg}%</p><p className="text-xs text-gray-500">Average (14 days)</p></div>
+            <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-green-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white">{avg}%</p>
+              <p className="text-xs text-slate-500">Average (14 days)</p>
+            </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center"><CheckCircle className="w-5 h-5 text-blue-600" /></div>
-            <div><p className="text-2xl font-bold text-blue-700">{trend[trend.length - 1]?.rate || 0}%</p><p className="text-xs text-gray-500">Today</p></div>
+            <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-indigo-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white">{latestRate}%</p>
+              <p className="text-xs text-slate-500">Today</p>
+            </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center"><AlertTriangle className="w-5 h-5 text-red-600" /></div>
-            <div><p className="text-2xl font-bold text-red-700">{trend.filter(d => d.rate < 75).length}</p><p className="text-xs text-gray-500">Days Below 75%</p></div>
+            <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-red-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white">{belowThreshold}</p>
+              <p className="text-xs text-slate-500">Days Below 75%</p>
+            </div>
           </div>
         </div>
       </div>
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Attendance Trend</h2>
-        <div className="flex items-end gap-2 h-48">
-          {trend.map((day: any, i: number) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <span className="text-xs font-medium text-gray-700">{day.rate}%</span>
-              <div className="w-full bg-gray-100 rounded-t-lg relative" style={{ height: '120px' }}>
-                <div className={cn('absolute bottom-0 w-full rounded-t-lg', day.rate >= 75 ? 'bg-gradient-to-t from-green-500 to-emerald-400' : 'bg-gradient-to-t from-red-500 to-orange-400')} style={{ height: `${day.rate}%` }} />
-              </div>
-              <span className="text-[10px] text-gray-500">{day.day}</span>
-            </div>
-          ))}
-        </div>
+
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">Attendance Trend</h2>
+        <ResponsiveContainer width="100%" height={350}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+            <YAxis domain={[0, 100]} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }}
+              labelStyle={{ color: '#94a3b8' }}
+              formatter={(value: number) => [`${value}%`, 'Attendance']}
+            />
+            <Bar
+              dataKey="rate"
+              radius={[4, 4, 0, 0]}
+              fill="#6366f1"
+              maxBarSize={40}
+            />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   )

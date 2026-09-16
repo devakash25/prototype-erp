@@ -5,13 +5,16 @@ import { AlertCircle, RefreshCw, CheckCircle2, Clock, Users, ClipboardCheck } fr
 
 export function TeacherAttendance() {
   const { data: attendanceData, loading, error, refetch } = useApi('/teacher/attendance/status')
+  const [showToast, setShowToast] = useState<{ open: boolean; type: 'success' | 'error'; message: string } | null>(null)
 
   const handleTakeAttendance = async (classId: string) => {
     try {
-      console.log('Take attendance for class:', classId)
-      // Placeholder: would call POST /teacher/attendance/:classId
-      alert(`Attendance action logged for class ${classId}. Backend endpoint not yet implemented.`)
-    } catch (err) {
+      await api.post('/teacher/attendance/mark-daily', { classId })
+      setShowToast({ open: true, type: 'success', message: `Attendance marked for class ${classId}` })
+      refetch()
+    } catch (err: any) {
+      const message = err.response?.data?.error?.message || 'Failed to mark attendance'
+      setShowToast({ open: true, type: 'error', message })
       console.error('Failed to take attendance', err)
     }
   }
@@ -28,6 +31,22 @@ export function TeacherAttendance() {
         <p className="text-lg text-gray-600">Failed to load attendance data</p>
         <button onClick={refetch} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
           <RefreshCw className="h-4 w-4" /> Retry
+        </button>
+      </div>
+    )
+  }
+
+  if (showToast?.open) {
+    const IconComponent = showToast.type === 'success' ? CheckCircle2 : AlertCircle
+    return (
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl border shadow-lg {showToast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}">
+        <IconComponent className="h-5 w-5" />
+        <span>{showToast.message}</span>
+        <button
+          onClick={() => setShowToast(null)}
+          className="ml-4 text-opacity-80 hover:text-white"
+        >
+          ✕
         </button>
       </div>
     )

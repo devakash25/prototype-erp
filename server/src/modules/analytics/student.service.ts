@@ -559,11 +559,11 @@ class StudentAnalyticsService {
       where: { courseId: student.courseId }, select: { id: true },
     })).map(s => s.id);
 
-    const [results, attendance, submissions] = await Promise.all([
+    const [results, attendance, submissions, totalAssignmentsCount] = await Promise.all([
       prisma.examResult.findMany({
         where: { studentId: student.id, marksObtained: { not: null } },
         include: {
-          examination: { select: { name: true, startDate: true } },
+          examination: { select: { name: true, startDate: true, maxMarks: true } },
           subject: { select: { name: true, code: true, credits: true } },
         },
         orderBy: { examination: { startDate: 'asc' } },
@@ -576,6 +576,7 @@ class StudentAnalyticsService {
         where: { studentId: student.id },
         include: { assignment: { select: { title: true, totalMarks: true } } },
       }),
+      prisma.assignment.count({ where: { subjectId: { in: subjectIds }, isActive: true } }),
     ]);
 
     // Attendance trend (monthly)
@@ -592,12 +593,71 @@ class StudentAnalyticsService {
     }));
 
     // Assignment completion
-    const totalAssignments = submissions.length;
     const completed = submissions.filter(s => s.status === 'SUBMITTED' || s.status === 'GRADED').length;
 
+    // Build exam data grouped by examination
+    const examMap = new Map<string, { name: string; subjects: any[] }>();
+    for (const r of results) {
+      const key = r.examinationId;
+      if (!examMap.has(key)) examMap.set(key, { name: r.examination.name, subjects: [] });
+      examMap.get(key)!.subjects.push({
+        subject: r.subject.name,
+        code: r.subject.code,
+        marks: Number(r.marksObtained),
+        totalMarks: r.examination.maxMarks,
+        grade: r.grade,
+        isPassed: r.isPassed,
+      });
+    }
+
+    const exams = Array.from(examMap.entries()).map(([id, data]) => {
+      const totalMarks = data.subjects.reduce((s, sub) => s + sub.marks, 0);
+      const totalMax = data.subjects.reduce((s, sub) => s + sub.totalMarks, 0);
+      const percentage = totalMax > 0 ? Math.round((totalMarks / totalMax) * 100) : 0;
+      return { id, name: data.name, subjects: data.subjects, totalMarks, totalMax: totalMax, percentage };
+    });
+
+    // Subject-wise performance
+    const subjectMap = new Map<string, { name: string; code: string; exams: any[] }>();
+    for (const r of results) {
+      const key = r.subject.name;
+      if (!subjectMap.has(key)) subjectMap.set(key, { name: r.subject.name, code: r.subject.code, exams: [] });
+      subjectMap.get(key)!.exams.push({
+        name: r.examination.name,
+        marks: Number(r.marksObtained),
+        totalMarks: r.examination.maxMarks,
+        percentage: r.examination.maxMarks > 0 ? Math.round((Number(r.marksObtained) / r.examination.maxMarks) * 100) : 0,
+        grade: r.grade,
+      });
+    }
+
+    const subjectWise = Array.from(subjectMap.entries()).flatMap(([name, data]) =>
+      data.exams.map(exam => ({
+        subject: name,
+        code: data.code,
+        name: exam.name,
+        marksObtained: exam.marks,
+        totalMarks: exam.totalMarks,
+        percentage: exam.percentage,
+        grade: exam.grade,
+      }))
+    );
+
+    // Overall stats
+    const allPercentages = exams.map(e => e.percentage);
+    const overallStats = allPercentages.length > 0 ? {
+      averagePercentage: Math.round(allPercentages.reduce((a, b) => a + b, 0) / allPercentages.length),
+      totalExams: exams.length,
+      highestPercentage: Math.max(...allPercentages),
+      lowestPercentage: Math.min(...allPercentages),
+    } : { averagePercentage: 0, totalExams: 0, highestPercentage: 0, lowestPercentage: 0 };
+
     return {
+      exams,
+      subjectWise,
+      overallStats,
       attendanceTrend,
-      assignmentCompletion: { total: totalAssignments, completed, rate: totalAssignments > 0 ? Math.round((completed / totalAssignments) * 100) : 0 },
+      assignmentCompletion: { total: totalAssignmentsCount, completed, rate: totalAssignmentsCount > 0 ? Math.round((completed / totalAssignmentsCount) * 100) : 0 },
       resultsCount: results.length,
       subjectsCount: subjectIds.length,
     };
@@ -618,6 +678,19 @@ class StudentAnalyticsService {
       status: c.status,
       createdAt: c.createdAt,
     }));
+  }
+
+  async createRequest(userId: string, data: { title: string; description: string; category: string }) {
+    const student = await this.resolve(userId);
+    return prisma.complaint.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        studentId: student.id,
+        status: 'open',
+      },
+    });
   }
 
   async getRecentActivity(userId: string, limit = 10) {

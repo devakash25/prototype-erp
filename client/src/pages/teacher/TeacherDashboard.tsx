@@ -1,7 +1,5 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useApi } from '@/hooks/useApi'
-import api from '@/services/api'
 import { cn } from '@/lib/utils'
 import { GreetingBanner } from '@/components/GreetingBanner'
 import {
@@ -14,16 +12,7 @@ import {
   AlertCircle,
   RefreshCw,
   Eye,
-  ChevronDown,
 } from 'lucide-react'
-
-const TEACHER_ASSIGNMENTS = [
-  { id: 1, title: 'Algebra Worksheet', subject: 'Mathematics', dueDate: '2026-08-20', status: 'pending', submissions: 0, totalStudents: 42, maxMarks: 20 },
-  { id: 2, title: "Ohm's Law Lab Report", subject: 'Physics', dueDate: '2026-08-18', status: 'review', submissions: 3, totalStudents: 42, maxMarks: 15 },
-  { id: 3, title: 'Climate Change Essay', subject: 'English', dueDate: '2026-08-22', status: 'review', submissions: 2, totalStudents: 40, maxMarks: 25 },
-  { id: 4, title: 'Periodic Table Quiz', subject: 'Chemistry', dueDate: '2026-08-25', status: 'pending', submissions: 0, totalStudents: 42, maxMarks: 10 },
-  { id: 5, title: 'Python Assignment', subject: 'Computer Science', dueDate: '2026-08-19', status: 'graded', submissions: 3, totalStudents: 42, maxMarks: 30 },
-]
 
 function getAssignmentBadge(status: string) {
   switch (status) {
@@ -45,14 +34,15 @@ export function TeacherDashboard() {
   const { data: kpis, loading: kpisLoading, error: kpisError, refetch: refetchKpis } = useApi('/teacher/kpis')
   const { data: schedule, loading: scheduleLoading, error: scheduleError, refetch: refetchSchedule } = useApi('/teacher/schedule')
   const { data: activity, loading: activityLoading, error: activityError } = useApi('/teacher/activity?limit=10')
+  const { data: assignments, error: assignmentsError, refetch: refetchAssignments } = useApi('/teacher/assignments')
 
-  if (kpisError || scheduleError || activityError) {
+  if (kpisError || scheduleError || activityError || assignmentsError) {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
         <AlertCircle className="h-12 w-12 text-red-500" />
         <p className="text-lg text-slate-300">Failed to load dashboard data</p>
         <button
-          onClick={() => { refetchKpis(); refetchSchedule(); }}
+          onClick={() => { refetchKpis(); refetchSchedule(); refetchAssignments() }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           <RefreshCw className="h-4 w-4" /> Retry
@@ -86,12 +76,12 @@ export function TeacherDashboard() {
               <div>
                 <p className={cn('text-sm font-medium', card.color)}>{card.label}</p>
                 {kpisLoading ? (
-                  <div className="h-8 w-16 bg-gray-200 rounded animate-pulse mt-1" />
+                  <div className="h-8 w-16 bg-slate-700/50 rounded animate-pulse mt-1" />
                 ) : (
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{card.value}</p>
+                  <p className="text-3xl font-bold text-slate-100 mt-1">{card.value}</p>
                 )}
               </div>
-              <div className={cn('p-3 rounded-xl shadow-sm bg-white/80', card.color)}>
+              <div className={cn('p-3 rounded-xl shadow-sm bg-slate-700/80', card.color)}>
                 <card.icon className="h-6 w-6" />
               </div>
             </div>
@@ -167,28 +157,28 @@ export function TeacherDashboard() {
       <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm">
         <div className="p-5 border-b border-slate-700 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">Assignments</h2>
-          <Link to="/teacher/assignments" className="text-sm text-indigo-400 hover:text-indigo-300 font-semibold hover:underline">
+          <Link to="/teacher/assignments" className="text-sm text-indigo-500 hover:text-indigo-400 font-semibold hover:underline">
             View all
           </Link>
         </div>
         <div className="p-5">
           <div className="grid grid-cols-3 gap-3 mb-5">
             <div className="bg-slate-700/50 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-yellow-400">{TEACHER_ASSIGNMENTS.filter((a) => a.status === 'pending').length}</p>
+              <p className="text-2xl font-bold text-yellow-400">{assignments.filter((a: any) => a.status === 'pending').length}</p>
               <p className="text-xs text-slate-400">Pending</p>
             </div>
             <div className="bg-slate-700/50 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-purple-400">{TEACHER_ASSIGNMENTS.filter((a) => a.status === 'review').length}</p>
+              <p className="text-2xl font-bold text-purple-400">{assignments.filter((a: any) => a.status === 'review').length}</p>
               <p className="text-xs text-slate-400">To Review</p>
             </div>
             <div className="bg-slate-700/50 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-green-400">{TEACHER_ASSIGNMENTS.filter((a) => a.status === 'graded').length}</p>
+              <p className="text-2xl font-bold text-green-400">{assignments.filter((a: any) => a.status === 'graded').length}</p>
               <p className="text-xs text-slate-400">Graded</p>
             </div>
           </div>
 
           <div className="space-y-3">
-            {TEACHER_ASSIGNMENTS.map((a) => (
+            {assignments.map((a: any) => (
               <div key={a.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-700/50 border border-slate-700">
                 <div className="p-2 rounded-lg bg-slate-700/50">
                   {a.status === 'graded' ? (

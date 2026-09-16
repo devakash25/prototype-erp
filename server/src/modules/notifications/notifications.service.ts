@@ -36,8 +36,8 @@ export class NotificationService {
     } else if (data.target !== 'ALL') {
       const roleMapping: Record<string, string[]> = {
         STUDENTS: ['STUDENT'],
-        EMPLOYEES: ['DIRECTOR', 'PRINCIPAL', 'HOD', 'TEACHER', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
-        TEACHERS: ['TEACHER', 'HOD'],
+        EMPLOYEES: ['PRINCIPAL', 'TEACHER', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
+        TEACHERS: ['TEACHER'],
         PARENTS: ['PARENT'],
       };
 

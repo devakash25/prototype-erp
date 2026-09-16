@@ -44,19 +44,19 @@ router.post('/parent/send', authorize('PARENT'), validate(sendMessageSchema), wr
 }));
 
 // Teacher / Coordinator endpoints
-router.get('/teacher/inbox', authorize('TEACHER', 'HOD'), wrap(async (req: Request, res: Response) => {
+router.get('/teacher/inbox', authorize('TEACHER'), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const data = await parentMessagingService.getTeacherInbox(user.userId);
   res.json({ success: true, data });
 }));
 
-router.get('/teacher/chat/:conversationId', authorize('TEACHER', 'HOD'), wrap(async (req: Request, res: Response) => {
+router.get('/teacher/chat/:conversationId', authorize('TEACHER'), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const data = await parentMessagingService.getTeacherChat(user.userId, req.params.conversationId as string);
   res.json({ success: true, data });
 }));
 
-router.post('/teacher/send', authorize('TEACHER', 'HOD'), validate(sendMessageSchema), wrap(async (req: Request, res: Response) => {
+router.post('/teacher/send', authorize('TEACHER'), validate(sendMessageSchema), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const { conversationId, message, attachmentUrl, attachmentType } = req.body;
   const data = await parentMessagingService.sendTeacherMessage(user.userId, { conversationId, message, attachmentUrl, attachmentType });

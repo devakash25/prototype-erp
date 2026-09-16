@@ -7,14 +7,13 @@ class PrincipalAnalyticsService {
     const dayNum = now.getDay();
 
     const [
-      totalStudents, totalTeachers, totalHODs,
+      totalStudents, totalTeachers,
       todayAttendanceStudents, todayAttendanceTeachers,
       pendingAdmissions, todayClasses, pendingLeaves,
       openComplaints, upcomingExams, pendingWorkflows,
     ] = await Promise.all([
       prisma.student.count({ where: { institutionId, isActive: true } }),
       prisma.employee.count({ where: { institutionId, isActive: true, department: 'ACADEMIC' } }),
-      prisma.employee.count({ where: { institutionId, isActive: true, user: { role: 'HOD' } } }),
       this.getTodayAttendanceRate(institutionId, today),
       this.getTeacherAttendanceRate(institutionId, today),
       prisma.admission.count({ where: { institutionId, status: 'APPLIED' } }),
@@ -36,7 +35,7 @@ class PrincipalAnalyticsService {
       studentsPresent, studentsTotal: totalStudents,
       pendingAdmissions, todayClasses, pendingLeaves,
       openComplaints, upcomingExams, pendingWorkflows,
-      totalStudents, totalTeachers, totalHODs,
+      totalStudents, totalTeachers,
     };
   }
 
@@ -45,7 +44,7 @@ class PrincipalAnalyticsService {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const dayNum = now.getDay();
 
-    const [classesRunning, teachersPresent, freeRooms, absentTeachers, activeComplaints] = await Promise.all([
+    const [classesRunning, teachersPresent, totalRooms, absentTeachers, activeComplaints] = await Promise.all([
       prisma.timetableEntry.count({ where: { timetable: { institutionId, dayOfWeek: dayNum } } }),
       prisma.employeeAttendance.count({ where: { employee: { institutionId }, date: today, status: 'PRESENT' } }),
       prisma.timetableEntry.aggregate({ where: { timetable: { institutionId, dayOfWeek: dayNum } }, _count: true }),
@@ -53,8 +52,9 @@ class PrincipalAnalyticsService {
       prisma.helpdeskTicket.count({ where: { institutionId, status: { in: ['OPEN', 'IN_PROGRESS'] } } }),
     ]);
 
+    const totalRoomsCount = (totalRooms as any)._count || 20;
     return {
-      classesRunning, teachersTeaching: teachersPresent, freeRooms: Math.max(0, 20 - classesRunning),
+      classesRunning, teachersTeaching: teachersPresent, freeRooms: Math.max(0, totalRoomsCount - classesRunning),
       absentTeachers, activeComplaints,
     };
   }
@@ -129,10 +129,10 @@ class PrincipalAnalyticsService {
   async getAttendanceTrend(institutionId: string, days = 7) {
     const trends = [];
     const now = new Date();
+    const total = await prisma.student.count({ where: { institutionId, isActive: true } });
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
       const dayEnd = new Date(date.getTime() + 24 * 60 * 60 * 1000);
-      const total = await prisma.student.count({ where: { institutionId, isActive: true } });
       const present = await prisma.attendance.count({
         where: { student: { institutionId }, date: { gte: date, lt: dayEnd }, status: 'PRESENT' },
       });
@@ -362,8 +362,8 @@ class PrincipalAnalyticsService {
     const [books, categories, activeIssues, overdueIssues, totalIssuedEver, recentIssues] = await Promise.all([
       prisma.libraryBook.count({ where: { institutionId, isActive: true } }),
       prisma.libraryBook.groupBy({ by: ['category'], where: { institutionId, isActive: true }, _count: true }),
-      prisma.libraryIssue.count({ where: { book: { institutionId }, status: 'ISSUED' } }),
-      prisma.libraryIssue.count({ where: { book: { institutionId }, status: 'OVERDUE' } }),
+      prisma.libraryIssue.count({ where: { book: { institutionId }, status: 'issued' } }),
+      prisma.libraryIssue.count({ where: { book: { institutionId }, status: 'overdue' } }),
       prisma.libraryIssue.count({ where: { book: { institutionId } } }),
       prisma.libraryIssue.findMany({
         where: { book: { institutionId } },
@@ -619,7 +619,13 @@ class PrincipalAnalyticsService {
       },
     });
 
-    const newStatus = action === 'approve' ? 'APPROVED' : 'REJECTED';
+    const statusMap: Record<string, string> = {
+      approve: 'APPROVED',
+      reject: 'REJECTED',
+      review: 'IN_REVIEW',
+      forward: 'FORWARDED',
+    };
+    const newStatus = statusMap[action] || action.toUpperCase();
     const updatedWorkflow = await prisma.workflow.update({
       where: { id: workflowId },
       data: { status: newStatus as any },
@@ -630,6 +636,40 @@ class PrincipalAnalyticsService {
     });
 
     return { workflowAction, workflow: updatedWorkflow };
+  }
+
+  async handleHelpdeskAction(ticketId: string, userId: string, action: string, comments?: string) {
+    const statusMap: Record<string, string> = {
+      resolve: 'RESOLVED',
+      close: 'CLOSED',
+      reopen: 'OPEN',
+      assign: 'IN_PROGRESS',
+    };
+    const newStatus = (statusMap[action] || action.toUpperCase()) as any;
+
+    const updated = await prisma.helpdeskTicket.update({
+      where: { id: ticketId },
+      data: {
+        status: newStatus,
+        ...(newStatus === 'RESOLVED' ? { resolvedAt: new Date() } : {}),
+      },
+      include: {
+        creator: { select: { fullName: true } },
+        assignee: { select: { fullName: true } },
+      },
+    });
+
+    if (comments) {
+      await prisma.helpdeskComment.create({
+        data: {
+          ticketId,
+          userId,
+          content: comments,
+        },
+      });
+    }
+
+    return updated;
   }
 
   async handleLeaveAction(leaveId: string, userId: string, action: string, comments?: string) {
@@ -896,8 +936,8 @@ class PrincipalAnalyticsService {
       include: { user: { select: { role: true } } },
     });
     if (!employee) throw new Error('Employee not found');
-    if (employee.user.role !== 'TEACHER' && employee.user.role !== 'HOD') {
-      throw new Error('Only teachers or HODs can be assigned as class coordinators');
+    if (employee.user.role !== 'TEACHER') {
+      throw new Error('Only teachers can be assigned as class coordinators');
     }
 
     const course = await prisma.course.findFirst({ where: { id: courseId, institutionId } });

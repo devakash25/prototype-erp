@@ -15,7 +15,7 @@ class DoubtService {
     let studentId: string | null = null;
     let courseId: string | null = null;
 
-    if (user.role === 'TEACHER' || user.role === 'HOD') {
+    if (user.role === 'TEACHER') {
       const emp = await prisma.employee.findFirst({
         where: { userId, isActive: true },
         select: { id: true },
@@ -590,7 +590,7 @@ class DoubtService {
     if (!conversation) throw new NotFoundError('Conversation');
 
     if (role === 'STUDENT') throw new ForbiddenError('Only teachers can resolve doubts');
-    if (role === 'TEACHER' || role === 'HOD') {
+    if (role === 'TEACHER') {
       const isTeacher = conversation.teacherId === employeeId;
       const isCoordinator = conversation.course.classCoordinatorId === employeeId;
       if (!isTeacher && !isCoordinator) throw new ForbiddenError('Access denied');

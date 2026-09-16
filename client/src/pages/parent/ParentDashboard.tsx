@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams, Link } from 'react-router-dom'
 import api from '@/services/api'
@@ -27,29 +27,23 @@ import {
   Loader2,
   Eye,
   FileCheck,
-  Link as LinkIcon,
 } from 'lucide-react'
 
-const PARENT_ASSIGNMENTS = [
-  { id: 1, title: 'Algebra Worksheet', subject: 'Mathematics', teacher: 'Mr. Sharma', dueDate: '2026-08-20', status: 'pending', maxMarks: 20 },
-  { id: 2, title: "Ohm's Law Lab Report", subject: 'Physics', teacher: 'Ms. Patel', dueDate: '2026-08-18', status: 'graded', maxMarks: 15, marksObtained: 13 },
-  { id: 3, title: 'Climate Change Essay', subject: 'English', teacher: 'Mrs. Gupta', dueDate: '2026-08-22', status: 'review', maxMarks: 25 },
-  { id: 4, title: 'Periodic Table Quiz', subject: 'Chemistry', teacher: 'Mr. Kumar', dueDate: '2026-08-25', status: 'pending', maxMarks: 10 },
-  { id: 5, title: 'Python Assignment', subject: 'Computer Science', teacher: 'Mr. Reddy', dueDate: '2026-08-19', status: 'graded', maxMarks: 30, marksObtained: 27 },
-]
-
 function getAssignmentBadge(status: string) {
-  switch (status) {
+  switch (status?.toLowerCase()) {
     case 'pending': return 'bg-yellow-500/15 text-yellow-400'
-    case 'review': return 'bg-purple-500/15 text-purple-400'
+    case 'review': case 'submitted': return 'bg-purple-500/15 text-purple-400'
     case 'graded': return 'bg-green-500/15 text-green-400'
     default: return 'bg-slate-500/15 text-slate-400'
   }
 }
 
 function getAssignmentLabel(status: string) {
-  switch (status) {
+  switch (status?.toLowerCase()) {
     case 'review': return 'Under Review'
+    case 'submitted': return 'Submitted'
+    case 'pending': return 'Pending'
+    case 'graded': return 'Graded'
     default: return status
   }
 }
@@ -84,26 +78,42 @@ export function ParentDashboard() {
     enabled: !!childId,
   })
 
+  const { data: assignmentsData } = useQuery({
+    queryKey: ['parent-assignments', childId],
+    queryFn: async () => {
+      const res = await api.get(`/parent/assignments?childId=${childId}`)
+      return res.data
+    },
+    enabled: !!childId,
+  })
+
   const d = dashboardData || {}
+  const summary = d.summary || {}
+  const assignments = assignmentsData?.assignments || assignmentsData || []
+
+  const todayAttendance = summary.todayAttendance
+  const todayPresent = todayAttendance?.present ?? 0
+  const todayTotal = todayAttendance?.total ?? 0
+  const todayLabel = todayTotal > 0 ? `${todayPresent}/${todayTotal}` : '—'
 
   const kpis = [
-    { label: "Today's Attendance", value: d.todayAttendance || '—', icon: CheckCircle2, color: 'text-green-400 bg-green-900/30' },
-    { label: 'Overall Attendance', value: `${d.overallAttendance ?? 0}%`, icon: Clock, color: 'text-blue-400 bg-blue-900/30' },
-    { label: 'Pending Assignments', value: d.pendingAssignments ?? 0, icon: ClipboardList, color: 'text-orange-400 bg-orange-900/30' },
-    { label: 'Upcoming Exams', value: d.upcomingExams ?? 0, icon: FileText, color: 'text-purple-400 bg-purple-900/30' },
-    { label: 'Fee Due', value: `₹${(d.feeDue ?? 0).toLocaleString('en-IN')}`, icon: IndianRupee, color: 'text-red-400 bg-red-900/30' },
-    { label: 'CGPA', value: d.cgpa ?? '—', icon: GraduationCap, color: 'text-yellow-400 bg-yellow-900/30' },
-    { label: 'New Notices', value: d.newNotices ?? 0, icon: Bell, color: 'text-cyan-400 bg-cyan-900/30' },
-    { label: 'Teacher Messages', value: d.teacherMessages ?? 0, icon: MessageSquare, color: 'text-pink-400 bg-pink-900/30' },
+    { label: "Today's Attendance", value: todayLabel, icon: CheckCircle2, color: 'text-green-400 bg-green-900/30' },
+    { label: 'Overall Attendance', value: `${summary.overallAttendance ?? 0}%`, icon: Clock, color: 'text-blue-400 bg-blue-900/30' },
+    { label: 'Pending Assignments', value: summary.pendingAssignments ?? 0, icon: ClipboardList, color: 'text-orange-400 bg-orange-900/30' },
+    { label: 'Upcoming Exams', value: summary.upcomingExams ?? 0, icon: FileText, color: 'text-purple-400 bg-purple-900/30' },
+    { label: 'Fee Due', value: `₹${(summary.feeDue ?? 0).toLocaleString('en-IN')}`, icon: IndianRupee, color: 'text-red-400 bg-red-900/30' },
+    { label: 'CGPA', value: summary.cgpa ?? '—', icon: GraduationCap, color: 'text-yellow-400 bg-yellow-900/30' },
+    { label: 'New Notices', value: summary.newNotices ?? 0, icon: Bell, color: 'text-cyan-400 bg-cyan-900/30' },
+    { label: 'Teacher Messages', value: summary.teacherMessages ?? 0, icon: MessageSquare, color: 'text-pink-400 bg-pink-900/30' },
   ]
 
   const quickActions = [
     { label: 'Pay Fees', icon: CreditCard, href: `/parent/fees?childId=${childId}`, color: 'bg-green-600 hover:bg-green-700 text-white' },
     { label: 'View Attendance', icon: CalendarDays, href: `/parent/attendance?childId=${childId}`, color: 'bg-blue-600 hover:bg-blue-700 text-white' },
-    { label: 'Request PTM', icon: CalendarPlus, href: '#', color: 'bg-purple-600 hover:bg-purple-700 text-white' },
-    { label: 'Apply Leave', icon: Plane, href: '#', color: 'bg-amber-600 hover:bg-amber-700 text-white' },
-    { label: 'Contact Coordinator', icon: Phone, href: '#', color: 'bg-indigo-600 hover:bg-indigo-700 text-white' },
-    { label: 'Raise Complaint', icon: AlertCircle, href: '#', color: 'bg-red-600 hover:bg-red-700 text-white' },
+    { label: 'Request PTM', icon: CalendarPlus, href: `/parent/ptm?childId=${childId}`, color: 'bg-purple-600 hover:bg-purple-700 text-white' },
+    { label: 'Apply Leave', icon: Plane, href: `/parent/leave?childId=${childId}`, color: 'bg-amber-600 hover:bg-amber-700 text-white' },
+    { label: 'Contact Teacher', icon: Phone, href: `/parent/messages?childId=${childId}`, color: 'bg-indigo-600 hover:bg-indigo-700 text-white' },
+    { label: 'Raise Complaint', icon: AlertCircle, href: `/parent/complaints?childId=${childId}`, color: 'bg-red-600 hover:bg-red-700 text-white' },
   ]
 
   if (childrenLoading) {
@@ -138,10 +148,9 @@ export function ParentDashboard() {
     )
   }
 
-  const schedule = d.schedule || []
-  const notices = d.notices || []
+  const schedule = d.todaySchedule || []
+  const notices = d.recentNotices || []
   const alerts = d.alerts || []
-  const activity = d.activity || []
 
   return (
     <div className="space-y-6">
@@ -169,14 +178,14 @@ export function ParentDashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((card) => (
-          <div key={card.label} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div key={card.label} className="bg-slate-800 rounded-xl border border-slate-700 p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">{card.label}</p>
+                <p className="text-sm text-slate-400">{card.label}</p>
                 {isLoading ? (
-                  <div className="h-8 w-16 bg-gray-200 rounded animate-pulse mt-1" />
+                  <div className="h-8 w-16 bg-slate-700 rounded animate-pulse mt-1" />
                 ) : (
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
+                  <p className="text-2xl font-bold text-white mt-1">{card.value}</p>
                 )}
               </div>
               <div className={`p-3 rounded-lg ${card.color}`}>
@@ -193,23 +202,13 @@ export function ParentDashboard() {
             <AlertTriangle className="h-5 w-5 text-yellow-500" /> Smart Alerts
           </h2>
           <div className="space-y-2">
-            {alerts.map((alert: any, idx: number) => (
+            {alerts.map((alert: string, idx: number) => (
               <div
                 key={idx}
-                className={`flex items-center gap-3 p-3 rounded-lg border ${
-                  alert.severity === 'high'
-                    ? 'bg-red-500/10 border-red-500/30'
-                    : 'bg-yellow-500/10 border-yellow-500/30'
-                }`}
+                className="flex items-center gap-3 p-3 rounded-lg border bg-yellow-500/10 border-yellow-500/30"
               >
-                <div className={`w-2 h-2 rounded-full shrink-0 ${
-                  alert.severity === 'high' ? 'bg-red-500' : 'bg-yellow-500'
-                }`} />
-                <span className={`text-sm ${
-                  alert.severity === 'high' ? 'text-red-300' : 'text-yellow-300'
-                }`}>
-                  {alert.message}
-                </span>
+                <div className="w-2 h-2 rounded-full shrink-0 bg-yellow-500" />
+                <span className="text-sm text-yellow-300">{alert}</span>
               </div>
             ))}
           </div>
@@ -281,35 +280,6 @@ export function ParentDashboard() {
       </div>
 
       <div className="bg-slate-800 rounded-xl border border-slate-700 shadow-sm">
-        <div className="p-5 border-b border-slate-700">
-          <h2 className="text-lg font-semibold text-white">Activity Timeline</h2>
-        </div>
-        <div className="p-5">
-          {isLoading ? (
-            <div className="space-y-3">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-10 bg-slate-700/50 rounded-lg animate-pulse" />
-              ))}
-            </div>
-          ) : activity.length === 0 ? (
-            <p className="text-slate-400 text-center py-8">No recent activity</p>
-          ) : (
-            <div className="space-y-4">
-              {activity.slice(0, 5).map((item: any, idx: number) => (
-                <div key={idx} className="flex gap-3">
-                  <div className="mt-1.5 h-2 w-2 rounded-full bg-blue-500 shrink-0" />
-                  <div>
-                    <p className="text-sm text-white">{item.message}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{item.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="bg-slate-800 rounded-xl border border-slate-700 shadow-sm">
         <div className="p-5 border-b border-slate-700 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">Assignments</h2>
           <Link
@@ -322,50 +292,54 @@ export function ParentDashboard() {
         <div className="p-5">
           <div className="grid grid-cols-3 gap-3 mb-5">
             <div className="bg-yellow-500/10 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-yellow-400">{PARENT_ASSIGNMENTS.filter((a) => a.status === 'pending').length}</p>
+              <p className="text-2xl font-bold text-yellow-400">{assignments.filter((a: any) => a.status === 'pending' || a.status === 'PENDING').length}</p>
               <p className="text-xs text-yellow-400">Pending</p>
             </div>
             <div className="bg-purple-500/10 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-purple-400">{PARENT_ASSIGNMENTS.filter((a) => a.status === 'review').length}</p>
+              <p className="text-2xl font-bold text-purple-400">{assignments.filter((a: any) => a.status === 'review' || a.status === 'SUBMITTED').length}</p>
               <p className="text-xs text-purple-400">Under Review</p>
             </div>
             <div className="bg-green-500/10 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-green-400">{PARENT_ASSIGNMENTS.filter((a) => a.status === 'graded').length}</p>
+              <p className="text-2xl font-bold text-green-400">{assignments.filter((a: any) => a.status === 'graded' || a.status === 'GRADED').length}</p>
               <p className="text-xs text-green-400">Graded</p>
             </div>
           </div>
 
-          <div className="space-y-3">
-            {PARENT_ASSIGNMENTS.map((a) => (
-              <div key={a.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-700/50 border border-slate-700">
-                <div className="p-2 rounded-lg bg-slate-700/50">
-                  {a.status === 'graded' ? (
-                    <FileCheck className="h-5 w-5 text-green-400" />
-                  ) : a.status === 'review' ? (
-                    <Eye className="h-5 w-5 text-purple-400" />
-                  ) : (
-                    <Clock className="h-5 w-5 text-yellow-400" />
-                  )}
+          {assignments.length === 0 ? (
+            <p className="text-slate-400 text-center py-8">No assignments found</p>
+          ) : (
+            <div className="space-y-3">
+              {assignments.slice(0, 5).map((a: any) => (
+                <div key={a.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-700/50 border border-slate-700">
+                  <div className="p-2 rounded-lg bg-slate-700/50">
+                    {(a.status === 'graded' || a.status === 'GRADED') ? (
+                      <FileCheck className="h-5 w-5 text-green-400" />
+                    ) : (a.status === 'review' || a.status === 'SUBMITTED') ? (
+                      <Eye className="h-5 w-5 text-purple-400" />
+                    ) : (
+                      <Clock className="h-5 w-5 text-yellow-400" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{a.title}</p>
+                    <p className="text-xs text-slate-400">{a.subject?.name || a.subject} &bull; {a.teacher?.user?.fullName || a.teacher}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    {(a.status === 'graded' || a.status === 'GRADED') && a.marksObtained != null ? (
+                      <span className="text-sm font-bold text-green-400">{a.marksObtained}/{a.maxMarks}</span>
+                    ) : (
+                      <span className="text-xs text-slate-400">
+                        Due {new Date(a.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                      </span>
+                    )}
+                  </div>
+                  <span className={cn('px-2 py-0.5 text-xs font-medium rounded-full capitalize', getAssignmentBadge(a.status))}>
+                    {getAssignmentLabel(a.status)}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{a.title}</p>
-                  <p className="text-xs text-slate-400">{a.subject} &bull; {a.teacher}</p>
-                </div>
-                <div className="text-right shrink-0">
-                  {a.status === 'graded' && a.marksObtained != null ? (
-                    <span className="text-sm font-bold text-green-400">{a.marksObtained}/{a.maxMarks}</span>
-                  ) : (
-                    <span className="text-xs text-slate-400">
-                      Due {new Date(a.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                    </span>
-                  )}
-                </div>
-                <span className={cn('px-2 py-0.5 text-xs font-medium rounded-full capitalize', getAssignmentBadge(a.status))}>
-                  {getAssignmentLabel(a.status)}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

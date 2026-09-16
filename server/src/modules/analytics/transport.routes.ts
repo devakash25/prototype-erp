@@ -7,7 +7,7 @@ const router = Router();
 
 router.use(authenticate);
 
-const allRoles: string[] = ['CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'HOD', 'TEACHER', 'STUDENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'TRANSPORT_MANAGER'];
+const allRoles: string[] = ['CHIEF_HEAD', 'PRINCIPAL', 'TEACHER', 'STUDENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'TRANSPORT_MANAGER'];
 const tmOnly: string[] = ['TRANSPORT_MANAGER'];
 
 // ============================================

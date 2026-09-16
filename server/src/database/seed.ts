@@ -72,24 +72,6 @@ async function main() {
     },
   });
 
-  // Create Director
-  const directorPassword = await hashPassword('Director@123');
-  const director = await prisma.user.create({
-    data: {
-      institutionId: institution.id,
-      email: 'director@dev-erp.com',
-      password: directorPassword,
-      role: 'DIRECTOR',
-      firstName: 'Rajesh',
-      lastName: 'Kumar',
-      fullName: 'Rajesh Kumar',
-      phone: '+91 98765 43211',
-      gender: 'MALE',
-      isActive: true,
-      isEmailVerified: true,
-    },
-  });
-
   // Create Departments
   const departments = await Promise.all([
     prisma.department.create({ data: { institutionId: institution.id, name: 'Computer Science', code: 'CS', description: 'Computer Science & Engineering' } }),
@@ -123,7 +105,7 @@ async function main() {
     prisma.subject.create({ data: { institutionId: institution.id, departmentId: departments[4].id, courseId: courses[4].id, name: 'Marketing Management', code: 'MBA101', credits: 3, type: 'theory', totalMarks: 100, passingMarks: 33 } }),
   ]);
 
-  // Create Employees (Teachers, HOD, Principal, etc.)
+  // Create Employees (Teachers, Principal, etc.)
   const employeePassword = await hashPassword('Teacher@123');
   const employees: any[] = [];
 
@@ -144,39 +126,13 @@ async function main() {
   });
   employees.push(principal);
 
-  // HODs
-  const hodData = [
-    { email: 'hod.cs@dev-erp.com', name: 'Dr. Rajesh Kumar', dept: departments[0].id, code: 'EMP002' },
-    { email: 'hod.ec@dev-erp.com', name: 'Dr. Sunita Patel', dept: departments[1].id, code: 'EMP003' },
-    { email: 'hod.me@dev-erp.com', name: 'Dr. Amit Verma', dept: departments[2].id, code: 'EMP004' },
-  ];
-
-  for (const hod of hodData) {
-    const user = await prisma.user.create({
-      data: {
-        institutionId: institution.id, email: hod.email, password: employeePassword,
-        role: 'HOD', firstName: hod.name.split(' ').slice(0, -1).join(' '),
-        lastName: hod.name.split(' ').pop()!, fullName: hod.name,
-        gender: 'MALE', isActive: true,
-      },
-    });
-    const emp = await prisma.employee.create({
-      data: {
-        institutionId: institution.id, departmentId: hod.dept, userId: user.id,
-        employeeCode: hod.code, designation: 'Head of Department', department: 'ACADEMIC',
-        dateOfJoining: new Date('2019-06-01'), qualification: 'Ph.D.',
-      },
-    });
-    employees.push(emp);
-  }
-
   // Teachers
   const teacherData = [
-    { email: 'teacher1@dev-erp.com', name: 'Mr. Suresh Reddy', dept: departments[0].id, code: 'EMP005' },
-    { email: 'teacher2@dev-erp.com', name: 'Ms. Kavitha Nair', dept: departments[0].id, code: 'EMP006' },
-    { email: 'teacher3@dev-erp.com', name: 'Mr. Vikram Joshi', dept: departments[1].id, code: 'EMP007' },
-    { email: 'teacher4@dev-erp.com', name: 'Mrs. Priya Gupta', dept: departments[2].id, code: 'EMP008' },
-    { email: 'teacher5@dev-erp.com', name: 'Mr. Arun Singh', dept: departments[4].id, code: 'EMP009' },
+    { email: 'teacher1@dev-erp.com', name: 'Mr. Suresh Reddy', dept: departments[0].id, code: 'EMP002' },
+    { email: 'teacher2@dev-erp.com', name: 'Ms. Kavitha Nair', dept: departments[0].id, code: 'EMP003' },
+    { email: 'teacher3@dev-erp.com', name: 'Mr. Vikram Joshi', dept: departments[1].id, code: 'EMP004' },
+    { email: 'teacher4@dev-erp.com', name: 'Mrs. Priya Gupta', dept: departments[2].id, code: 'EMP005' },
+    { email: 'teacher5@dev-erp.com', name: 'Mr. Arun Singh', dept: departments[4].id, code: 'EMP006' },
   ];
 
   for (const t of teacherData) {
@@ -518,22 +474,20 @@ async function main() {
   console.log('Seed completed!');
   console.log('---');
   console.log('Login credentials:');
+  console.log('CEO: ceo@dev-erp.com / Admin@123');
   console.log('Chief Head: admin@dev-erp.com / Admin@123');
-  console.log('Director: director@dev-erp.com / Director@123');
   console.log('Principal: principal@dev-erp.com / Teacher@123');
-  console.log('HOD CS: hod.cs@dev-erp.com / Teacher@123');
-  console.log('Teacher: teacher1@dev-erp.com / Teacher@123');
+  console.log('Teacher 1: teacher1@dev-erp.com / Teacher@123');
   console.log('Accountant: accountant@dev-erp.com / Teacher@123');
   console.log('Student: student1@dev-erp.com / Student@123');
+  console.log('Parent: father@dev-erp.com / Parent@123');
 
   // ========== Subscription Plans ==========
   console.log('\nSeeding subscription plans...');
 
   const basicFeatures = [
     'chief_head.dashboard', 'chief_head.authority_management', 'chief_head.fee_structure', 'chief_head.system_settings',
-    'director.dashboard', 'director.department_performance', 'director.faculty_monitoring',
     'principal.dashboard', 'principal.departments', 'principal.attendance', 'principal.faculty_status', 'principal.students',
-    'hod.dashboard', 'hod.department_overview', 'hod.teachers', 'hod.students',
     'teacher.dashboard', 'teacher.todays_schedule', 'teacher.take_attendance', 'teacher.student_list',
     'student.dashboard', 'student.my_subjects', 'student.timetable', 'student.attendance', 'student.fee_status',
     'parent.dashboard', 'parent.children', 'parent.attendance', 'parent.fees',
@@ -552,17 +506,11 @@ async function main() {
     'chief_head.report_center', 'chief_head.custom_report_builder', 'chief_head.global_search', 'chief_head.student_analytics', 'chief_head.financial_dashboard',
     'chief_head.template_manager', 'chief_head.realtime_notifications', 'chief_head.system_settings', 'chief_head.permission_manager', 'chief_head.bulk_operations',
     'chief_head.data_backup_export', 'chief_head.audit_log', 'chief_head.appearance',
-    'director.dashboard', 'director.department_performance', 'director.faculty_monitoring', 'director.student_analytics', 'director.examinations',
-    'director.admissions', 'director.finance_view', 'director.hr_overview', 'director.campus_services', 'director.pending_approvals',
-    'director.notifications', 'director.calendar', 'director.reports',
     'principal.dashboard', 'principal.departments', 'principal.timetable', 'principal.attendance', 'principal.lms',
     'principal.faculty_status', 'principal.class_coordinators', 'principal.subject_allocation', 'principal.leave_management', 'principal.performance',
     'principal.students', 'principal.admissions', 'principal.exam_dashboard', 'principal.finance_view', 'principal.discipline',
     'principal.hostel', 'principal.library', 'principal.transport', 'principal.approvals', 'principal.notifications',
     'principal.calendar', 'principal.helpdesk', 'principal.reports',
-    'hod.dashboard', 'hod.department_overview', 'hod.timetable', 'hod.teachers', 'hod.workload', 'hod.faculty_attendance', 'hod.faculty_performance',
-    'hod.students', 'hod.student_performance', 'hod.student_attendance', 'hod.courses', 'hod.subjects', 'hod.lms', 'hod.assignments',
-    'hod.exams', 'hod.marks_entry', 'hod.notices', 'hod.approvals', 'hod.helpdesk', 'hod.calendar', 'hod.reports',
     'teacher.dashboard', 'teacher.todays_schedule', 'teacher.my_classes', 'teacher.subjects', 'teacher.take_attendance',
     'teacher.student_list', 'teacher.student_performance', 'teacher.assignments', 'teacher.lms_overview', 'teacher.exams',
     'teacher.marks_entry', 'teacher.leave', 'teacher.calendar', 'teacher.my_class', 'teacher.notifications', 'teacher.reports',
@@ -604,9 +552,7 @@ async function main() {
       rolePricing: {
         create: [
           { role: 'CHIEF_HEAD', pricePerSeat: 0, isEnabled: true },
-          { role: 'DIRECTOR', pricePerSeat: 0, isEnabled: true },
           { role: 'PRINCIPAL', pricePerSeat: 0, isEnabled: true },
-          { role: 'HOD', pricePerSeat: 0, isEnabled: true },
           { role: 'TEACHER', pricePerSeat: 0, isEnabled: true },
           { role: 'STUDENT', pricePerSeat: 0, isEnabled: true },
           { role: 'PARENT', pricePerSeat: 0, isEnabled: true },
@@ -616,6 +562,9 @@ async function main() {
           { role: 'ADMINISTRATIVE_STAFF', pricePerSeat: 0, isEnabled: true },
           { role: 'LIBRARIAN', pricePerSeat: 0, isEnabled: true },
           { role: 'HOSTEL_WARDEN', pricePerSeat: 0, isEnabled: true },
+          { role: 'VICE_PRINCIPAL', pricePerSeat: 0, isEnabled: true },
+          { role: 'RECEPTIONIST', pricePerSeat: 0, isEnabled: true },
+          { role: 'EXAM_CONTROLLER', pricePerSeat: 0, isEnabled: true },
         ],
       },
     },
@@ -639,9 +588,7 @@ async function main() {
       rolePricing: {
         create: [
           { role: 'CHIEF_HEAD', pricePerSeat: 800, isEnabled: true },
-          { role: 'DIRECTOR', pricePerSeat: 600, isEnabled: true },
           { role: 'PRINCIPAL', pricePerSeat: 500, isEnabled: true },
-          { role: 'HOD', pricePerSeat: 400, isEnabled: true },
           { role: 'TEACHER', pricePerSeat: 300, isEnabled: true },
           { role: 'STUDENT', pricePerSeat: 75, isEnabled: true },
           { role: 'PARENT', pricePerSeat: 0, isEnabled: true },
@@ -651,6 +598,9 @@ async function main() {
           { role: 'ADMINISTRATIVE_STAFF', pricePerSeat: 250, isEnabled: true },
           { role: 'LIBRARIAN', pricePerSeat: 200, isEnabled: true },
           { role: 'HOSTEL_WARDEN', pricePerSeat: 200, isEnabled: true },
+          { role: 'VICE_PRINCIPAL', pricePerSeat: 450, isEnabled: true },
+          { role: 'RECEPTIONIST', pricePerSeat: 250, isEnabled: true },
+          { role: 'EXAM_CONTROLLER', pricePerSeat: 350, isEnabled: true },
         ],
       },
     },

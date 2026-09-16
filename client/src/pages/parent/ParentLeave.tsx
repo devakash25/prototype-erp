@@ -66,6 +66,9 @@ export function ParentLeave() {
       setShowForm(false)
       setForm({ startDate: '', endDate: '', totalDays: '1', reason: '' })
     },
+    onError: (err: any) => {
+      window.alert(err.response?.data?.error?.message || 'Failed to submit leave request. Please try again.')
+    },
   })
 
   if (!childId) {

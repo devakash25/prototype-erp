@@ -34,7 +34,7 @@ export class ReportsService {
 
   private async facultyPerformance(institutionId: string, filters: any) {
     const faculty = await prisma.user.findMany({
-      where: { institutionId, role: { in: ['TEACHER', 'HOD'] } },
+      where: { institutionId, role: { in: ['TEACHER'] } },
       select: { id: true, fullName: true, email: true },
     });
 

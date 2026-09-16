@@ -86,7 +86,7 @@ export function LibrarianDashboard() {
                 <kpi.icon className={cn('w-4 h-4', kpi.iconColor)} />
               </div>
             </div>
-            <p className="text-2xl font-bold text-slate-800 mt-3">{kpi.value}</p>
+            <p className="text-2xl font-bold text-white mt-3">{kpi.value}</p>
           </div>
         ))}
       </div>

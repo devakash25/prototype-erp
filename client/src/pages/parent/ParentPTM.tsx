@@ -69,6 +69,9 @@ export function ParentPTM() {
       setShowRequestForm(false)
       setRequestForm({ subject: '', reason: '', preferredDate: '' })
     },
+    onError: (err: any) => {
+      window.alert(err.response?.data?.error?.message || 'Failed to submit PTM request. Please try again.')
+    },
   })
 
   if (!childId) {

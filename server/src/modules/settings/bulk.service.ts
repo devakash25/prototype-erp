@@ -138,7 +138,7 @@ export class BulkService {
 
   async exportFaculty(institutionId: string): Promise<string> {
     const faculty = await prisma.user.findMany({
-      where: { institutionId, role: { in: ['TEACHER', 'HOD', 'PRINCIPAL'] } },
+      where: { institutionId, role: { in: ['TEACHER', 'PRINCIPAL'] } },
       select: { fullName: true, email: true, phone: true, role: true },
     });
 

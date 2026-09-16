@@ -114,6 +114,18 @@ router.get('/hostel', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/hostel/maintenance', async (req: Request, res: Response) => {
+  try {
+    const { userId, institutionId } = req.user!;
+    const childId = req.query.childId as string | undefined;
+    const { title, description, priority } = req.body;
+    const data = await ParentService.createMaintenanceRequest(userId, institutionId!, childId, { title, description, priority });
+    res.status(201).json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.get('/library', async (req: Request, res: Response) => {
   try {
     const { userId, institutionId } = req.user!;
@@ -140,6 +152,17 @@ router.get('/ptm', async (req: Request, res: Response) => {
     const { userId, institutionId } = req.user!;
     const data = await ParentService.getPTM(userId, institutionId!);
     res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/ptm/request', async (req: Request, res: Response) => {
+  try {
+    const { userId, institutionId } = req.user!;
+    const { subject, reason, preferredDate } = req.body;
+    const data = await ParentService.requestPTM(userId, institutionId!, { subject, reason, preferredDate });
+    res.status(201).json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

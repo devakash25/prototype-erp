@@ -5,7 +5,7 @@ export const createAuthoritySchema = z.object({
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     role: z.enum([
-      'DIRECTOR', 'PRINCIPAL', 'HOD', 'TEACHER', 'ACCOUNTANT',
+      'PRINCIPAL', 'TEACHER', 'ACCOUNTANT',
       'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN',
       'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF',
     ]),

@@ -29,7 +29,7 @@ class TeacherAnalyticsService {
   }
 
   async getKPIs(userId: string) {
-    const { employeeId } = await this.resolve(userId);
+    const { employeeId, departmentId } = await this.resolve(userId);
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const dayNum = now.getDay();
@@ -210,12 +210,11 @@ class TeacherAnalyticsService {
   }
 
   async getExaminationStatus(userId: string) {
-    const { employeeId } = await this.resolve(userId);
+    const { employeeId, departmentId } = await this.resolve(userId);
     const subjectIds = await this.getAssignedSubjectIds(employeeId);
-    const { departmentId } = await this.resolve(userId);
 
     const exams = await prisma.examination.findMany({
-      where: { departmentId, subjects: { some: { subjectId: { in: subjectIds } } } },
+      where: { departmentId, subjects: { some: { subjectId: { in: subjectIds } } }, isActive: true },
       include: {
         results: { select: { marksObtained: true, isPassed: true } },
         subjects: { include: { subject: { select: { name: true } } } },
@@ -236,12 +235,11 @@ class TeacherAnalyticsService {
   }
 
   async getMarksEntryStatus(userId: string) {
-    const { employeeId } = await this.resolve(userId);
+    const { employeeId, departmentId } = await this.resolve(userId);
     const subjectIds = await this.getAssignedSubjectIds(employeeId);
-    const { departmentId } = await this.resolve(userId);
 
     const exams = await prisma.examination.findMany({
-      where: { departmentId, subjects: { some: { subjectId: { in: subjectIds } } } },
+      where: { departmentId, subjects: { some: { subjectId: { in: subjectIds } } }, isActive: true },
       include: { results: { select: { id: true, marksObtained: true } } },
     });
 
@@ -321,17 +319,17 @@ class TeacherAnalyticsService {
   }
 
   async getReports(userId: string) {
-    const { employeeId } = await this.resolve(userId);
+    const { employeeId, departmentId } = await this.resolve(userId);
     const subjectIds = await this.getAssignedSubjectIds(employeeId);
     const courseIds = await this.getAssignedCourseIds(employeeId);
 
     const [totalStudents, assignments, materials, submissions, pendingEval, exams] = await Promise.all([
-      prisma.student.count({ where: { courseId: { in: courseIds }, isActive: true } }),
+      prisma.student.count({ where: { courseId: { in: courseIds } } }),
       prisma.assignment.count({ where: { subjectId: { in: subjectIds } } }),
       prisma.studyMaterial.count({ where: { subjectId: { in: subjectIds } } }),
       prisma.assignmentSubmission.count({ where: { assignment: { subjectId: { in: subjectIds } } } }),
       prisma.assignmentSubmission.count({ where: { assignment: { subjectId: { in: subjectIds } }, marksObtained: null } }),
-      prisma.examination.count({ where: { departmentId: (await this.resolve(userId)).departmentId } }),
+      prisma.examination.count({ where: { departmentId, isActive: true } }),
     ]);
 
     return {
@@ -452,7 +450,7 @@ class TeacherAnalyticsService {
       : 0;
 
     const overallPassRate = students.length > 0
-      ? Math.round(students.filter(s => s.examResults.length === 0 || s.examResults.some(r => r.isPassed)).length / students.length * 100)
+      ? Math.round(students.filter(s => s.examResults.length > 0 && s.examResults.some(r => r.isPassed)).length / students.length * 100)
       : 0;
 
     return {

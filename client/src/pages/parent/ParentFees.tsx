@@ -78,7 +78,20 @@ export function ParentFees() {
           <p className="text-gray-500 dark:text-gray-400 text-sm">Fee details and payment history</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+          <button
+            onClick={() => {
+              const pending = summary.pending ?? 0
+              if (pending <= 0) {
+                window.alert('No pending fees to pay.')
+                return
+              }
+              const confirmed = window.confirm(`Pay ₹${pending.toLocaleString('en-IN')} pending fees? This will redirect to the payment gateway.`)
+              if (confirmed) {
+                window.alert('Payment gateway integration coming soon. Your payment request has been noted.')
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+          >
             <CreditCard className="h-4 w-4" /> Pay Now
           </button>
           <button

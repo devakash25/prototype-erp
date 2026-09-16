@@ -88,6 +88,9 @@ export function ParentHostel() {
       setShowMaintenanceForm(false)
       setMaintenanceForm({ title: '', description: '', priority: 'NORMAL' })
     },
+    onError: (err: any) => {
+      window.alert(err.response?.data?.error?.message || 'Failed to submit maintenance request. Please try again.')
+    },
   })
 
   if (!childId) {

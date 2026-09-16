@@ -4,21 +4,26 @@ import api from '@/services/api'
 import { cn } from '@/lib/utils'
 import {
   RefreshCw, Search, Users, BookOpen, UserCheck, X, ChevronDown,
-  GraduationCap, Plus, Trash2
+  GraduationCap, Plus, Trash2, AlertCircle,
 } from 'lucide-react'
+
+const statStyles: Record<string, { bg: string; text: string }> = {
+  blue: { bg: 'bg-blue-900/50', text: 'text-blue-400' },
+  green: { bg: 'bg-green-900/50', text: 'text-green-400' },
+  red: { bg: 'bg-red-900/50', text: 'text-red-400' },
+  purple: { bg: 'bg-purple-900/50', text: 'text-purple-400' },
+}
 
 export function PrincipalClassCoordinators() {
   const [search, setSearch] = useState('')
-  const [departmentId, setDepartmentId] = useState('')
   const [assignModal, setAssignModal] = useState<any>(null)
   const [selectedTeacher, setSelectedTeacher] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const { data: courses, loading: coursesLoading, refetch: refetchCourses } = useApi<any[]>(
+  const { data: courses, loading: coursesLoading, error: coursesError, refetch: refetchCourses } = useApi<any[]>(
     '/principal/courses-with-coordinators'
   )
   const { data: teachers, loading: teachersLoading } = useApi<any[]>('/principal/teachers')
-  const { data: departments } = useApi<any>('/principal/departments')
 
   const filteredCourses = (courses || []).filter((c: any) => {
     if (search) {
@@ -71,90 +76,117 @@ export function PrincipalClassCoordinators() {
     )
   }
 
+  if (coursesError) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Class Coordinators</h1>
+            <p className="text-slate-400 text-sm">Assign teachers as class coordinators for courses</p>
+          </div>
+        </div>
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-12 text-center">
+          <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
+          <p className="text-white font-medium mb-1">Failed to load coordinator data</p>
+          <p className="text-slate-400 text-sm mb-4">{coursesError}</p>
+          <button
+            onClick={refetchCourses}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"
+          >
+            <RefreshCw className="w-4 h-4" />Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Class Coordinators</h1>
-          <p className="text-gray-500 text-sm">Assign teachers as class coordinators for courses</p>
+          <h1 className="text-2xl font-bold text-white">Class Coordinators</h1>
+          <p className="text-slate-400 text-sm">Assign teachers as class coordinators for courses</p>
         </div>
         <button
-          onClick={() => { refetchCourses() }}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm hover:bg-gray-50"
+          onClick={refetchCourses}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-slate-700"
         >
           <RefreshCw className="w-4 h-4" />Refresh
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center gap-3">
-              <div className={cn('p-2 rounded-lg', `bg-${s.color}-50`)}>
-                <s.icon className={cn('w-5 h-5', `text-${s.color}-600`)} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">{s.label}</p>
-                <p className="text-xl font-bold text-gray-900">{s.value}</p>
+        {stats.map((s) => {
+          const style = statStyles[s.color] || statStyles.blue
+          return (
+            <div key={s.label} className="bg-slate-800 rounded-xl border border-slate-700 p-5">
+              <div className="flex items-center gap-3">
+                <div className={cn('p-2 rounded-lg', style.bg)}>
+                  <s.icon className={cn('w-5 h-5', style.text)} />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-400">{s.label}</p>
+                  <p className="text-xl font-bold text-white">{s.value}</p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <div className="flex items-center gap-3">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
             placeholder="Search courses..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Course</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Department</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Level</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Students</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Class Coordinator</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <tr className="border-b border-slate-700 bg-slate-700/50">
+                <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase">Course</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase">Department</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase">Level</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase">Students</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase">Class Coordinator</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-700/50">
               {filteredCourses.map((course: any) => (
-                <tr key={course.id} className="hover:bg-gray-50">
+                <tr key={course.id} className="hover:bg-slate-700/50">
                   <td className="px-5 py-4">
                     <div>
-                      <p className="font-medium text-gray-900">{course.name}</p>
-                      <p className="text-xs text-gray-500">{course.code}</p>
+                      <p className="font-medium text-white">{course.name}</p>
+                      <p className="text-xs text-slate-400">{course.code}</p>
                     </div>
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-600">{course.department}</td>
-                  <td className="px-5 py-4 text-sm text-gray-600 capitalize">{course.level?.replace('_', ' ')}</td>
-                  <td className="px-5 py-4 text-sm text-gray-600">{course.studentCount}</td>
+                  <td className="px-5 py-4 text-sm text-slate-300">{course.department}</td>
+                  <td className="px-5 py-4 text-sm text-slate-300 capitalize">{course.level?.replace('_', ' ')}</td>
+                  <td className="px-5 py-4 text-sm text-slate-300">{course.studentCount}</td>
                   <td className="px-5 py-4">
                     {course.coordinator ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                          <span className="text-xs font-medium text-indigo-600">
+                        <div className="w-8 h-8 rounded-full bg-indigo-900/50 flex items-center justify-center">
+                          <span className="text-xs font-medium text-indigo-400">
                             {course.coordinator.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                           </span>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{course.coordinator.name}</p>
-                          <p className="text-xs text-gray-500">{course.coordinator.employeeCode}</p>
+                          <p className="text-sm font-medium text-white">{course.coordinator.name}</p>
+                          <p className="text-xs text-slate-400">{course.coordinator.employeeCode}</p>
                         </div>
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-400 italic">Not assigned</span>
+                      <span className="text-xs text-slate-500 italic">Not assigned</span>
                     )}
                   </td>
                   <td className="px-5 py-4">
@@ -166,13 +198,13 @@ export function PrincipalClassCoordinators() {
                               setAssignModal(course)
                               setSelectedTeacher('')
                             }}
-                            className="text-xs px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 font-medium"
+                            className="text-xs px-3 py-1.5 bg-indigo-900/50 text-indigo-300 rounded-lg hover:bg-indigo-900/70 font-medium"
                           >
                             Change
                           </button>
                           <button
                             onClick={() => handleRemove(course.id)}
-                            className="text-xs px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 font-medium"
+                            className="text-xs px-3 py-1.5 bg-red-900/50 text-red-300 rounded-lg hover:bg-red-900/70 font-medium"
                           >
                             Remove
                           </button>
@@ -183,7 +215,7 @@ export function PrincipalClassCoordinators() {
                             setAssignModal(course)
                             setSelectedTeacher('')
                           }}
-                          className="flex items-center gap-1 text-xs px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 font-medium"
+                          className="flex items-center gap-1 text-xs px-3 py-1.5 bg-green-900/50 text-green-300 rounded-lg hover:bg-green-900/70 font-medium"
                         >
                           <Plus className="w-3 h-3" />Assign
                         </button>
@@ -194,7 +226,7 @@ export function PrincipalClassCoordinators() {
               ))}
               {filteredCourses.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-500">No courses found</td>
+                  <td colSpan={6} className="text-center py-12 text-slate-500">No courses found</td>
                 </tr>
               )}
             </tbody>
@@ -203,33 +235,33 @@ export function PrincipalClassCoordinators() {
       </div>
 
       {assignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-white">
                 {assignModal.coordinator ? 'Change' : 'Assign'} Class Coordinator
               </h3>
-              <button onClick={() => setAssignModal(null)} className="p-1 hover:bg-gray-100 rounded">
+              <button onClick={() => setAssignModal(null)} className="p-1 hover:bg-slate-700 rounded text-slate-400">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm font-medium text-gray-900">{assignModal.name}</p>
-              <p className="text-xs text-gray-500">{assignModal.code} · {assignModal.department}</p>
+            <div className="mb-4 p-3 bg-slate-700/50 rounded-lg">
+              <p className="text-sm font-medium text-white">{assignModal.name}</p>
+              <p className="text-xs text-slate-400">{assignModal.code} · {assignModal.department}</p>
             </div>
             {assignModal.coordinator && (
-              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-xs text-amber-700">
+              <div className="mb-4 p-3 bg-amber-900/30 border border-amber-700/50 rounded-lg">
+                <p className="text-xs text-amber-300">
                   Current coordinator: <strong>{assignModal.coordinator.name}</strong> ({assignModal.coordinator.employeeCode})
                 </p>
               </div>
             )}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Select Teacher</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Select Teacher</label>
               <select
                 value={selectedTeacher}
                 onChange={(e) => setSelectedTeacher(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
                 <option value="">Choose a teacher...</option>
                 {(teachers || []).map((t: any) => (
@@ -242,7 +274,7 @@ export function PrincipalClassCoordinators() {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setAssignModal(null)}
-                className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 text-sm border border-slate-700 text-slate-300 rounded-lg hover:bg-slate-700"
               >
                 Cancel
               </button>

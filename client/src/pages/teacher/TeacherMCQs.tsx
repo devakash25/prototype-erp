@@ -22,7 +22,9 @@ import {
   BookOpen,
   Filter,
   X,
+  Search,
 } from 'lucide-react'
+import { BarChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts'
 
 type View = 'list' | 'create' | 'analytics'
 type SubTab = 'draft' | 'published' | 'archived'
@@ -99,11 +101,35 @@ export function TeacherMCQs() {
   const [view, setView] = useState<View>('list')
   const [subTab, setSubTab] = useState<SubTab>('published')
   const [searchQuery, setSearchQuery] = useState('')
+  const [testAnalyticsMap, setTestAnalyticsMap] = useState<Record<string, Analytics>>({})
 
   const { data: tests, loading: testsLoading, error: testsError, refetch: refetchTests } = useApi<Test[]>(
     `/mcq/teacher/tests?status=${subTab.toUpperCase()}`,
     [subTab]
   )
+
+  // Fetch analytics for each test
+  useEffect(() => {
+    if (tests) {
+      const analyticsMap: Record<string, Analytics> = {}
+      tests.forEach(test => {
+        analyticsMap[test.id] = {
+          test: { id: test.id, title: test.title, totalQuestions: test._count.questions, totalMarks: test.totalMarks, duration: test.duration, status: test.status },
+          summary: {
+            totalSubmissions: test._count.submissions,
+            avgScore: 0, // would need additional API
+            highestScore: 0,
+            lowestScore: 0,
+            avgTime: 0,
+            passRate: 0
+          },
+          questionAnalytics: [], // would need additional API
+          submissions: [] // would need additional API
+        }
+      })
+      setTestAnalyticsMap(analyticsMap)
+    }
+  }, [tests])
 
   const filteredTests = (tests ?? []).filter((t) => {
     if (!searchQuery) return true
@@ -112,7 +138,67 @@ export function TeacherMCQs() {
   })
 
   if (view === 'create') return <CreateTestView onBack={() => { setView('list'); refetchTests() }} />
-  if (view === 'analytics') return <div>{/* placeholder */}</div>
+  if (view === 'analytics') {
+    const test = tests?.find(t => t.status === 'published')
+    if (!test) return (
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-8 text-center">
+        <AlertCircle className="h-12 w-12 text-slate-500 mb-4" />
+        <p className="text-slate-400">No published tests yet</p>
+        <p className="text-slate-500 text-sm">Create or publish a test to see analytics</p>
+      </div>
+    )
+    const testAnalytics = testAnalyticsMap || {}
+    const summary = testAnalytics[test.id] || {}
+    return (
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-8">
+        <h2 className="text-xl font-semibold text-white mb-6">Analytics: {test.title}</h2>
+        {Object.keys(testAnalytics).length > 0 && (
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div>
+              <p className="text-sm text-slate-400">Total Submissions</p>
+              <p className="text-3xl font-bold text-white">{summary.summary?.totalSubmissions || 0}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-400">Avg Score</p>
+              <p className="text-3xl font-bold text-white">{summary.summary?.avgScore?.toFixed(1) || 0}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-400">Pass Rate</p>
+              <p className="text-3xl font-bold text-white">{summary.summary?.passRate?.toFixed(1) || 0}%</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-400">Highest Score</p>
+              <p className="text-3xl font-bold text-white">{summary.summary?.highestScore?.toFixed(1) || 0}</p>
+            </div>
+          </div>
+        )}
+        {Object.keys(testAnalytics).length > 0 && testAnalytics[test.id] && (
+          <div className="mt-8">
+            <h3 className="text-lg font-medium text-white mb-4">Question Analysis</h3>
+            <BarChart data={(summary.questionAnalytics || []).map((q: any) => ({ name: q.question.slice(0, 20), correctRate: q.correctRate }))}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+              <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
+              <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }} />
+              <Bar dataKey="correctRate" fill="#6366f1" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </div>
+        )}
+        {summary.summary?.totalSubmissions > 0 && (
+          <div className="mt-8">
+            <h3 className="text-lg font-medium text-white mb-4">Student Submissions</h3>
+            <BarChart data={summary.submissions?.map((s: any) => ({ name: s.studentName.slice(0, 15), percentage: s.percentage }))}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+              <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
+              <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }} />
+              <Bar dataKey="percentage" fill="#10b981" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">

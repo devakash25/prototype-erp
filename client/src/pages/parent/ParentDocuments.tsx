@@ -86,7 +86,17 @@ export function ParentDocuments() {
   const studentInfo = documentsData?.studentInfo || {}
 
   const handleDownload = (doc: any) => {
-    alert(`Downloading ${doc.name}... (This is a placeholder)`)
+    if (doc.fileUrl || doc.url) {
+      const link = window.document.createElement('a')
+      link.href = doc.fileUrl || doc.url
+      link.target = '_blank'
+      link.download = doc.name || 'document'
+      window.document.body.appendChild(link)
+      link.click()
+      window.document.body.removeChild(link)
+    } else {
+      window.alert('Document file not available for download.')
+    }
   }
 
   const getDocsByCategory = (categoryId: string) => {

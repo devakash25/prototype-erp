@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CreditCard, Plus, RefreshCw, Trash2, Edit3, CheckCircle, XCircle,
-  IndianRupee, Users, BookOpen, Building2, ToggleLeft, ToggleRight,
+  IndianRupee, Users, BookOpen, Building2, ToggleLeft, ToggleRight, AlertTriangle,
 } from 'lucide-react'
 import api from '@/services/api'
 
@@ -35,7 +35,7 @@ export function CEOPricing() {
   const [form, setForm] = useState<PlanForm>(emptyForm)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
-  const { data: plans, isLoading } = useQuery({
+  const { data: plans, isLoading, error } = useQuery({
     queryKey: ['ceo-subscription-plans'],
     queryFn: () => api.get('/ceo/subscription-plans').then(res => res.data),
   })
@@ -226,7 +226,13 @@ export function CEOPricing() {
       {/* Plans Grid */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <RefreshCw className="w-6 h-6 text-blue-500 animate-spin" />
+          <RefreshCw className="w-6 h-6 text-slate-400 animate-spin" />
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-12 gap-3">
+          <AlertTriangle className="h-8 w-8 text-amber-400" />
+          <p className="text-slate-400">Failed to load subscription plans</p>
+          <button onClick={() => window.location.reload()} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Retry</button>
         </div>
       ) : !plans || plans.length === 0 ? (
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center">

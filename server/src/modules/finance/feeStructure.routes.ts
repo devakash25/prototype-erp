@@ -8,14 +8,14 @@ const router = Router();
 router.use(authenticate);
 
 // Stats — finance + management
-router.get('/stats', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req: Request, res: Response) => {
+router.get('/stats', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req: Request, res: Response) => {
   const user = (req as any).user;
   const data = await feeStructureService.getStats(user.institutionId);
   res.json({ success: true, data });
 });
 
 // List all fee structures — finance + management
-router.get('/', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req: Request, res: Response) => {
+router.get('/', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req: Request, res: Response) => {
   const user = (req as any).user;
   const filters = {
     search: req.query.search as string,
@@ -30,7 +30,7 @@ router.get('/', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT', '
 });
 
 // Get payments — finance + management
-router.get('/payments', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req: Request, res: Response) => {
+router.get('/payments', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req: Request, res: Response) => {
   const user = (req as any).user;
   const limit = Math.min(parseInt(req.query.limit as string) || 200, 500);
   const payments = await prisma.feePayment.findMany({
@@ -90,7 +90,7 @@ router.post('/bulk-assign', authorize('CHIEF_HEAD'), async (req: Request, res: R
 });
 
 // Get by ID — finance + management
-router.get('/:id', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req: Request, res: Response) => {
+router.get('/:id', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req: Request, res: Response) => {
   const user = (req as any).user;
   const data = await feeStructureService.getById(req.params.id as string, user.institutionId);
   res.json({ success: true, data });

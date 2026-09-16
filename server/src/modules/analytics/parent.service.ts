@@ -920,6 +920,28 @@ export class ParentService {
     };
   }
 
+  static async createMaintenanceRequest(
+    userId: string,
+    institutionId: string,
+    studentId: string | undefined,
+    data: { title: string; description: string; priority: string }
+  ) {
+    const student = await this.resolveStudent(userId, institutionId, studentId);
+    const parent = await prisma.parent.findFirst({ where: { userId, institutionId } });
+
+    return prisma.helpdeskTicket.create({
+      data: {
+        institutionId,
+        creatorId: userId,
+        title: data.title,
+        description: `[Hostel Maintenance] Student: ${student.user.fullName}\n\n${data.description}`,
+        category: 'hostel',
+        priority: (data.priority as any) || 'NORMAL',
+        status: 'OPEN',
+      },
+    });
+  }
+
   static async getLibrary(userId: string, institutionId: string, studentId?: string) {
     const student = await this.resolveStudent(userId, institutionId, studentId);
 
@@ -1003,34 +1025,56 @@ export class ParentService {
     const now = new Date();
 
     return {
-      upcoming: meetings
+      upcomingPTMs: meetings
         .filter((m) => new Date(m.meetingDate) >= now && m.status === 'SCHEDULED')
         .map((m) => ({
           id: m.id,
           title: m.title,
           description: m.description,
-          meetingDate: m.meetingDate,
-          startTime: m.startTime,
-          endTime: m.endTime,
+          date: m.meetingDate,
+          time: m.startTime ? `${new Date(m.startTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}${m.endTime ? ' - ' + new Date(m.endTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : ''}` : '',
           location: m.location,
           status: m.status,
-          attendees: m.attendees,
+          teacherName: (m.attendees as any)?.teacherName || '—',
+          subject: m.title,
         })),
-      past: meetings
+      pastPTMs: meetings
         .filter((m) => new Date(m.meetingDate) < now || m.status === 'COMPLETED')
         .map((m) => ({
           id: m.id,
           title: m.title,
           description: m.description,
-          meetingDate: m.meetingDate,
-          startTime: m.startTime,
-          endTime: m.endTime,
+          date: m.meetingDate,
+          time: m.startTime ? `${new Date(m.startTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}${m.endTime ? ' - ' + new Date(m.endTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : ''}` : '',
           location: m.location,
           status: m.status,
-          minutes: m.minutes,
-          attendees: m.attendees,
+          summary: m.minutes,
+          teacherName: (m.attendees as any)?.teacherName || '—',
+          subject: m.title,
         })),
     };
+  }
+
+  static async requestPTM(userId: string, institutionId: string, data: { subject: string; reason: string; preferredDate: string }) {
+    const parent = await prisma.parent.findFirst({ where: { userId, institutionId } });
+    if (!parent) throw new Error('Parent record not found');
+
+    const meetingDate = new Date(data.preferredDate);
+    meetingDate.setHours(10, 0, 0, 0);
+
+    return prisma.meeting.create({
+      data: {
+        institutionId,
+        organizerId: userId,
+        title: data.subject,
+        description: data.reason,
+        type: 'PARENT',
+        meetingDate,
+        startTime: meetingDate,
+        status: 'SCHEDULED',
+        attendees: { parentId: parent.id, requestType: 'PTM_REQUEST' },
+      },
+    });
   }
 
   static async getLeaveRequests(userId: string, institutionId: string, studentId?: string) {

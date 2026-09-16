@@ -1,88 +1,57 @@
 import { useApi } from '@/hooks/useApi'
 import { cn } from '@/lib/utils'
-import {
-  RefreshCw,
-  AlertCircle,
-  BookOpen,
-  IndianRupee,
-} from 'lucide-react'
-
-function getStatusBadge(status: string) {
-  switch (status?.toUpperCase()) {
-    case 'ISSUED':
-      return 'bg-blue-100 text-blue-700'
-    case 'RETURNED':
-      return 'bg-green-100 text-green-700'
-    case 'OVERDUE':
-      return 'bg-red-100 text-red-700'
-    case 'LOST':
-      return 'bg-gray-100 text-gray-700'
-    default:
-      return 'bg-gray-100 text-gray-600'
-  }
-}
-
-function formatDate(dateStr: string) {
-  if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-IN', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  })
-}
+import { RefreshCw, AlertCircle, BookOpen, Clock, CheckCircle2, AlertTriangle, Search } from 'lucide-react'
 
 export function StudentLibrary() {
-  const { data, loading, error, refetch } = useApi('/student/library')
+  const { data: libData, loading, error, refetch } = useApi<any>('/student/library')
 
-  const books = data?.books ?? []
-  const summary = data?.summary ?? {}
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    )
+  }
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
         <AlertCircle className="h-12 w-12 text-red-500" />
-        <p className="text-lg text-gray-600">Failed to load library data</p>
-        <button onClick={refetch} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-          <RefreshCw className="h-4 w-4" /> Retry
-        </button>
+        <p className="text-lg text-slate-400">{error}</p>
+        <button onClick={refetch} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">Retry</button>
       </div>
     )
   }
+
+  const issuedBooks = libData?.issuedBooks ?? []
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Library</h1>
-          <p className="text-gray-500 text-sm">Your issued books and history</p>
+          <h1 className="text-2xl font-bold text-white">Library</h1>
+          <p className="text-slate-400 text-sm">View issued books and library status</p>
         </div>
-        <button onClick={refetch} className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 border rounded-lg hover:bg-gray-50">
+        <button onClick={refetch} className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-400 hover:text-white border border-slate-700 rounded-lg hover:bg-slate-700">
           <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} /> Refresh
         </button>
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Total Issued', value: summary.totalIssued ?? 0, color: 'text-blue-600 bg-blue-50' },
-          { label: 'Currently Issued', value: summary.currentlyIssued ?? 0, color: 'text-indigo-600 bg-indigo-50' },
-          { label: 'Overdue', value: summary.overdue ?? 0, color: 'text-red-600 bg-red-50' },
-          { label: 'Total Fine', value: `₹${summary.totalFine ?? 0}`, color: 'text-amber-600 bg-amber-50' },
+          { label: 'Total Issued', value: issuedBooks.length, icon: BookOpen, color: 'text-blue-400 bg-blue-500/10' },
+          { label: 'Currently Issued', value: issuedBooks.filter((b: any) => b.status === 'ISSUED').length, icon: Clock, color: 'text-yellow-400 bg-yellow-500/10' },
+          { label: 'Returned', value: issuedBooks.filter((b: any) => b.status === 'RETURNED').length, icon: CheckCircle2, color: 'text-green-400 bg-green-500/10' },
         ].map((stat) => (
-          <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div key={stat.label} className="bg-slate-800 rounded-xl border border-slate-700 p-5">
             <div className="flex items-center gap-3">
               <div className={cn('p-2 rounded-lg', stat.color)}>
-                {stat.label === 'Total Fine' ? (
-                  <IndianRupee className="h-5 w-5" />
-                ) : (
-                  <BookOpen className="h-5 w-5" />
-                )}
+                <stat.icon className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">{stat.label}</p>
-                {loading ? (
-                  <div className="h-7 w-12 bg-gray-200 rounded animate-pulse mt-1" />
-                ) : (
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                )}
+                <p className="text-sm text-slate-400">{stat.label}</p>
+                <p className="text-2xl font-bold text-white">{stat.value}</p>
               </div>
             </div>
           </div>
@@ -90,63 +59,51 @@ export function StudentLibrary() {
       </div>
 
       {/* Books Table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-5 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Issued Books</h2>
+      <div className="bg-slate-800 rounded-xl border border-slate-700">
+        <div className="p-5 border-b border-slate-700">
+          <h2 className="text-lg font-semibold text-white">Issued Books</h2>
         </div>
-        {loading ? (
-          <div className="p-5 space-y-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-12 bg-gray-100 rounded-lg animate-pulse" />
-            ))}
-          </div>
-        ) : !books.length ? (
-          <div className="text-center py-16 text-gray-500">
-            <BookOpen className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-            <p className="text-lg">No books issued</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-gray-50">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Title</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Author</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Issue Date</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Due Date</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Return Date</th>
-                  <th className="text-right px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Fine</th>
-                  <th className="text-center px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {books.map((book: any, idx: number) => (
-                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-4 text-sm font-medium text-gray-900">{book.title}</td>
-                    <td className="px-5 py-4 text-sm text-gray-600">{book.author || '—'}</td>
-                    <td className="px-5 py-4 text-sm text-gray-600">{formatDate(book.issueDate)}</td>
-                    <td className="px-5 py-4 text-sm text-gray-600">{formatDate(book.dueDate)}</td>
-                    <td className="px-5 py-4 text-sm text-gray-600">{formatDate(book.returnDate)}</td>
-                    <td className="px-5 py-4 text-sm text-right">
-                      {book.fine > 0 ? (
-                        <span className="flex items-center justify-end gap-0.5 font-medium text-red-600">
-                          <IndianRupee className="w-3 h-3" />{book.fine}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </td>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-slate-700">
+                <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase">Book Title</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase">Author</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase">Issued</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-slate-400 uppercase">Due</th>
+                <th className="text-center px-5 py-3 text-xs font-medium text-slate-400 uppercase">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700">
+              {loading ? (
+                [...Array(3)].map((_, i) => (
+                  <tr key={i}><td colSpan={5} className="px-5 py-4"><div className="h-5 bg-slate-700 rounded animate-pulse" /></td></tr>
+                ))
+              ) : !issuedBooks.length ? (
+                <tr><td colSpan={5} className="px-5 py-12 text-center text-slate-400">
+                  <BookOpen className="h-12 w-12 mx-auto mb-3 text-slate-600" />
+                  <p className="text-lg">No books issued</p>
+                </td></tr>
+              ) : (
+                issuedBooks.map((book: any, idx: number) => (
+                  <tr key={idx} className="hover:bg-slate-700/50 transition-colors">
+                    <td className="px-5 py-4 text-sm font-medium text-white">{book.bookCopy?.book?.title || book.title || '—'}</td>
+                    <td className="px-5 py-4 text-sm text-slate-400">{book.bookCopy?.book?.author || book.author || '—'}</td>
+                    <td className="px-5 py-4 text-sm text-slate-400">{book.issueDate ? new Date(book.issueDate).toLocaleDateString() : '—'}</td>
+                    <td className="px-5 py-4 text-sm text-slate-400">{book.dueDate ? new Date(book.dueDate).toLocaleDateString() : '—'}</td>
                     <td className="px-5 py-4 text-center">
-                      <span className={cn('px-2.5 py-1 text-xs font-medium rounded-full', getStatusBadge(book.status))}>
-                        {book.status}
-                      </span>
+                      <span className={cn('px-2.5 py-1 text-xs font-medium rounded-full',
+                        book.status === 'ISSUED' && 'bg-yellow-500/10 text-yellow-400',
+                        book.status === 'RETURNED' && 'bg-green-500/10 text-green-400',
+                        book.status === 'OVERDUE' && 'bg-red-500/10 text-red-400'
+                      )}>{book.status}</span>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

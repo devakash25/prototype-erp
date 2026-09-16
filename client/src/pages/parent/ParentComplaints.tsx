@@ -105,6 +105,9 @@ export function ParentComplaints() {
       setShowForm(false)
       setForm({ title: '', description: '', category: 'academic', priority: 'NORMAL' })
     },
+    onError: (err: any) => {
+      window.alert(err.response?.data?.error?.message || 'Failed to submit complaint. Please try again.')
+    },
   })
 
   if (!childId) {

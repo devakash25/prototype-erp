@@ -8,7 +8,7 @@ import { AppError } from '../../utils/errors';
 const router = Router();
 router.use(authenticate);
 
-router.post('/generate/:slug', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL', 'CEO'), validate(generateReportSchema), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/generate/:slug', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), validate(generateReportSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const institutionId = req.user?.institutionId;
     if (!institutionId) throw new AppError(400, 'Institution not found');

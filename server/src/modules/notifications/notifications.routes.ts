@@ -16,7 +16,7 @@ router.use(authenticate);
 // Notifications — read: all authenticated; write: management only
 router.post(
   '/',
-  authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL'),
+  authorize('CHIEF_HEAD', 'PRINCIPAL'),
   validate(createNotificationSchema),
   notificationController.createNotification
 );
@@ -28,13 +28,13 @@ router.get('/stats', notificationController.getNotificationStats);
 router.put('/channels', authorize('CHIEF_HEAD'), notificationController.updateChannels);
 router.put(
   '/:id',
-  authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL'),
+  authorize('CHIEF_HEAD', 'PRINCIPAL'),
   validate(updateNotificationSchema),
   notificationController.updateNotification
 );
 router.patch('/:id/read', notificationController.markAsRead);
 router.patch('/read-all', notificationController.markAllAsRead);
-router.delete('/:id', authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL'), notificationController.deleteNotification);
+router.delete('/:id', authorize('CHIEF_HEAD', 'PRINCIPAL'), notificationController.deleteNotification);
 
 export default router;
 
@@ -45,7 +45,7 @@ announcementRouter.use(authenticate);
 
 announcementRouter.post(
   '/',
-  authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL'),
+  authorize('CHIEF_HEAD', 'PRINCIPAL'),
   validate(createAnnouncementSchema),
   announcementController.createAnnouncement
 );
@@ -54,12 +54,12 @@ announcementRouter.get('/stats', announcementController.getAnnouncementStats);
 announcementRouter.get('/:id', announcementController.getAnnouncementById);
 announcementRouter.put(
   '/:id',
-  authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL'),
+  authorize('CHIEF_HEAD', 'PRINCIPAL'),
   validate(updateAnnouncementSchema),
   announcementController.updateAnnouncement
 );
 announcementRouter.delete(
   '/:id',
-  authorize('CHIEF_HEAD', 'DIRECTOR', 'PRINCIPAL'),
+  authorize('CHIEF_HEAD', 'PRINCIPAL'),
   announcementController.deleteAnnouncement
 );

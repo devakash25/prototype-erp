@@ -1,11 +1,11 @@
 services:
+  # ---- Backend API (Docker) ----
   - type: web
     name: dev-erp-api
-    runtime: node
+    runtime: docker
     plan: starter
-    rootDir: server
-    buildCommand: npm install && npx prisma generate && npm run build
-    startCommand: npx prisma migrate deploy && node dist/server.js
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
     envVars:
       - key: NODE_ENV
         value: production
@@ -26,4 +26,16 @@ services:
       - key: APP_URL
         sync: false
     healthCheckPath: /health
+    autoDeploy: true
+
+  # ---- Frontend (Docker) ----
+  - type: web
+    name: dev-erp-client
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./client/Dockerfile
+    dockerContext: ./client
+    envVars:
+      - key: VITE_API_URL
+        value: /api/v1
     autoDeploy: true

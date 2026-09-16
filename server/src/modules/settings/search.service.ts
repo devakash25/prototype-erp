@@ -32,7 +32,7 @@ export class SearchService {
       const faculty = await prisma.user.findMany({
         where: {
           institutionId,
-          role: { in: ['TEACHER', 'HOD', 'PRINCIPAL'] },
+          role: { in: ['TEACHER', 'PRINCIPAL'] },
           OR: [
             { fullName: { contains: q, mode: 'insensitive' } },
             { email: { contains: q, mode: 'insensitive' } },

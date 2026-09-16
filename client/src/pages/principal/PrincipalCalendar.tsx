@@ -10,12 +10,13 @@ import {
   FileText,
   Briefcase,
   GraduationCap,
+  AlertCircle,
 } from 'lucide-react'
 
 const eventTypeConfig: Record<string, { color: string; bg: string; icon: typeof CalendarIcon }> = {
-  exam: { color: 'bg-blue-500', bg: 'bg-blue-100 text-blue-700', icon: GraduationCap },
-  leave: { color: 'bg-yellow-500', bg: 'bg-yellow-100 text-yellow-700', icon: Clock },
-  workflow: { color: 'bg-purple-500', bg: 'bg-purple-100 text-purple-700', icon: Briefcase },
+  exam: { color: 'bg-blue-500', bg: 'bg-blue-900/40 text-blue-300', icon: GraduationCap },
+  leave: { color: 'bg-yellow-500', bg: 'bg-yellow-900/40 text-yellow-300', icon: Clock },
+  workflow: { color: 'bg-purple-500', bg: 'bg-purple-900/40 text-purple-300', icon: Briefcase },
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -42,7 +43,7 @@ export function PrincipalCalendar() {
   const [currentMonth, setCurrentMonth] = useState(now.getMonth())
   const [selectedDate, setSelectedDate] = useState<string>(formatDateKey(now.getFullYear(), now.getMonth(), now.getDate()))
 
-  const { data, loading } = useApi('/principal/calendar')
+  const { data, loading, error, refetch } = useApi('/principal/calendar')
 
   const events = data?.events || []
 
@@ -109,40 +110,72 @@ export function PrincipalCalendar() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Calendar</h1>
+            <p className="text-slate-400 text-sm">View scheduled events</p>
+          </div>
+        </div>
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-12 text-center">
+          <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
+          <p className="text-white font-medium mb-1">Failed to load calendar data</p>
+          <p className="text-slate-400 text-sm mb-4">{error}</p>
+          <button
+            onClick={refetch}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"
+          >
+            <RefreshCw className="w-4 h-4" />Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
-          <p className="text-gray-500 text-sm">View scheduled events</p>
+          <h1 className="text-2xl font-bold text-white">Calendar</h1>
+          <p className="text-slate-400 text-sm">View scheduled events</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
+        <div className="lg:col-span-2 bg-slate-800 rounded-xl border border-slate-700 p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-lg">
+              <button onClick={prevMonth} className="p-2 hover:bg-slate-700 rounded-lg text-slate-300">
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-white">
                 {MONTHS[currentMonth]} {currentYear}
               </h2>
-              <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-lg">
+              <button onClick={nextMonth} className="p-2 hover:bg-slate-700 rounded-lg text-slate-300">
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
             <button
               onClick={goToToday}
-              className="px-3 py-1.5 text-xs bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 font-medium"
+              className="px-3 py-1.5 text-xs bg-indigo-900/50 text-indigo-300 rounded-lg hover:bg-indigo-900/70 font-medium"
             >
               Today
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden">
+          <div className="grid grid-cols-7 gap-px bg-slate-700 rounded-lg overflow-hidden">
             {DAYS.map((day) => (
-              <div key={day} className="bg-gray-50 px-2 py-2 text-center text-xs font-medium text-gray-500">
+              <div key={day} className="bg-slate-700/50 px-2 py-2 text-center text-xs font-medium text-slate-400">
                 {day}
               </div>
             ))}
@@ -157,9 +190,9 @@ export function PrincipalCalendar() {
                   key={cell.key}
                   onClick={() => setSelectedDate(cell.key)}
                   className={cn(
-                    'relative bg-white p-2 min-h-[72px] text-left hover:bg-gray-50 transition-colors',
-                    !cell.currentMonth && 'bg-gray-50/50 text-gray-300',
-                    isSelected && 'bg-indigo-50 ring-2 ring-inset ring-indigo-500',
+                    'relative bg-slate-800 p-2 min-h-[72px] text-left hover:bg-slate-700 transition-colors',
+                    !cell.currentMonth && 'bg-slate-800/50 text-slate-600',
+                    isSelected && 'bg-indigo-900/30 ring-2 ring-inset ring-indigo-500',
                     isToday && 'font-bold'
                   )}
                 >
@@ -174,14 +207,14 @@ export function PrincipalCalendar() {
                   </span>
                   {dayEvents.length > 0 && (
                     <div className="flex items-center gap-1 mt-1">
-                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-indigo-100 text-indigo-700 text-[10px] font-medium rounded-full">
+                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-indigo-900/50 text-indigo-300 text-[10px] font-medium rounded-full">
                         {dayEvents.length}
                       </span>
                       <div className="flex gap-0.5">
                         {[...new Set(dayEvents.map((e: any) => e.type))].slice(0, 3).map((type) => (
                           <span
                             key={type as string}
-                            className={cn('w-1.5 h-1.5 rounded-full', eventTypeConfig[type as string]?.color || 'bg-gray-400')}
+                            className={cn('w-1.5 h-1.5 rounded-full', eventTypeConfig[type as string]?.color || 'bg-slate-400')}
                           />
                         ))}
                       </div>
@@ -193,27 +226,23 @@ export function PrincipalCalendar() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+        <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+          <h3 className="text-sm font-semibold text-white mb-4">
             Events for {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </h3>
 
-          {loading ? (
-            <div className="flex items-center justify-center h-32">
-              <RefreshCw className="w-6 h-6 text-indigo-500 animate-spin" />
-            </div>
-          ) : selectedEvents.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-32 text-gray-400">
-              <CalendarIcon className="w-8 h-8 mb-2 text-gray-300" />
+          {selectedEvents.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-32 text-slate-500">
+              <CalendarIcon className="w-8 h-8 mb-2 text-slate-600" />
               <p className="text-sm">No events</p>
             </div>
           ) : (
             <div className="space-y-3">
               {selectedEvents.map((event: any) => {
-                const config = eventTypeConfig[event.type] || { color: 'bg-gray-500', bg: 'bg-gray-100 text-gray-700', icon: FileText }
+                const config = eventTypeConfig[event.type] || { color: 'bg-slate-500', bg: 'bg-slate-700/50 text-slate-300', icon: FileText }
                 const Icon = config.icon
                 return (
-                  <div key={event.id} className={cn('p-3 rounded-lg border', config.bg)}>
+                  <div key={event.id} className={cn('p-3 rounded-lg border border-slate-600/50', config.bg)}>
                     <div className="flex items-start gap-2">
                       <Icon className="w-4 h-4 mt-0.5 shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -230,13 +259,13 @@ export function PrincipalCalendar() {
             </div>
           )}
 
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <p className="text-xs font-medium text-gray-500 mb-3">Legend</p>
+          <div className="mt-6 pt-4 border-t border-slate-700">
+            <p className="text-xs font-medium text-slate-400 mb-3">Legend</p>
             <div className="space-y-2">
               {Object.entries(eventTypeConfig).map(([type, config]) => (
                 <div key={type} className="flex items-center gap-2">
                   <span className={cn('w-2.5 h-2.5 rounded-full', config.color)} />
-                  <span className="text-xs text-gray-600 capitalize">{type}</span>
+                  <span className="text-xs text-slate-400 capitalize">{type}</span>
                 </div>
               ))}
             </div>
