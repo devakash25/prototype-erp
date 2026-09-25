@@ -31,7 +31,7 @@ services:
 
   # ---- Frontend (Static Site) ----
   - type: static_site
-    name: dev-erp-client
+    name: devschoolerp
     runtime: static
     plan: free
     staticPublishPath: ./client/dist
