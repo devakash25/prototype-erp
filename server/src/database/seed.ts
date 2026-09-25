@@ -240,6 +240,54 @@ async function main() {
     },
   });
 
+  // Vice Principal
+  const vicePrincipalUser = await prisma.user.create({
+    data: {
+      institutionId: institution.id, email: 'vice.principal@dev-erp.com', password: employeePassword,
+      role: 'VICE_PRINCIPAL', firstName: 'Rajesh', lastName: 'Kumar', fullName: 'Rajesh Kumar',
+      phone: '+91 98765 43214', gender: 'MALE', isActive: true,
+    },
+  });
+  await prisma.employee.create({
+    data: {
+      institutionId: institution.id, departmentId: departments[0].id, userId: vicePrincipalUser.id,
+      employeeCode: 'EMP013', designation: 'Vice Principal', department: 'ADMINISTRATION',
+      dateOfJoining: new Date('2020-08-01'), qualification: 'M.Ed.',
+    },
+  });
+
+  // Exam Controller
+  const examControllerUser = await prisma.user.create({
+    data: {
+      institutionId: institution.id, email: 'exam.controller@dev-erp.com', password: employeePassword,
+      role: 'EXAM_CONTROLLER', firstName: 'Sunita', lastName: 'Rao', fullName: 'Sunita Rao',
+      gender: 'FEMALE', isActive: true,
+    },
+  });
+  await prisma.employee.create({
+    data: {
+      institutionId: institution.id, departmentId: departments[0].id, userId: examControllerUser.id,
+      employeeCode: 'EMP014', designation: 'Examination Controller', department: 'ADMINISTRATION',
+      dateOfJoining: new Date('2021-03-01'), qualification: 'M.A.',
+    },
+  });
+
+  // Receptionist
+  const receptionistUser = await prisma.user.create({
+    data: {
+      institutionId: institution.id, email: 'receptionist@dev-erp.com', password: employeePassword,
+      role: 'RECEPTIONIST', firstName: 'Anita', lastName: 'Desai', fullName: 'Anita Desai',
+      gender: 'FEMALE', isActive: true,
+    },
+  });
+  await prisma.employee.create({
+    data: {
+      institutionId: institution.id, departmentId: departments[0].id, userId: receptionistUser.id,
+      employeeCode: 'EMP015', designation: 'Receptionist', department: 'ADMINISTRATION',
+      dateOfJoining: new Date('2022-05-01'), qualification: 'B.A.',
+    },
+  });
+
   // Create Students
   const studentPassword = await hashPassword('Student@123');
   const studentNames = [
@@ -270,6 +318,25 @@ async function main() {
     });
     students.push(student);
   }
+
+  // Create Parent
+  const parentPassword = await hashPassword('Parent@123');
+  const parentUser = await prisma.user.create({
+    data: {
+      institutionId: institution.id, email: 'father@dev-erp.com', password: parentPassword,
+      role: 'PARENT', firstName: 'Ramesh', lastName: 'Sharma', fullName: 'Ramesh Sharma',
+      phone: '+91 98765 43215', gender: 'MALE', isActive: true,
+    },
+  });
+  const parent = await prisma.parent.create({
+    data: {
+      institutionId: institution.id, userId: parentUser.id,
+      occupation: 'Businessman', relationship: 'father', isActive: true,
+    },
+  });
+  await prisma.parentStudent.create({
+    data: { parentId: parent.id, studentId: students[0].id },
+  });
 
   // Create Fee Structures
   const feeStructure = await prisma.feeStructure.create({
