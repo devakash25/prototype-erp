@@ -251,3 +251,175 @@ input:focus, select:focus, textarea:focus {
 .table-row-hover:hover {
   background-color: rgba(99, 102, 241, 0.04);
 }
+
+/* =============================================================
+   LIGHT MODE — contrast & surface remapping
+   Page components were written with dark-surface utilities
+   (bg-slate-800 / text-white / text-slate-400 …). In light mode
+   those produce white-on-white text, so remap them here.
+   These rules are unlayered, which makes them win over Tailwind's
+   @layer utilities without needing !important-everywhere hacks.
+   ============================================================= */
+html:not(.dark) {
+  color-scheme: light;
+}
+
+/* ---- 1. dark surfaces → light surfaces ---- */
+html:not(.dark) [class*="bg-slate-900"],
+html:not(.dark) [class*="bg-gray-900"] {
+  background-color: #f8fafc !important;
+}
+html:not(.dark) [class*="bg-slate-800"],
+html:not(.dark) [class*="bg-gray-800"] {
+  background-color: #ffffff !important;
+}
+html:not(.dark) [class*="bg-slate-700"],
+html:not(.dark) [class*="bg-gray-700"] {
+  background-color: #f1f5f9 !important;
+}
+
+/* hover states for those surfaces (the !important above would kill them) */
+html:not(.dark) [class*="hover:bg-slate-900"]:hover {
+  background-color: #f8fafc !important;
+}
+html:not(.dark) [class*="hover:bg-slate-800"]:hover,
+html:not(.dark) [class*="hover:bg-gray-800"]:hover {
+  background-color: #f1f5f9 !important;
+}
+html:not(.dark) [class*="hover:bg-slate-700"]:hover,
+html:not(.dark) [class*="hover:bg-slate-600"]:hover,
+html:not(.dark) [class*="hover:bg-gray-700"]:hover,
+html:not(.dark) [class*="hover:bg-gray-600"]:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* ---- 2. dark borders → light borders ---- */
+html:not(.dark) [class*="border-slate-800"],
+html:not(.dark) [class*="border-slate-700"],
+html:not(.dark) [class*="border-slate-600"],
+html:not(.dark) [class*="border-gray-800"],
+html:not(.dark) [class*="border-gray-700"],
+html:not(.dark) [class*="border-gray-600"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* ---- 3. white / near-white text → readable dark text ---- */
+html:not(.dark) [class*="text-white"]:not([class*="bg-"]),
+html:not(.dark) [class*="bg-slate-900"][class*="text-white"],
+html:not(.dark) [class*="bg-slate-800"][class*="text-white"],
+html:not(.dark) [class*="bg-slate-700"][class*="text-white"],
+html:not(.dark) [class*="bg-gray-900"][class*="text-white"],
+html:not(.dark) [class*="bg-gray-800"][class*="text-white"],
+html:not(.dark) [class*="bg-gray-700"][class*="text-white"] {
+  color: #0f172a !important;
+}
+
+/* muted light greys → dark greys (contrast on white) */
+html:not(.dark) [class*="text-slate-100"],
+html:not(.dark) [class*="text-slate-200"],
+html:not(.dark) [class*="text-slate-300"],
+html:not(.dark) [class*="text-gray-200"],
+html:not(.dark) [class*="text-gray-300"] {
+  color: #475569 !important;
+}
+html:not(.dark) [class*="text-slate-400"],
+html:not(.dark) [class*="text-gray-400"] {
+  color: #64748b !important;
+}
+
+/* placeholders */
+html:not(.dark) [class*="placeholder-slate-400"]::placeholder,
+html:not(.dark) [class*="placeholder-gray-400"]::placeholder {
+  color: #64748b !important;
+}
+
+/* hover:text-white on light surfaces → hover dark text */
+html:not(.dark) [class*="hover:text-white"]:hover {
+  color: #0f172a !important;
+}
+
+/* ---- 4. keep white text on genuinely dark/coloured backgrounds ---- */
+html:not(.dark)
+  :is(
+    [class~="bg-indigo-600"], [class~="bg-indigo-700"], [class~="bg-purple-600"],
+    [class~="bg-blue-600"], [class~="bg-green-500"], [class~="bg-green-600"],
+    [class~="bg-emerald-600"], [class~="bg-red-500"], [class~="bg-red-600"],
+    [class~="bg-amber-500"], [class~="bg-orange-500"], [class~="bg-teal-600"],
+    [class~="bg-pink-500"], [class~="bg-cyan-600"],
+    [class~="bg-black/50"], [class~="bg-black/60"], [class~="bg-black/40"],
+    [class~="from-indigo-500"], [class~="from-indigo-600"], [class~="from-indigo-700"],
+    [class~="from-purple-500"], [class~="from-purple-600"], [class~="from-blue-500"],
+    [class~="from-green-500"], [class~="from-emerald-500"], [class~="from-red-500"],
+    [class~="from-amber-500"], [class~="from-orange-500"], [class~="from-pink-500"],
+    [class~="from-teal-500"], [class~="via-purple-500"], [class~="via-purple-600"],
+    [class~="via-pink-500"]
+  )
+  :is(
+    [class*="text-white"], [class*="text-slate-100"], [class*="text-slate-200"],
+    [class*="text-slate-300"], [class*="text-slate-400"], [class*="text-gray-200"],
+    [class*="text-gray-300"], [class*="text-gray-400"], [class*="hover:text-white"]
+  ) {
+  color: #ffffff !important;
+}
+
+/* same rule for the coloured element itself when it carries hover:text-white */
+html:not(.dark)
+  :is(
+    [class~="hover:bg-indigo-600"], [class~="hover:bg-indigo-700"],
+    [class~="hover:bg-blue-600"], [class~="hover:bg-green-600"],
+    [class~="hover:bg-red-600"], [class~="hover:bg-purple-600"],
+    [class~="hover:bg-amber-600"]
+  )[class*="hover:text-white"]:hover {
+  color: #ffffff !important;
+}
+
+/* =============================================================
+   RESPONSIVE — small screens
+   ============================================================= */
+@media (max-width: 640px) {
+  .grid-cols-3,
+  .grid-cols-4,
+  .grid-cols-5,
+  .grid-cols-6 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 420px) {
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4,
+  .grid-cols-5,
+  .grid-cols-6 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* =============================================================
+   INTERACTION polish
+   ============================================================= */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a[href] {
+  cursor: pointer;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
