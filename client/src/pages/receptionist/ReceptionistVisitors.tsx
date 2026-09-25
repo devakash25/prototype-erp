@@ -35,7 +35,7 @@ export function ReceptionistVisitors() {
     queryKey: ['receptionist-visitors', search],
     queryFn: async () => {
       const res = await api.get('/receptionist/visitors', { params: { search } })
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 

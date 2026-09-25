@@ -173,3 +173,5 @@ export function VicePrincipalSubstitutions() {
     </div>
   )
 }
+
+export default VicePrincipalSubstitutions

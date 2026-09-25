@@ -141,7 +141,7 @@ export default function TemplateManager() {
     try {
       setLoading(true);
       const res = await api.get("/templates");
-      setTemplates(res.data.items || res.data || []);
+      setTemplates(res.data?.data?.items || res.data?.data || []);
     } catch {
       console.error("Failed to load templates");
     } finally {

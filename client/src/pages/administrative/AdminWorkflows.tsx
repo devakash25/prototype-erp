@@ -83,7 +83,7 @@ export function AdminWorkflows() {
     setLoading(true);
     try {
       const res = await api.get('/administrative/workflows');
-      setWorkflows(res.data);
+      setWorkflows(res.data?.data ?? res.data);
     } catch (err) {
       console.error('Failed to fetch workflows', err);
     } finally {

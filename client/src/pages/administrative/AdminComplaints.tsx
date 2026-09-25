@@ -15,7 +15,7 @@ export function AdminComplaints() {
     setLoading(true);
     try {
       const r = await api.get('/administrative/complaints');
-      setComplaints(r.data);
+      setComplaints(r.data?.data ?? r.data);
     } catch (e) { console.error(e); }
     setLoading(false);
   };

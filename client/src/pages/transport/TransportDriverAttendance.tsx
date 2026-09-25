@@ -16,7 +16,7 @@ export function TransportDriverAttendance() {
     setLoading(true);
     try {
       const r = await api.get(`/transport/drivers/attendance?date=${date}`);
-      setAttendance(r.data);
+      setAttendance(r.data?.data ?? r.data);
     } catch (e) { console.error(e); }
     setLoading(false);
   };

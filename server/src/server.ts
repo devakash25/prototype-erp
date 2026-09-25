@@ -17,10 +17,24 @@ if (process.env.VERCEL) {
       await connectRedis();
 
       const port = parseInt(env.PORT, 10);
-      app.listen(port, () => {
+      const server = app.listen(port, () => {
         logger.info(`DEV ERP Server running on port ${port}`);
         logger.info(`Environment: ${env.NODE_ENV}`);
         logger.info(`API: http://localhost:${port}/api/v1`);
+      });
+
+      server.on('error', (error: NodeJS.ErrnoException) => {
+        if (error.code === 'EADDRINUSE') {
+          logger.error(
+            { port, pid: process.pid },
+            `Port ${port} is already in use — another server instance is running. ` +
+              `Run "npm run dev" again (it frees the port first) or stop it with: ` +
+              `lsof -nP -iTCP:${port} -sTCP:LISTEN | awk '{print $2}' | xargs kill`
+          );
+        } else {
+          logger.error({ err: error }, 'Server failed to start');
+        }
+        process.exit(1);
       });
     } catch (error) {
       logger.error({ err: error }, 'Failed to start server');

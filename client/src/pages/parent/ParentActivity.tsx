@@ -59,7 +59,7 @@ export function ParentActivity() {
     queryKey: ['parent-activity', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/activity?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })

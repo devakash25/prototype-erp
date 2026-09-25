@@ -40,7 +40,7 @@ export function HostelBuildings() {
     setLoading(true)
     try {
       const res = await api.get('/hostel/buildings')
-      setHostels(res.data)
+      setHostels(res.data?.data ?? res.data)
     } catch (err) {
       console.error(err)
     }

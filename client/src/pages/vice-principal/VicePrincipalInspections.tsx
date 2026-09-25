@@ -202,3 +202,5 @@ export function VicePrincipalInspections() {
     </div>
   )
 }
+
+export default VicePrincipalInspections

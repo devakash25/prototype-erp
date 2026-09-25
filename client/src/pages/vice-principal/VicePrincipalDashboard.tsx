@@ -51,12 +51,12 @@ export function VicePrincipalDashboard() {
   }
 
   const d = data || {}
-  const summary = d.summary || {}
+  const summary = d.summary || d
 
   const kpis = [
     { label: 'Total Students', value: summary.totalStudents ?? 0, icon: GraduationCap, color: 'text-blue-400 bg-blue-900/30' },
     { label: 'Total Teachers', value: summary.totalTeachers ?? 0, icon: Users, color: 'text-purple-400 bg-purple-900/30' },
-    { label: "Today's Attendance %", value: `${summary.todayAttendancePct ?? 0}%`, icon: CheckCircle2, color: 'text-green-400 bg-green-900/30' },
+    { label: "Today's Attendance %", value: `${summary.todayAttendancePct ?? summary.todayAttendance ?? 0}%`, icon: CheckCircle2, color: 'text-green-400 bg-green-900/30' },
     { label: 'Pending Approvals', value: summary.pendingApprovals ?? 0, icon: ClipboardList, color: 'text-orange-400 bg-orange-900/30' },
     { label: 'Discipline Issues', value: summary.disciplineIssues ?? 0, icon: Shield, color: 'text-red-400 bg-red-900/30' },
     { label: 'Active Substitutions', value: summary.activeSubstitutions ?? 0, icon: ArrowLeftRight, color: 'text-cyan-400 bg-cyan-900/30' },
@@ -191,3 +191,5 @@ export function VicePrincipalDashboard() {
     </div>
   )
 }
+
+export default VicePrincipalDashboard

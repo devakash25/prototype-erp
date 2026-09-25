@@ -9,7 +9,7 @@ export function LibrarianFines() {
 
   const { data: fines, isLoading } = useQuery({
     queryKey: ['lib-fines'],
-    queryFn: () => api.get('/librarian/fines').then(r => r.data),
+    queryFn: () => api.get('/librarian/fines').then(r => r.data?.data ?? r.data),
   })
 
   const collectMut = useMutation({

@@ -36,7 +36,7 @@ export function ParentPerformance() {
     queryKey: ['parent-performance', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/performance?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })

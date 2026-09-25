@@ -10,7 +10,7 @@ export function LibrarianMembers() {
 
   const { data: members, isLoading } = useQuery({
     queryKey: ['lib-members', role, search],
-    queryFn: () => api.get('/librarian/members', { params: { role, search } }).then(r => r.data),
+    queryFn: () => api.get('/librarian/members', { params: { role, search } }).then(r => r.data?.data ?? r.data),
   })
 
   const { data: memberIssues } = useQuery({

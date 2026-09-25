@@ -164,21 +164,21 @@ export function TeacherDashboard() {
         <div className="p-5">
           <div className="grid grid-cols-3 gap-3 mb-5">
             <div className="bg-slate-700/50 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-yellow-400">{assignments.filter((a: any) => a.status === 'pending').length}</p>
+              <p className="text-2xl font-bold text-yellow-400">{(assignments ?? []).filter((a: any) => a.status === 'pending').length}</p>
               <p className="text-xs text-slate-400">Pending</p>
             </div>
             <div className="bg-slate-700/50 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-purple-400">{assignments.filter((a: any) => a.status === 'review').length}</p>
+              <p className="text-2xl font-bold text-purple-400">{(assignments ?? []).filter((a: any) => a.status === 'review').length}</p>
               <p className="text-xs text-slate-400">To Review</p>
             </div>
             <div className="bg-slate-700/50 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-green-400">{assignments.filter((a: any) => a.status === 'graded').length}</p>
+              <p className="text-2xl font-bold text-green-400">{(assignments ?? []).filter((a: any) => a.status === 'graded').length}</p>
               <p className="text-xs text-slate-400">Graded</p>
             </div>
           </div>
 
           <div className="space-y-3">
-            {assignments.map((a: any) => (
+            {(assignments ?? []).map((a: any) => (
               <div key={a.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-700/50 border border-slate-700">
                 <div className="p-2 rounded-lg bg-slate-700/50">
                   {a.status === 'graded' ? (

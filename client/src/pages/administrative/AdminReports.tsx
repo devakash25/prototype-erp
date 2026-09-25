@@ -14,7 +14,7 @@ export function AdminReports() {
     setLoading(true);
     try {
       const r = await api.get('/administrative/reports');
-      setReports(r.data);
+      setReports(r.data?.data ?? r.data);
     } catch (e) { console.error(e); }
     setLoading(false);
   };

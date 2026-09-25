@@ -1,105 +1,170 @@
 import { prisma } from '../../config/database';
-import { logger } from '../../utils/logger';
+
+interface ReportSection {
+  title: string;
+  rows: Record<string, any>[];
+}
+
+interface ReportResult {
+  title: string;
+  generatedAt: Date;
+  sections: ReportSection[];
+}
+
+interface Source {
+  model: string;
+  label: string;
+  scope: 'direct' | 'student' | 'audit';
+  supportsDepartment?: boolean;
+  match: RegExp;
+  exclude?: RegExp;
+}
+
+const NOT_STAFF = /faculty|employee|staff|teacher|\bhr\b/;
+
+const SOURCES: Source[] = [
+  { model: 'attendance', label: 'Attendance', scope: 'student', match: /attend/, exclude: NOT_STAFF },
+  { model: 'examResult', label: 'Exam Results', scope: 'student', match: /exam|result|grade|merit|cgpa|pass-?fail|top-performer|low-performer|performance|distinction|division/, exclude: NOT_STAFF },
+  { model: 'employee', label: 'Employees', scope: 'direct', supportsDepartment: true, match: /faculty|employee|\bhr\b|staff|hiring|attrition|onboarding|workload|leave|appraisal|contract|salary|department-wise-strength/ },
+  { model: 'scholarship', label: 'Scholarships', scope: 'direct', match: /scholarship|stipend|disbursement/ },
+  { model: 'feePayment', label: 'Fee Payments', scope: 'student', match: /fee|payment|collect|revenue|financial|outstanding|refund|expense|profit|budget|tax|income|defaulter|invoice|charge|pricing|subscription|expense|p-?l/ },
+  { model: 'admission', label: 'Admissions', scope: 'direct', supportsDepartment: true, match: /admission|enrollment|waiting|follow-?up|withdrawn|graduated/ },
+  { model: 'libraryBook', label: 'Library Books', scope: 'direct', match: /librar|book|reading|issue/ },
+  { model: 'hostel', label: 'Hostel', scope: 'direct', match: /hostel|accommodation|mess|warden/ },
+  { model: 'vehicle', label: 'Transport', scope: 'direct', match: /transport|vehicle|route|driver|fuel|fleet/ },
+  { model: 'helpdeskTicket', label: 'Helpdesk Tickets', scope: 'direct', match: /helpdesk|ticket|complaint|support|resolution/ },
+  { model: 'workflow', label: 'Workflows', scope: 'direct', match: /workflow|approval/ },
+  { model: 'document', label: 'Documents', scope: 'direct', match: /document|certificate|id-?card|file/ },
+  { model: 'announcement', label: 'Announcements', scope: 'direct', match: /notice|announcement|notification/ },
+  { model: 'studentRequest', label: 'Student Requests', scope: 'direct', match: /request|application/ },
+  { model: 'meeting', label: 'Meetings', scope: 'direct', match: /meeting/ },
+  { model: 'auditLog', label: 'Audit Log', scope: 'audit', match: /audit|log|system|backup|template|permission|role|activity|history|user-list/ },
+  { model: 'timetable', label: 'Timetable', scope: 'direct', supportsDepartment: true, match: /timetable|schedule|class|period|calendar/ },
+  { model: 'course', label: 'Courses', scope: 'direct', match: /course|subject|department|curriculum/ },
+  { model: 'examination', label: 'Examinations', scope: 'direct', match: /invigil|exam-schedule/ },
+  { model: 'student', label: 'Students', scope: 'direct', supportsDepartment: true, match: /student|parent|gender|category|directory|mapping|list|cgp|contact/ },
+];
+
+const DEFAULT_SOURCE: Source = { model: 'student', label: 'Students', scope: 'direct', supportsDepartment: true, match: /.*/ };
 
 export class ReportsService {
-  async generateReport(institutionId: string, slug: string, params: any = {}) {
-    const { from, to, departmentId } = params;
+  async generateReport(institutionId: string, slug: string, params: any = {}): Promise<ReportResult> {
+    const filters = {
+      from: params.from ? new Date(params.from) : undefined,
+      to: params.to ? new Date(params.to) : undefined,
+      departmentId: params.departmentId,
+    };
 
-    switch (slug) {
-      case 'student-enrollment': return this.studentEnrollment(institutionId, { from, to, departmentId });
-      case 'faculty-performance': return this.facultyPerformance(institutionId, { from, to });
-      case 'financial-summary': return this.financialSummary(institutionId, { from, to });
-      case 'attendance-overview': return this.attendanceOverview(institutionId, { from, to, departmentId });
-      case 'exam-results': return this.examResults(institutionId, { from, to, departmentId });
-      default: throw new Error(`Unknown report: ${slug}`);
+    if (slug === 'bulk-export' && Array.isArray(params.reports) && params.reports.length > 0) {
+      const sections: ReportSection[] = [];
+      for (const reportSlug of params.reports.slice(0, 25)) {
+        const source = this.resolveSource(reportSlug, params.category);
+        sections.push({ title: source.label, rows: await this.fetchRows(institutionId, source, filters) });
+      }
+      return { title: 'All Reports', generatedAt: new Date(), sections };
+    }
+
+    const source = this.resolveSource(slug, params.category);
+    return {
+      title: source.label,
+      generatedAt: new Date(),
+      sections: [{ title: source.label, rows: await this.fetchRows(institutionId, source, filters) }],
+    };
+  }
+
+  private resolveSource(slug: string, category?: string): Source {
+    const haystack = `${slug || ''} ${category || ''}`.toLowerCase();
+    const source = SOURCES.find((item) => item.match.test(haystack) && !(item.exclude && item.exclude.test(haystack)));
+    return source || DEFAULT_SOURCE;
+  }
+
+  private async fetchRows(
+    institutionId: string,
+    source: Source,
+    filters: { from?: Date; to?: Date; departmentId?: string },
+  ): Promise<Record<string, any>[]> {
+    const model = (prisma as any)[source.model];
+    if (!model) return [];
+
+    const where: any = {};
+    if (source.scope === 'direct' || source.scope === 'audit') where.institutionId = institutionId;
+    if (source.scope === 'student') where.student = { institutionId };
+
+    if (source.supportsDepartment && filters.departmentId) where.departmentId = filters.departmentId;
+
+    if (filters.from || filters.to) {
+      where.createdAt = {};
+      if (filters.from) where.createdAt.gte = filters.from;
+      if (filters.to) {
+        const end = new Date(filters.to);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt.lte = end;
+      }
+    }
+
+    try {
+      const rows: any[] = await model.findMany({ where, take: 1000, orderBy: { createdAt: 'desc' } });
+      return rows.map((row) => this.flatten(row));
+    } catch {
+      return [];
     }
   }
 
-  private async studentEnrollment(institutionId: string, filters: any) {
-    const where: any = { institutionId };
-    if (filters.departmentId) where.departmentId = filters.departmentId;
-
-    const total = await prisma.student.count({ where });
-    const departments = await prisma.student.groupBy({ by: ['departmentId'], where, _count: true });
-    const sessions = await prisma.student.groupBy({ by: ['academicSessionId'], where, _count: true });
-
-    return {
-      title: 'Student Enrollment Report',
-      total,
-      byDepartment: departments.map(d => ({ departmentId: d.departmentId, count: d._count })),
-      bySession: sessions.map(s => ({ sessionId: s.academicSessionId, count: s._count })),
-      generatedAt: new Date(),
-    };
+  private flatten(row: any): Record<string, any> {
+    const flat: Record<string, any> = {};
+    for (const [key, value] of Object.entries(row || {})) {
+      if (value === null || value === undefined) {
+        flat[key] = '';
+      } else if (value instanceof Date) {
+        flat[key] = value.toISOString();
+      } else if (typeof value === 'object') {
+        flat[key] = JSON.stringify(value);
+      } else {
+        flat[key] = value;
+      }
+    }
+    return flat;
   }
 
-  private async facultyPerformance(institutionId: string, filters: any) {
-    const faculty = await prisma.user.findMany({
-      where: { institutionId, role: { in: ['TEACHER'] } },
-      select: { id: true, fullName: true, email: true },
-    });
+  toCsv(result: ReportResult): string {
+    const lines: string[] = [`${result.title},${result.generatedAt.toISOString()}`];
 
-    return {
-      title: 'Faculty Performance Report',
-      totalFaculty: faculty.length,
-      faculty: faculty.slice(0, 20),
-      generatedAt: new Date(),
-    };
+    for (const section of result.sections) {
+      lines.push('');
+      lines.push(`# ${section.title}`);
+
+      const columns = this.columnsOf(section.rows);
+      if (columns.length === 0) {
+        lines.push('No records found');
+        continue;
+      }
+      lines.push(columns.map((column) => this.escape(column)).join(','));
+      for (const row of section.rows) {
+        lines.push(columns.map((column) => this.escape(row[column])).join(','));
+      }
+    }
+
+    return lines.join('\n');
   }
 
-  private async financialSummary(institutionId: string, filters: any) {
-    const where: any = { student: { institutionId } };
-    if (filters.from) where.paidAt = { gte: new Date(filters.from) };
-    if (filters.to) where.paidAt = { ...where.paidAt, lte: new Date(filters.to) };
-
-    const [totalCollected, totalPending] = await Promise.all([
-      prisma.feePayment.aggregate({ where: { ...where, status: 'PAID' }, _sum: { paidAmount: true } }),
-      prisma.feePayment.aggregate({ where: { ...where, status: { in: ['PENDING', 'PARTIAL', 'OVERDUE'] } }, _sum: { dueAmount: true } }),
-    ]);
-
-    return {
-      title: 'Financial Summary Report',
-      totalCollected: totalCollected._sum.paidAmount || 0,
-      totalPending: totalPending._sum.dueAmount || 0,
-      generatedAt: new Date(),
-    };
+  private columnsOf(rows: Record<string, any>[]): string[] {
+    const columns: string[] = [];
+    const seen = new Set<string>();
+    for (const row of rows.slice(0, 50)) {
+      for (const key of Object.keys(row)) {
+        if (!seen.has(key)) {
+          seen.add(key);
+          columns.push(key);
+        }
+      }
+    }
+    return columns;
   }
 
-  private async attendanceOverview(institutionId: string, filters: any) {
-    const where: any = { student: { institutionId } };
-    if (filters.from) where.date = { gte: new Date(filters.from) };
-    if (filters.to) where.date = { ...(where.date || {}), lte: new Date(filters.to) };
-
-    const [present, absent] = await Promise.all([
-      prisma.attendance.count({ where: { ...where, status: 'PRESENT' } }),
-      prisma.attendance.count({ where: { ...where, status: 'ABSENT' } }),
-    ]);
-
-    return {
-      title: 'Attendance Overview Report',
-      present,
-      absent,
-      rate: present + absent > 0 ? ((present / (present + absent)) * 100).toFixed(1) : '0',
-      generatedAt: new Date(),
-    };
-  }
-
-  private async examResults(institutionId: string, filters: any) {
-    const where: any = { student: { institutionId } };
-
-    const [total, passed, failed] = await Promise.all([
-      prisma.examResult.count({ where }),
-      prisma.examResult.count({ where: { ...where, grade: { not: 'F' } } }),
-      prisma.examResult.count({ where: { ...where, grade: 'F' } }),
-    ]);
-
-    return {
-      title: 'Exam Results Report',
-      total,
-      passed,
-      failed,
-      passRate: total > 0 ? ((passed / total) * 100).toFixed(1) : '0',
-      generatedAt: new Date(),
-    };
+  private escape(value: any): string {
+    const text = value === null || value === undefined ? '' : String(value);
+    if (/[",\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+    return text;
   }
 }
 

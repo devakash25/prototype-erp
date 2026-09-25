@@ -90,7 +90,7 @@ export function ParentComplaints() {
     queryKey: ['parent-complaints', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/complaints?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })
@@ -98,7 +98,7 @@ export function ParentComplaints() {
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await api.post(`/parent/complaints?childId=${childId}`, data)
-      return res.data
+      return res.data?.data ?? res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parent-complaints', childId] })

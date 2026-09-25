@@ -15,15 +15,24 @@ if (env.NODE_ENV !== 'production') {
 }
 
 export async function connectDatabase(): Promise<void> {
-  try {
-    await prisma.$connect();
-    logger.info('Database connected successfully');
-  } catch (error) {
-    logger.error({ err: error }, 'Database connection failed');
-    // Don't exit in serverless — let Vercel handle cold starts
-    if (env.NODE_ENV !== 'production') {
-      process.exit(1);
+  const maxAttempts = 5;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await prisma.$connect();
+      logger.info('Database connected successfully');
+      return;
+    } catch (error) {
+      logger.error({ err: error, attempt, maxAttempts }, 'Database connection failed');
+      if (attempt < maxAttempts) {
+        const delay = Math.min(1000 * 2 ** (attempt - 1), 10000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
+  }
+
+  logger.error('Database connection failed after retries');
+  if (env.NODE_ENV !== 'production') {
+    process.exit(1);
   }
 }
 

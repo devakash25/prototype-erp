@@ -14,7 +14,7 @@ export function TransportReports() {
     setLoading(true);
     try {
       const r = await api.get('/transport/reports');
-      setReports(r.data);
+      setReports(r.data?.data ?? r.data);
     } catch (e) { console.error(e); }
     setLoading(false);
   };

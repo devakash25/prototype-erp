@@ -54,7 +54,7 @@ export function ParentPTM() {
     queryKey: ['parent-ptm', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/ptm?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })
@@ -62,7 +62,7 @@ export function ParentPTM() {
   const requestMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await api.post(`/parent/ptm/request?childId=${childId}`, data)
-      return res.data
+      return res.data?.data ?? res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parent-ptm', childId] })

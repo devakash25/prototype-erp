@@ -36,7 +36,7 @@ export function ParentTimetable() {
     queryKey: ['parent-timetable', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/timetable?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })

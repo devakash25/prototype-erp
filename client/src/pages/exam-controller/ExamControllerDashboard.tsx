@@ -25,7 +25,7 @@ export function ExamControllerDashboard() {
     queryKey: ['exam-controller-dashboard'],
     queryFn: async () => {
       const res = await api.get('/exam-controller/dashboard')
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 
@@ -282,3 +282,5 @@ export function ExamControllerDashboard() {
     </div>
   )
 }
+
+export default ExamControllerDashboard

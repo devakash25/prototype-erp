@@ -174,3 +174,5 @@ export function VicePrincipalDailyReports() {
     </div>
   )
 }
+
+export default VicePrincipalDailyReports

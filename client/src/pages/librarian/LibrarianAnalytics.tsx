@@ -5,7 +5,7 @@ import { BarChart3 } from 'lucide-react'
 export function LibrarianAnalytics() {
   const { data: analytics, isLoading } = useQuery({
     queryKey: ['lib-analytics'],
-    queryFn: () => api.get('/librarian/analytics').then(r => r.data),
+    queryFn: () => api.get('/librarian/analytics').then(r => r.data?.data ?? r.data),
   })
 
   if (isLoading) return <p className="text-gray-400 p-8">Loading analytics...</p>

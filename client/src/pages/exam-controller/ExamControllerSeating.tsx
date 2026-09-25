@@ -21,7 +21,7 @@ export function ExamControllerSeating() {
     queryKey: ['exam-controller-seating-exams'],
     queryFn: async () => {
       const res = await api.get('/exam-controller/exams')
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 
@@ -30,7 +30,7 @@ export function ExamControllerSeating() {
     queryFn: async () => {
       const params = selectedExamId ? `?examId=${selectedExamId}` : ''
       const res = await api.get(`/exam-controller/seating-plan${params}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: true,
   })
@@ -238,3 +238,5 @@ export function ExamControllerSeating() {
     </div>
   )
 }
+
+export default ExamControllerSeating

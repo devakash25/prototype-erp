@@ -49,7 +49,7 @@ export function ParentAttendance() {
     queryKey: ['parent-attendance', childId, days],
     queryFn: async () => {
       const res = await api.get(`/parent/attendance?childId=${childId}&days=${days}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })

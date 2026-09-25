@@ -184,3 +184,5 @@ export function VicePrincipalDiscipline() {
     </div>
   )
 }
+
+export default VicePrincipalDiscipline

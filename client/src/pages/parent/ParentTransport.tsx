@@ -24,7 +24,7 @@ export function ParentTransport() {
     queryKey: ['parent-transport', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/transport?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })

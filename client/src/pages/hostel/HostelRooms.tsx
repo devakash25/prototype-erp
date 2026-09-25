@@ -10,11 +10,11 @@ export function HostelRooms() {
   const [form, setForm] = useState({ hostelId: '', roomNumber: '', floor: '', capacity: '2', type: 'double', amenities: '' })
   const qc = useQueryClient()
 
-  const { data: hostels } = useQuery({ queryKey: ['hostels'], queryFn: () => api.get('/hostel/hostels').then(r => r.data) })
+  const { data: hostels } = useQuery({ queryKey: ['hostels'], queryFn: () => api.get('/hostel/hostels').then(r => r.data?.data ?? r.data) })
 
   const { data: rooms, isLoading } = useQuery({
     queryKey: ['hostel-rooms', hostelId, roomType],
-    queryFn: () => api.get('/hostel/rooms', { params: { hostelId, type: roomType } }).then(r => r.data),
+    queryFn: () => api.get('/hostel/rooms', { params: { hostelId, type: roomType } }).then(r => r.data?.data ?? r.data),
   })
 
   const createMut = useMutation({

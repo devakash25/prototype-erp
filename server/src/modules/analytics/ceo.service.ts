@@ -1,6 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../../config/database';
 
 // All features by role - the complete feature registry
 const ALL_FEATURES: Record<string, string[]> = {

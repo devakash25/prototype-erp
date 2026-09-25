@@ -11,7 +11,7 @@ export function HostelComplaints() {
 
   const { data: complaints, isLoading } = useQuery({
     queryKey: ['hostel-complaints', status],
-    queryFn: () => api.get('/hostel/complaints', { params: { status } }).then(r => r.data),
+    queryFn: () => api.get('/hostel/complaints', { params: { status } }).then(r => r.data?.data ?? r.data),
   })
 
   const createMut = useMutation({

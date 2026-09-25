@@ -24,7 +24,7 @@ export function ReceptionistDashboard() {
     queryKey: ['receptionist-dashboard'],
     queryFn: async () => {
       const res = await api.get('/receptionist/dashboard')
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 

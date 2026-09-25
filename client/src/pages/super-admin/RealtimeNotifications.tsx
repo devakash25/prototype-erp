@@ -76,7 +76,7 @@ export default function RealtimeNotifications() {
   const fetchNotifications = async () => {
     try {
       const response = await api.get("/notifications/my");
-      setNotifications(response.data);
+      setNotifications(response.data?.data ?? []);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     }
@@ -87,7 +87,7 @@ export default function RealtimeNotifications() {
       const response = await api.get("/notifications/unread-count");
       setStats((prev) => ({
         ...prev,
-        unreadCount: response.data.count,
+        unreadCount: response.data?.data?.count ?? 0,
       }));
     } catch (error) {
       console.error("Failed to fetch unread count:", error);
@@ -97,7 +97,7 @@ export default function RealtimeNotifications() {
   const fetchChannels = async () => {
     try {
       const response = await api.get("/notifications/channels");
-      setChannels(response.data);
+      setChannels(response.data?.data ?? {});
     } catch (error) {
       console.error("Failed to fetch channels:", error);
     }
@@ -106,7 +106,7 @@ export default function RealtimeNotifications() {
   const fetchStats = async () => {
     try {
       const response = await api.get("/notifications/stats");
-      setStats(response.data);
+      setStats((prev) => ({ ...(response.data?.data ?? {}), unreadCount: prev.unreadCount }));
     } catch (error) {
       console.error("Failed to fetch stats:", error);
     }

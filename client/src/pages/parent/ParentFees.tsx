@@ -36,7 +36,7 @@ export function ParentFees() {
     queryKey: ['parent-fees', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/fees?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })

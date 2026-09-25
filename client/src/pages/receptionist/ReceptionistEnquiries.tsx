@@ -26,7 +26,7 @@ export function ReceptionistEnquiries() {
     queryKey: ['receptionist-enquiries', search, statusFilter],
     queryFn: async () => {
       const res = await api.get('/receptionist/enquiries', { params: { search, status: statusFilter } })
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 

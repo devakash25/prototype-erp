@@ -159,3 +159,5 @@ export function VicePrincipalAttendance() {
     </div>
   )
 }
+
+export default VicePrincipalAttendance

@@ -5,7 +5,7 @@ import { BarChart3 } from 'lucide-react'
 export function HostelAnalytics() {
   const { data: analytics, isLoading } = useQuery({
     queryKey: ['hostel-analytics'],
-    queryFn: () => api.get('/hostel/analytics').then(r => r.data),
+    queryFn: () => api.get('/hostel/analytics').then(r => r.data?.data ?? r.data),
   })
 
   if (isLoading) return <p className="text-gray-400 p-8">Loading analytics...</p>

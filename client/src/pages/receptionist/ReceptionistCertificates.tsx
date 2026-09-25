@@ -39,7 +39,7 @@ export function ReceptionistCertificates() {
     queryKey: ['receptionist-certificates', search],
     queryFn: async () => {
       const res = await api.get('/receptionist/certificates', { params: { search } })
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 
@@ -47,7 +47,7 @@ export function ReceptionistCertificates() {
     queryKey: ['receptionist-students-list'],
     queryFn: async () => {
       const res = await api.get('/receptionist/students')
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 

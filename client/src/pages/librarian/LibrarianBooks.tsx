@@ -14,7 +14,7 @@ export function LibrarianBooks() {
 
   const { data: books, isLoading } = useQuery({
     queryKey: ['librarian-books', search, category, availability],
-    queryFn: () => api.get('/librarian/books', { params: { search, category, availability } }).then(r => r.data),
+    queryFn: () => api.get('/librarian/books', { params: { search, category, availability } }).then(r => r.data?.data ?? r.data),
   })
 
   const createMut = useMutation({

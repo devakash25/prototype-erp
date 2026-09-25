@@ -43,7 +43,7 @@ export function ParentDocuments() {
     queryKey: ['parent-documents', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/documents?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })

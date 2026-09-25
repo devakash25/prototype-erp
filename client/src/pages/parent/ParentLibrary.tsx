@@ -44,7 +44,7 @@ export function ParentLibrary() {
     queryKey: ['parent-library', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/library?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })

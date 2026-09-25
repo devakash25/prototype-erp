@@ -12,13 +12,13 @@ export function LibrarianIssueBook() {
 
   const { data: books } = useQuery({
     queryKey: ['lib-book-search', bookSearch],
-    queryFn: () => api.get('/librarian/books', { params: { search: bookSearch, availability: 'available' } }).then(r => r.data),
+    queryFn: () => api.get('/librarian/books', { params: { search: bookSearch, availability: 'available' } }).then(r => r.data?.data ?? r.data),
     enabled: bookSearch.length >= 2,
   })
 
   const { data: members } = useQuery({
     queryKey: ['lib-member-search', memberSearch],
-    queryFn: () => api.get('/librarian/members', { params: { search: memberSearch } }).then(r => r.data),
+    queryFn: () => api.get('/librarian/members', { params: { search: memberSearch } }).then(r => r.data?.data ?? r.data),
     enabled: memberSearch.length >= 2,
   })
 
@@ -29,7 +29,7 @@ export function LibrarianIssueBook() {
 
   const { data: recentIssues } = useQuery({
     queryKey: ['lib-recent-issues'],
-    queryFn: () => api.get('/librarian/issues', { params: { status: 'issued' } }).then(r => r.data),
+    queryFn: () => api.get('/librarian/issues', { params: { status: 'issued' } }).then(r => r.data?.data ?? r.data),
   })
 
   return (

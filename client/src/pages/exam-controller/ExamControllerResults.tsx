@@ -22,7 +22,7 @@ export function ExamControllerResults() {
     queryKey: ['exam-controller-exams-list'],
     queryFn: async () => {
       const res = await api.get('/exam-controller/exams')
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 
@@ -31,7 +31,7 @@ export function ExamControllerResults() {
     queryFn: async () => {
       const params = selectedExamId ? `?examId=${selectedExamId}` : ''
       const res = await api.get(`/exam-controller/results${params}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: true,
   })
@@ -39,7 +39,7 @@ export function ExamControllerResults() {
   const publishMutation = useMutation({
     mutationFn: async (examId: string) => {
       const res = await api.post('/exam-controller/results/publish', { examId })
-      return res.data
+      return res.data?.data ?? res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exam-controller-results'] })
@@ -253,3 +253,5 @@ export function ExamControllerResults() {
     </div>
   )
 }
+
+export default ExamControllerResults

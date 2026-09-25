@@ -15,7 +15,7 @@ export function ExamControllerMeritList() {
     queryKey: ['exam-controller-merit-list'],
     queryFn: async () => {
       const res = await api.get('/exam-controller/merit-list')
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 
@@ -246,3 +246,5 @@ export function ExamControllerMeritList() {
     </div>
   )
 }
+
+export default ExamControllerMeritList

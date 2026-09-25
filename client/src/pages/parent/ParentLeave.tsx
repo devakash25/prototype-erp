@@ -51,7 +51,7 @@ export function ParentLeave() {
     queryKey: ['parent-leave', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/leave?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })
@@ -59,7 +59,7 @@ export function ParentLeave() {
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await api.post(`/parent/leave?childId=${childId}`, data)
-      return res.data
+      return res.data?.data ?? res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parent-leave', childId] })

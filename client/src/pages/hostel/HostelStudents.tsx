@@ -10,15 +10,15 @@ export function HostelStudents() {
   const [allocForm, setAllocForm] = useState({ studentId: '', hostelId: '', roomId: '' })
   const qc = useQueryClient()
 
-  const { data: hostels } = useQuery({ queryKey: ['hostels-list'], queryFn: () => api.get('/hostel/hostels').then(r => r.data) })
+  const { data: hostels } = useQuery({ queryKey: ['hostels-list'], queryFn: () => api.get('/hostel/hostels').then(r => r.data?.data ?? r.data) })
   const { data: students, isLoading } = useQuery({
     queryKey: ['hostel-students', hostelId, search],
-    queryFn: () => api.get('/hostel/students', { params: { hostelId, search } }).then(r => r.data),
+    queryFn: () => api.get('/hostel/students', { params: { hostelId, search } }).then(r => r.data?.data ?? r.data),
   })
 
   const { data: rooms } = useQuery({
     queryKey: ['hostel-rooms-for-alloc', allocForm.hostelId],
-    queryFn: () => api.get('/hostel/rooms', { params: { hostelId: allocForm.hostelId, availability: 'available' } }).then(r => r.data),
+    queryFn: () => api.get('/hostel/rooms', { params: { hostelId: allocForm.hostelId, availability: 'available' } }).then(r => r.data?.data ?? r.data),
     enabled: !!allocForm.hostelId,
   })
 

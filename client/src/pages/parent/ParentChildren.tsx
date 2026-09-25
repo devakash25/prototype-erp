@@ -22,7 +22,7 @@ export function ParentChildren() {
     queryKey: ['parent-children'],
     queryFn: async () => {
       const res = await api.get('/parent/children')
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 

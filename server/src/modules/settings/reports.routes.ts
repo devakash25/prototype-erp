@@ -13,8 +13,11 @@ router.post('/generate/:slug', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), vali
     const institutionId = req.user?.institutionId;
     if (!institutionId) throw new AppError(400, 'Institution not found');
     const slug = req.params.slug as string;
-    const data = await reportsService.generateReport(institutionId, slug, req.body);
-    res.json({ success: true, data });
+    const report = await reportsService.generateReport(institutionId, slug, req.body);
+    const csv = reportsService.toCsv(report);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${slug.replace(/[^a-zA-Z0-9_-]/g, '-')}.csv"`);
+    res.send(csv);
   } catch (error) { next(error); }
 });
 

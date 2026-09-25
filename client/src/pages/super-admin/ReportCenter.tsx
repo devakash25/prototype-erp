@@ -116,10 +116,12 @@ export function ReportCenter() {
       if (toDate) params.to = toDate
 
       const response = await reportsApi.generate(slug, params)
-      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/octet-stream' })
+      const contentType = response.headers['content-type'] || 'application/octet-stream'
+      const blob = new Blob([response.data], { type: contentType })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = `${reportName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
+      const extension = contentType.includes('csv') ? 'csv' : contentType.includes('json') ? 'json' : 'pdf'
+      link.download = `${reportName.replace(/[^a-zA-Z0-9]/g, '_')}.${extension}`
       link.click()
       URL.revokeObjectURL(link.href)
     } catch (err: any) {
@@ -143,10 +145,11 @@ export function ReportCenter() {
       if (toDate) params.to = toDate
 
       const response = await reportsApi.generate('bulk-export', params)
-      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/zip' })
+      const contentType = response.headers['content-type'] || 'text/csv'
+      const blob = new Blob([response.data], { type: contentType })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = 'all_reports.zip'
+      link.download = 'all_reports.csv'
       link.click()
       URL.revokeObjectURL(link.href)
     } catch (err: any) {

@@ -9,7 +9,7 @@ export function LibrarianReturns() {
 
   const { data: issues, isLoading } = useQuery({
     queryKey: ['lib-returns', search],
-    queryFn: () => api.get('/librarian/issues', { params: { status: 'issued' } }).then(r => r.data),
+    queryFn: () => api.get('/librarian/issues', { params: { status: 'issued' } }).then(r => r.data?.data ?? r.data),
   })
 
   const returnMut = useMutation({

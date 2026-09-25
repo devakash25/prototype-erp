@@ -67,7 +67,7 @@ export function AdminMeetings() {
     setLoading(true);
     try {
       const res = await api.get('/administrative/meetings');
-      setMeetings(res.data);
+      setMeetings(res.data?.data ?? res.data);
     } catch (err) {
       console.error('Failed to fetch meetings', err);
     } finally {

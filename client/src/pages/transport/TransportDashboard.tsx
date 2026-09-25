@@ -25,7 +25,7 @@ export function TransportDashboard() {
     setLoading(true)
     try {
       const res = await api.get('/transport/dashboard')
-      setData(res.data)
+      setData(res.data?.data ?? res.data)
     } catch (err) {
       console.error(err)
     }

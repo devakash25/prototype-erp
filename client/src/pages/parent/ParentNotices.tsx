@@ -69,7 +69,7 @@ export function ParentNotices() {
     queryKey: ['parent-notices', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/notices?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })

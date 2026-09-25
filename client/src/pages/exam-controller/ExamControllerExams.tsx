@@ -32,14 +32,14 @@ export function ExamControllerExams() {
     queryKey: ['exam-controller-exams'],
     queryFn: async () => {
       const res = await api.get('/exam-controller/exams')
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 
   const createExamMutation = useMutation({
     mutationFn: async (examData: any) => {
       const res = await api.post('/exam-controller/exams', examData)
-      return res.data
+      return res.data?.data ?? res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exam-controller-exams'] })
@@ -374,3 +374,5 @@ function CreateExamModal({
     </div>
   )
 }
+
+export default ExamControllerExams

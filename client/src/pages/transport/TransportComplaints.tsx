@@ -15,7 +15,7 @@ export function TransportComplaints() {
     setLoading(true);
     try {
       const r = await api.get('/transport/complaints');
-      setComplaints(r.data);
+      setComplaints(r.data?.data ?? r.data);
     } catch (e) { console.error(e); }
     setLoading(false);
   };

@@ -20,7 +20,7 @@ export function ReceptionistIDCards() {
     queryKey: ['receptionist-id-cards', search],
     queryFn: async () => {
       const res = await api.get('/receptionist/id-cards', { params: { search } })
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 

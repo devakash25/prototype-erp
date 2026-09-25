@@ -19,7 +19,7 @@ export function AdminDashboard() {
     setLoading(true)
     try {
       const res = await api.get('/administrative/dashboard')
-      setData(res.data)
+      setData(res.data?.data ?? res.data)
     } catch (err) {
       console.error(err)
     }

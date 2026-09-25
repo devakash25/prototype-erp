@@ -8,7 +8,7 @@ export function HostelRoomDetail() {
 
   const { data: room, isLoading } = useQuery({
     queryKey: ['hostel-room', id],
-    queryFn: () => api.get(`/hostel/rooms/${id}`).then(r => r.data),
+    queryFn: () => api.get(`/hostel/rooms/${id}`).then(r => r.data?.data ?? r.data),
     enabled: !!id,
   })
 

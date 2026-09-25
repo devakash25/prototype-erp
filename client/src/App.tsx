@@ -170,8 +170,10 @@ import { HostelComplaints } from '@/pages/hostel/HostelComplaints'
 import { HostelAnalytics as HostelWardenAnalytics } from '@/pages/hostel/HostelAnalytics'
 import { HostelRoomDetail } from '@/pages/hostel/HostelRoomDetail'
 import { HostelActivity } from '@/pages/hostel/HostelActivity'
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { lazy } from 'react'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { LoadingSkeleton } from '@/components/LoadingSkeleton'
 
 const VicePrincipalDashboard = lazy(() => import('@/pages/vice-principal/VicePrincipalDashboard'))
 const VicePrincipalAttendance = lazy(() => import('@/pages/vice-principal/VicePrincipalAttendance'))
@@ -342,230 +344,234 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <Routes>
-                    <Route path="/" element={<RoleRedirect />} />
+                  <ErrorBoundary>
+                    <Suspense fallback={<LoadingSkeleton rows={6} className="p-6" />}>
+                    <Routes>
+                      <Route path="/" element={<RoleRedirect />} />
 
-                    {/* Chief Head Routes */}
-                    <Route path="/dashboard" element={<ChiefHeadRoute><SuperAdminDashboard /></ChiefHeadRoute>} />
-                    <Route path="/authority-management" element={<ChiefHeadRoute><AuthorityManagement /></ChiefHeadRoute>} />
-                    <Route path="/fee-structure" element={<ChiefHeadRoute><FeeStructurePage /></ChiefHeadRoute>} />
-                    <Route path="/notifications" element={<ChiefHeadRoute><NotificationsPage /></ChiefHeadRoute>} />
-                    <Route path="/announcements" element={<ChiefHeadRoute><AnnouncementsPage /></ChiefHeadRoute>} />
-                    <Route path="/analytics/examinations" element={<ChiefHeadRoute><ExaminationAnalytics /></ChiefHeadRoute>} />
-                    <Route path="/analytics/faculty" element={<ChiefHeadRoute><FacultyAnalytics /></ChiefHeadRoute>} />
-                    <Route path="/analytics/hostel" element={<ChiefHeadRoute><HostelAnalytics /></ChiefHeadRoute>} />
-                    <Route path="/analytics/transport" element={<ChiefHeadRoute><TransportAnalytics /></ChiefHeadRoute>} />
-                    <Route path="/analytics/library" element={<ChiefHeadRoute><LibraryAnalytics /></ChiefHeadRoute>} />
-                    <Route path="/analytics/helpdesk" element={<ChiefHeadRoute><HelpdeskAnalytics /></ChiefHeadRoute>} />
-                    <Route path="/analytics/workflow" element={<ChiefHeadRoute><WorkflowAnalytics /></ChiefHeadRoute>} />
-                    <Route path="/analytics/notifications" element={<ChiefHeadRoute><NotificationAnalytics /></ChiefHeadRoute>} />
-                    <Route path="/analytics/calendar" element={<ChiefHeadRoute><CalendarAnalytics /></ChiefHeadRoute>} />
-                    <Route path="/reports" element={<ChiefHeadRoute><ReportCenter /></ChiefHeadRoute>} />
-                    <Route path="/search" element={<ChiefHeadRoute><GlobalSearch /></ChiefHeadRoute>} />
-                    <Route path="/audit-log" element={<ChiefHeadRoute><AuditLog /></ChiefHeadRoute>} />
-                    <Route path="/system-settings" element={<ChiefHeadRoute><SystemSettings /></ChiefHeadRoute>} />
-                    <Route path="/bulk-operations" element={<ChiefHeadRoute><BulkOperations /></ChiefHeadRoute>} />
-                    <Route path="/analytics/students" element={<ChiefHeadRoute><StudentAnalytics /></ChiefHeadRoute>} />
-                    <Route path="/analytics/finance" element={<ChiefHeadRoute><FinancialDashboard /></ChiefHeadRoute>} />
-                    <Route path="/permissions" element={<ChiefHeadRoute><PermissionManager /></ChiefHeadRoute>} />
-                    <Route path="/templates" element={<ChiefHeadRoute><TemplateManager /></ChiefHeadRoute>} />
-                    <Route path="/data-backup" element={<ChiefHeadRoute><DataBackupExport /></ChiefHeadRoute>} />
-                    <Route path="/report-builder" element={<ChiefHeadRoute><CustomReportBuilder /></ChiefHeadRoute>} />
-                    <Route path="/realtime-notifications" element={<ChiefHeadRoute><RealtimeNotifications /></ChiefHeadRoute>} />
-                    <Route path="/appearance" element={<ChiefHeadRoute><DarkModeEnhancement /></ChiefHeadRoute>} />
+                      {/* Chief Head Routes */}
+                      <Route path="/dashboard" element={<ChiefHeadRoute><SuperAdminDashboard /></ChiefHeadRoute>} />
+                      <Route path="/authority-management" element={<ChiefHeadRoute><AuthorityManagement /></ChiefHeadRoute>} />
+                      <Route path="/fee-structure" element={<ChiefHeadRoute><FeeStructurePage /></ChiefHeadRoute>} />
+                      <Route path="/notifications" element={<ChiefHeadRoute><NotificationsPage /></ChiefHeadRoute>} />
+                      <Route path="/announcements" element={<ChiefHeadRoute><AnnouncementsPage /></ChiefHeadRoute>} />
+                      <Route path="/analytics/examinations" element={<ChiefHeadRoute><ExaminationAnalytics /></ChiefHeadRoute>} />
+                      <Route path="/analytics/faculty" element={<ChiefHeadRoute><FacultyAnalytics /></ChiefHeadRoute>} />
+                      <Route path="/analytics/hostel" element={<ChiefHeadRoute><HostelAnalytics /></ChiefHeadRoute>} />
+                      <Route path="/analytics/transport" element={<ChiefHeadRoute><TransportAnalytics /></ChiefHeadRoute>} />
+                      <Route path="/analytics/library" element={<ChiefHeadRoute><LibraryAnalytics /></ChiefHeadRoute>} />
+                      <Route path="/analytics/helpdesk" element={<ChiefHeadRoute><HelpdeskAnalytics /></ChiefHeadRoute>} />
+                      <Route path="/analytics/workflow" element={<ChiefHeadRoute><WorkflowAnalytics /></ChiefHeadRoute>} />
+                      <Route path="/analytics/notifications" element={<ChiefHeadRoute><NotificationAnalytics /></ChiefHeadRoute>} />
+                      <Route path="/analytics/calendar" element={<ChiefHeadRoute><CalendarAnalytics /></ChiefHeadRoute>} />
+                      <Route path="/reports" element={<ChiefHeadRoute><ReportCenter /></ChiefHeadRoute>} />
+                      <Route path="/search" element={<ChiefHeadRoute><GlobalSearch /></ChiefHeadRoute>} />
+                      <Route path="/audit-log" element={<ChiefHeadRoute><AuditLog /></ChiefHeadRoute>} />
+                      <Route path="/system-settings" element={<ChiefHeadRoute><SystemSettings /></ChiefHeadRoute>} />
+                      <Route path="/bulk-operations" element={<ChiefHeadRoute><BulkOperations /></ChiefHeadRoute>} />
+                      <Route path="/analytics/students" element={<ChiefHeadRoute><StudentAnalytics /></ChiefHeadRoute>} />
+                      <Route path="/analytics/finance" element={<ChiefHeadRoute><FinancialDashboard /></ChiefHeadRoute>} />
+                      <Route path="/permissions" element={<ChiefHeadRoute><PermissionManager /></ChiefHeadRoute>} />
+                      <Route path="/templates" element={<ChiefHeadRoute><TemplateManager /></ChiefHeadRoute>} />
+                      <Route path="/data-backup" element={<ChiefHeadRoute><DataBackupExport /></ChiefHeadRoute>} />
+                      <Route path="/report-builder" element={<ChiefHeadRoute><CustomReportBuilder /></ChiefHeadRoute>} />
+                      <Route path="/realtime-notifications" element={<ChiefHeadRoute><RealtimeNotifications /></ChiefHeadRoute>} />
+                      <Route path="/appearance" element={<ChiefHeadRoute><DarkModeEnhancement /></ChiefHeadRoute>} />
 
-                    {/* Principal Routes */}
-                    <Route path="/principal/dashboard" element={<PrincipalRoute><PrincipalDashboard /></PrincipalRoute>} />
-                    <Route path="/principal/departments" element={<PrincipalRoute><PrincipalDepartments /></PrincipalRoute>} />
-                    <Route path="/principal/timetable" element={<PrincipalRoute><PrincipalTimetable /></PrincipalRoute>} />
-                    <Route path="/principal/attendance" element={<PrincipalRoute><PrincipalAttendance /></PrincipalRoute>} />
-                    <Route path="/principal/lms" element={<PrincipalRoute><PrincipalLMS /></PrincipalRoute>} />
-                    <Route path="/principal/faculty" element={<PrincipalRoute><PrincipalFaculty /></PrincipalRoute>} />
-                    <Route path="/principal/class-coordinators" element={<PrincipalRoute><PrincipalClassCoordinators /></PrincipalRoute>} />
-                    <Route path="/principal/subject-allocation" element={<PrincipalRoute><PrincipalSubjectAllocation /></PrincipalRoute>} />
-                    <Route path="/principal/leave" element={<PrincipalRoute><PrincipalLeave /></PrincipalRoute>} />
-                    <Route path="/principal/performance" element={<PrincipalRoute><PrincipalPerformance /></PrincipalRoute>} />
-                    <Route path="/principal/students" element={<PrincipalRoute><PrincipalStudents /></PrincipalRoute>} />
-                    <Route path="/principal/admissions" element={<PrincipalRoute><PrincipalAdmissions /></PrincipalRoute>} />
-                    <Route path="/principal/examinations" element={<PrincipalRoute><PrincipalExaminations /></PrincipalRoute>} />
-                    <Route path="/principal/finance" element={<PrincipalRoute><PrincipalFinance /></PrincipalRoute>} />
-                    <Route path="/principal/discipline" element={<PrincipalRoute><PrincipalDiscipline /></PrincipalRoute>} />
-                    <Route path="/principal/hostel" element={<PrincipalRoute><PrincipalHostel /></PrincipalRoute>} />
-                    <Route path="/principal/library" element={<PrincipalRoute><PrincipalLibrary /></PrincipalRoute>} />
-                    <Route path="/principal/transport" element={<PrincipalRoute><PrincipalTransport /></PrincipalRoute>} />
-                    <Route path="/principal/approvals" element={<PrincipalRoute><PrincipalApprovals /></PrincipalRoute>} />
-                    <Route path="/principal/notifications" element={<PrincipalRoute><PrincipalNotifications /></PrincipalRoute>} />
-                    <Route path="/principal/calendar" element={<PrincipalRoute><PrincipalCalendar /></PrincipalRoute>} />
-                    <Route path="/principal/helpdesk" element={<PrincipalRoute><PrincipalHelpdesk /></PrincipalRoute>} />
-                    <Route path="/principal/reports" element={<PrincipalRoute><PrincipalReports /></PrincipalRoute>} />
+                      {/* Principal Routes */}
+                      <Route path="/principal/dashboard" element={<PrincipalRoute><PrincipalDashboard /></PrincipalRoute>} />
+                      <Route path="/principal/departments" element={<PrincipalRoute><PrincipalDepartments /></PrincipalRoute>} />
+                      <Route path="/principal/timetable" element={<PrincipalRoute><PrincipalTimetable /></PrincipalRoute>} />
+                      <Route path="/principal/attendance" element={<PrincipalRoute><PrincipalAttendance /></PrincipalRoute>} />
+                      <Route path="/principal/lms" element={<PrincipalRoute><PrincipalLMS /></PrincipalRoute>} />
+                      <Route path="/principal/faculty" element={<PrincipalRoute><PrincipalFaculty /></PrincipalRoute>} />
+                      <Route path="/principal/class-coordinators" element={<PrincipalRoute><PrincipalClassCoordinators /></PrincipalRoute>} />
+                      <Route path="/principal/subject-allocation" element={<PrincipalRoute><PrincipalSubjectAllocation /></PrincipalRoute>} />
+                      <Route path="/principal/leave" element={<PrincipalRoute><PrincipalLeave /></PrincipalRoute>} />
+                      <Route path="/principal/performance" element={<PrincipalRoute><PrincipalPerformance /></PrincipalRoute>} />
+                      <Route path="/principal/students" element={<PrincipalRoute><PrincipalStudents /></PrincipalRoute>} />
+                      <Route path="/principal/admissions" element={<PrincipalRoute><PrincipalAdmissions /></PrincipalRoute>} />
+                      <Route path="/principal/examinations" element={<PrincipalRoute><PrincipalExaminations /></PrincipalRoute>} />
+                      <Route path="/principal/finance" element={<PrincipalRoute><PrincipalFinance /></PrincipalRoute>} />
+                      <Route path="/principal/discipline" element={<PrincipalRoute><PrincipalDiscipline /></PrincipalRoute>} />
+                      <Route path="/principal/hostel" element={<PrincipalRoute><PrincipalHostel /></PrincipalRoute>} />
+                      <Route path="/principal/library" element={<PrincipalRoute><PrincipalLibrary /></PrincipalRoute>} />
+                      <Route path="/principal/transport" element={<PrincipalRoute><PrincipalTransport /></PrincipalRoute>} />
+                      <Route path="/principal/approvals" element={<PrincipalRoute><PrincipalApprovals /></PrincipalRoute>} />
+                      <Route path="/principal/notifications" element={<PrincipalRoute><PrincipalNotifications /></PrincipalRoute>} />
+                      <Route path="/principal/calendar" element={<PrincipalRoute><PrincipalCalendar /></PrincipalRoute>} />
+                      <Route path="/principal/helpdesk" element={<PrincipalRoute><PrincipalHelpdesk /></PrincipalRoute>} />
+                      <Route path="/principal/reports" element={<PrincipalRoute><PrincipalReports /></PrincipalRoute>} />
 
-                    {/* Profile - All Roles */}
-                    <Route path="/profile" element={<ProfilePage />} />
+                      {/* Profile - All Roles */}
+                      <Route path="/profile" element={<ProfilePage />} />
 
-                    {/* Teacher Routes */}
-                    <Route path="/teacher/dashboard" element={<TeacherRoute><TeacherDashboard /></TeacherRoute>} />
-                    <Route path="/teacher/schedule" element={<TeacherRoute><TeacherSchedule /></TeacherRoute>} />
-                    <Route path="/teacher/classes" element={<TeacherRoute><TeacherClasses /></TeacherRoute>} />
-                    <Route path="/teacher/subjects" element={<TeacherRoute><TeacherSubjects /></TeacherRoute>} />
-                    <Route path="/teacher/attendance" element={<TeacherRoute><TeacherAttendance /></TeacherRoute>} />
-                    <Route path="/teacher/students" element={<TeacherRoute><TeacherStudents /></TeacherRoute>} />
-                    <Route path="/teacher/students/performance" element={<TeacherRoute><TeacherStudentPerformance /></TeacherRoute>} />
-                    <Route path="/teacher/assignments" element={<TeacherRoute><TeacherAssignments /></TeacherRoute>} />
-                    <Route path="/teacher/lms" element={<TeacherRoute><TeacherLMS /></TeacherRoute>} />
-                    <Route path="/teacher/examinations" element={<TeacherRoute><TeacherExaminations /></TeacherRoute>} />
-                    <Route path="/teacher/marks-entry" element={<TeacherRoute><TeacherMarksEntry /></TeacherRoute>} />
-                    <Route path="/teacher/leave" element={<TeacherRoute><TeacherLeave /></TeacherRoute>} />
-                    <Route path="/teacher/calendar" element={<TeacherRoute><TeacherCalendar /></TeacherRoute>} />
-                    <Route path="/teacher/reports" element={<TeacherRoute><TeacherReports /></TeacherRoute>} />
-                    <Route path="/teacher/my-class" element={<TeacherRoute><TeacherMyClass /></TeacherRoute>} />
-                    <Route path="/teacher/coordinator-attendance" element={<TeacherRoute><CoordinatorAttendance /></TeacherRoute>} />
-                    <Route path="/teacher/subject-attendance" element={<TeacherRoute><SubjectTeacherAttendance /></TeacherRoute>} />
-                    <Route path="/teacher/attendance-monitor" element={<TeacherRoute><AttendanceMonitor /></TeacherRoute>} />
-                    <Route path="/teacher/notifications" element={<TeacherRoute><TeacherNotifications /></TeacherRoute>} />
-                    <Route path="/teacher/doubts" element={<TeacherRoute><TeacherDoubts /></TeacherRoute>} />
-                    <Route path="/teacher/parent-messages" element={<TeacherRoute><TeacherParentMessages /></TeacherRoute>} />
-                    <Route path="/teacher/mcq" element={<TeacherRoute><TeacherMCQs /></TeacherRoute>} />
+                      {/* Teacher Routes */}
+                      <Route path="/teacher/dashboard" element={<TeacherRoute><TeacherDashboard /></TeacherRoute>} />
+                      <Route path="/teacher/schedule" element={<TeacherRoute><TeacherSchedule /></TeacherRoute>} />
+                      <Route path="/teacher/classes" element={<TeacherRoute><TeacherClasses /></TeacherRoute>} />
+                      <Route path="/teacher/subjects" element={<TeacherRoute><TeacherSubjects /></TeacherRoute>} />
+                      <Route path="/teacher/attendance" element={<TeacherRoute><TeacherAttendance /></TeacherRoute>} />
+                      <Route path="/teacher/students" element={<TeacherRoute><TeacherStudents /></TeacherRoute>} />
+                      <Route path="/teacher/students/performance" element={<TeacherRoute><TeacherStudentPerformance /></TeacherRoute>} />
+                      <Route path="/teacher/assignments" element={<TeacherRoute><TeacherAssignments /></TeacherRoute>} />
+                      <Route path="/teacher/lms" element={<TeacherRoute><TeacherLMS /></TeacherRoute>} />
+                      <Route path="/teacher/examinations" element={<TeacherRoute><TeacherExaminations /></TeacherRoute>} />
+                      <Route path="/teacher/marks-entry" element={<TeacherRoute><TeacherMarksEntry /></TeacherRoute>} />
+                      <Route path="/teacher/leave" element={<TeacherRoute><TeacherLeave /></TeacherRoute>} />
+                      <Route path="/teacher/calendar" element={<TeacherRoute><TeacherCalendar /></TeacherRoute>} />
+                      <Route path="/teacher/reports" element={<TeacherRoute><TeacherReports /></TeacherRoute>} />
+                      <Route path="/teacher/my-class" element={<TeacherRoute><TeacherMyClass /></TeacherRoute>} />
+                      <Route path="/teacher/coordinator-attendance" element={<TeacherRoute><CoordinatorAttendance /></TeacherRoute>} />
+                      <Route path="/teacher/subject-attendance" element={<TeacherRoute><SubjectTeacherAttendance /></TeacherRoute>} />
+                      <Route path="/teacher/attendance-monitor" element={<TeacherRoute><AttendanceMonitor /></TeacherRoute>} />
+                      <Route path="/teacher/notifications" element={<TeacherRoute><TeacherNotifications /></TeacherRoute>} />
+                      <Route path="/teacher/doubts" element={<TeacherRoute><TeacherDoubts /></TeacherRoute>} />
+                      <Route path="/teacher/parent-messages" element={<TeacherRoute><TeacherParentMessages /></TeacherRoute>} />
+                      <Route path="/teacher/mcq" element={<TeacherRoute><TeacherMCQs /></TeacherRoute>} />
 
-                    {/* Student Routes */}
-                    <Route path="/student/dashboard" element={<StudentRoute><StudentDashboard /></StudentRoute>} />
-                    <Route path="/student/subjects" element={<StudentRoute><StudentSubjects /></StudentRoute>} />
-                    <Route path="/student/schedule" element={<StudentRoute><StudentSchedule /></StudentRoute>} />
-                    <Route path="/student/attendance" element={<StudentRoute><StudentAttendance /></StudentRoute>} />
-                    <Route path="/student/assignments" element={<StudentRoute><StudentAssignments /></StudentRoute>} />
-                    <Route path="/student/materials" element={<StudentRoute><StudentMaterials /></StudentRoute>} />
-                    <Route path="/student/exams" element={<StudentRoute><StudentExams /></StudentRoute>} />
-                    <Route path="/student/results" element={<StudentRoute><StudentResults /></StudentRoute>} />
-                    <Route path="/student/fees" element={<StudentRoute><StudentFees /></StudentRoute>} />
-                    <Route path="/student/library" element={<StudentRoute><StudentLibrary /></StudentRoute>} />
-                    <Route path="/student/hostel" element={<StudentRoute><StudentHostel /></StudentRoute>} />
-                    <Route path="/student/transport" element={<StudentRoute><StudentTransport /></StudentRoute>} />
-                    <Route path="/student/calendar" element={<StudentRoute><StudentCalendar /></StudentRoute>} />
-                    <Route path="/student/notices" element={<StudentRoute><StudentNotices /></StudentRoute>} />
-                    <Route path="/student/doubts" element={<StudentRoute><StudentDoubts /></StudentRoute>} />
-                    <Route path="/student/mcq" element={<StudentRoute><StudentMCQs /></StudentRoute>} />
-                    <Route path="/student/documents" element={<StudentRoute><StudentDocuments /></StudentRoute>} />
-                    <Route path="/student/requests" element={<StudentRoute><StudentRequests /></StudentRoute>} />
-                    <Route path="/student/performance" element={<StudentRoute><StudentPerformance /></StudentRoute>} />
-                    <Route path="/student/profile" element={<StudentRoute><StudentProfile /></StudentRoute>} />
+                      {/* Student Routes */}
+                      <Route path="/student/dashboard" element={<StudentRoute><StudentDashboard /></StudentRoute>} />
+                      <Route path="/student/subjects" element={<StudentRoute><StudentSubjects /></StudentRoute>} />
+                      <Route path="/student/schedule" element={<StudentRoute><StudentSchedule /></StudentRoute>} />
+                      <Route path="/student/attendance" element={<StudentRoute><StudentAttendance /></StudentRoute>} />
+                      <Route path="/student/assignments" element={<StudentRoute><StudentAssignments /></StudentRoute>} />
+                      <Route path="/student/materials" element={<StudentRoute><StudentMaterials /></StudentRoute>} />
+                      <Route path="/student/exams" element={<StudentRoute><StudentExams /></StudentRoute>} />
+                      <Route path="/student/results" element={<StudentRoute><StudentResults /></StudentRoute>} />
+                      <Route path="/student/fees" element={<StudentRoute><StudentFees /></StudentRoute>} />
+                      <Route path="/student/library" element={<StudentRoute><StudentLibrary /></StudentRoute>} />
+                      <Route path="/student/hostel" element={<StudentRoute><StudentHostel /></StudentRoute>} />
+                      <Route path="/student/transport" element={<StudentRoute><StudentTransport /></StudentRoute>} />
+                      <Route path="/student/calendar" element={<StudentRoute><StudentCalendar /></StudentRoute>} />
+                      <Route path="/student/notices" element={<StudentRoute><StudentNotices /></StudentRoute>} />
+                      <Route path="/student/doubts" element={<StudentRoute><StudentDoubts /></StudentRoute>} />
+                      <Route path="/student/mcq" element={<StudentRoute><StudentMCQs /></StudentRoute>} />
+                      <Route path="/student/documents" element={<StudentRoute><StudentDocuments /></StudentRoute>} />
+                      <Route path="/student/requests" element={<StudentRoute><StudentRequests /></StudentRoute>} />
+                      <Route path="/student/performance" element={<StudentRoute><StudentPerformance /></StudentRoute>} />
+                      <Route path="/student/profile" element={<StudentRoute><StudentProfile /></StudentRoute>} />
 
-                    <Route path="/accountant/dashboard" element={<AccountantRoute><AccountantDashboard /></AccountantRoute>} />
-                    <Route path="/accountant/collections" element={<AccountantRoute><AccountantCollections /></AccountantRoute>} />
-                    <Route path="/accountant/ledger" element={<AccountantRoute><AccountantStudentLedger /></AccountantRoute>} />
-                    <Route path="/accountant/receipts" element={<AccountantRoute><AccountantReceipts /></AccountantRoute>} />
-                    <Route path="/accountant/payments" element={<AccountantRoute><AccountantPayments /></AccountantRoute>} />
-                    <Route path="/accountant/refunds" element={<AccountantRoute><AccountantRefunds /></AccountantRoute>} />
-                    <Route path="/accountant/reports" element={<AccountantRoute><AccountantReports /></AccountantRoute>} />
-                    <Route path="/accountant/outstanding" element={<AccountantRoute><AccountantOutstanding /></AccountantRoute>} />
-                    <Route path="/accountant/analytics" element={<AccountantRoute><AccountantAnalytics /></AccountantRoute>} />
-                    <Route path="/accountant/profile" element={<AccountantRoute><ProfilePage /></AccountantRoute>} />
+                      <Route path="/accountant/dashboard" element={<AccountantRoute><AccountantDashboard /></AccountantRoute>} />
+                      <Route path="/accountant/collections" element={<AccountantRoute><AccountantCollections /></AccountantRoute>} />
+                      <Route path="/accountant/ledger" element={<AccountantRoute><AccountantStudentLedger /></AccountantRoute>} />
+                      <Route path="/accountant/receipts" element={<AccountantRoute><AccountantReceipts /></AccountantRoute>} />
+                      <Route path="/accountant/payments" element={<AccountantRoute><AccountantPayments /></AccountantRoute>} />
+                      <Route path="/accountant/refunds" element={<AccountantRoute><AccountantRefunds /></AccountantRoute>} />
+                      <Route path="/accountant/reports" element={<AccountantRoute><AccountantReports /></AccountantRoute>} />
+                      <Route path="/accountant/outstanding" element={<AccountantRoute><AccountantOutstanding /></AccountantRoute>} />
+                      <Route path="/accountant/analytics" element={<AccountantRoute><AccountantAnalytics /></AccountantRoute>} />
+                      <Route path="/accountant/profile" element={<AccountantRoute><ProfilePage /></AccountantRoute>} />
 
-                    <Route path="/admission/dashboard" element={<AdmissionRoute><AdmissionDashboard /></AdmissionRoute>} />
-                    <Route path="/admission/applications" element={<AdmissionRoute><AdmissionApplications /></AdmissionRoute>} />
-                    <Route path="/admission/new" element={<AdmissionRoute><AdmissionNewApplication /></AdmissionRoute>} />
-                    <Route path="/admission/follow-ups" element={<AdmissionRoute><AdmissionFollowUps /></AdmissionRoute>} />
-                    <Route path="/admission/waiting-list" element={<AdmissionRoute><AdmissionWaitingList /></AdmissionRoute>} />
-                    <Route path="/admission/analytics" element={<AdmissionRoute><AdmissionAnalytics /></AdmissionRoute>} />
-                    <Route path="/admission/reports" element={<AdmissionRoute><AdmissionReports /></AdmissionRoute>} />
-                    <Route path="/admission/profile" element={<AdmissionRoute><ProfilePage /></AdmissionRoute>} />
+                      <Route path="/admission/dashboard" element={<AdmissionRoute><AdmissionDashboard /></AdmissionRoute>} />
+                      <Route path="/admission/applications" element={<AdmissionRoute><AdmissionApplications /></AdmissionRoute>} />
+                      <Route path="/admission/new" element={<AdmissionRoute><AdmissionNewApplication /></AdmissionRoute>} />
+                      <Route path="/admission/follow-ups" element={<AdmissionRoute><AdmissionFollowUps /></AdmissionRoute>} />
+                      <Route path="/admission/waiting-list" element={<AdmissionRoute><AdmissionWaitingList /></AdmissionRoute>} />
+                      <Route path="/admission/analytics" element={<AdmissionRoute><AdmissionAnalytics /></AdmissionRoute>} />
+                      <Route path="/admission/reports" element={<AdmissionRoute><AdmissionReports /></AdmissionRoute>} />
+                      <Route path="/admission/profile" element={<AdmissionRoute><ProfilePage /></AdmissionRoute>} />
 
-                    {/* Transport Manager Routes */}
-                    <Route path="/transport/dashboard" element={<TransportRoute><TransportDashboard /></TransportRoute>} />
-                    <Route path="/transport/vehicles" element={<TransportRoute><TransportVehicles /></TransportRoute>} />
-                    <Route path="/transport/drivers" element={<TransportRoute><TransportDrivers /></TransportRoute>} />
-                    <Route path="/transport/routes" element={<TransportRoute><TransportRoutesPage /></TransportRoute>} />
-                    <Route path="/transport/allocation" element={<TransportRoute><TransportStudentAllocation /></TransportRoute>} />
-                    <Route path="/transport/maintenance" element={<TransportRoute><TransportMaintenance /></TransportRoute>} />
-                    <Route path="/transport/inspections" element={<TransportRoute><TransportInspections /></TransportRoute>} />
-                    <Route path="/transport/complaints" element={<TransportRoute><TransportComplaints /></TransportRoute>} />
-                    <Route path="/transport/reports" element={<TransportRoute><TransportReports /></TransportRoute>} />
-                    <Route path="/transport/attendance" element={<TransportRoute><TransportDriverAttendance /></TransportRoute>} />
-                    <Route path="/transport/schedule" element={<TransportRoute><TransportDailySchedule /></TransportRoute>} />
-                    <Route path="/transport/profile" element={<TransportRoute><ProfilePage /></TransportRoute>} />
+                      {/* Transport Manager Routes */}
+                      <Route path="/transport/dashboard" element={<TransportRoute><TransportDashboard /></TransportRoute>} />
+                      <Route path="/transport/vehicles" element={<TransportRoute><TransportVehicles /></TransportRoute>} />
+                      <Route path="/transport/drivers" element={<TransportRoute><TransportDrivers /></TransportRoute>} />
+                      <Route path="/transport/routes" element={<TransportRoute><TransportRoutesPage /></TransportRoute>} />
+                      <Route path="/transport/allocation" element={<TransportRoute><TransportStudentAllocation /></TransportRoute>} />
+                      <Route path="/transport/maintenance" element={<TransportRoute><TransportMaintenance /></TransportRoute>} />
+                      <Route path="/transport/inspections" element={<TransportRoute><TransportInspections /></TransportRoute>} />
+                      <Route path="/transport/complaints" element={<TransportRoute><TransportComplaints /></TransportRoute>} />
+                      <Route path="/transport/reports" element={<TransportRoute><TransportReports /></TransportRoute>} />
+                      <Route path="/transport/attendance" element={<TransportRoute><TransportDriverAttendance /></TransportRoute>} />
+                      <Route path="/transport/schedule" element={<TransportRoute><TransportDailySchedule /></TransportRoute>} />
+                      <Route path="/transport/profile" element={<TransportRoute><ProfilePage /></TransportRoute>} />
 
-                    {/* Administrative Staff Routes */}
-                    <Route path="/administrative/dashboard" element={<AdministrativeRoute><AdminDashboard /></AdministrativeRoute>} />
-                    <Route path="/administrative/certificates" element={<AdministrativeRoute><AdminCertificates /></AdministrativeRoute>} />
-                    <Route path="/administrative/requests" element={<AdministrativeRoute><AdminRequests /></AdministrativeRoute>} />
-                    <Route path="/administrative/notices" element={<AdministrativeRoute><AdminNotices /></AdministrativeRoute>} />
-                    <Route path="/administrative/meetings" element={<AdministrativeRoute><AdminMeetings /></AdministrativeRoute>} />
-                    <Route path="/administrative/workflows" element={<AdministrativeRoute><AdminWorkflows /></AdministrativeRoute>} />
-                    <Route path="/administrative/documents" element={<AdministrativeRoute><AdminDocuments /></AdministrativeRoute>} />
-                    <Route path="/administrative/complaints" element={<AdministrativeRoute><AdminComplaints /></AdministrativeRoute>} />
-                    <Route path="/administrative/reports" element={<AdministrativeRoute><AdminReports /></AdministrativeRoute>} />
-                    <Route path="/administrative/profile" element={<AdministrativeRoute><ProfilePage /></AdministrativeRoute>} />
+                      {/* Administrative Staff Routes */}
+                      <Route path="/administrative/dashboard" element={<AdministrativeRoute><AdminDashboard /></AdministrativeRoute>} />
+                      <Route path="/administrative/certificates" element={<AdministrativeRoute><AdminCertificates /></AdministrativeRoute>} />
+                      <Route path="/administrative/requests" element={<AdministrativeRoute><AdminRequests /></AdministrativeRoute>} />
+                      <Route path="/administrative/notices" element={<AdministrativeRoute><AdminNotices /></AdministrativeRoute>} />
+                      <Route path="/administrative/meetings" element={<AdministrativeRoute><AdminMeetings /></AdministrativeRoute>} />
+                      <Route path="/administrative/workflows" element={<AdministrativeRoute><AdminWorkflows /></AdministrativeRoute>} />
+                      <Route path="/administrative/documents" element={<AdministrativeRoute><AdminDocuments /></AdministrativeRoute>} />
+                      <Route path="/administrative/complaints" element={<AdministrativeRoute><AdminComplaints /></AdministrativeRoute>} />
+                      <Route path="/administrative/reports" element={<AdministrativeRoute><AdminReports /></AdministrativeRoute>} />
+                      <Route path="/administrative/profile" element={<AdministrativeRoute><ProfilePage /></AdministrativeRoute>} />
 
-                    {/* Parent Routes */}
-                    <Route path="/parent/dashboard" element={<ParentRoute><ParentDashboard /></ParentRoute>} />
-                    <Route path="/parent/children" element={<ParentRoute><ParentChildren /></ParentRoute>} />
-                    <Route path="/parent/attendance" element={<ParentRoute><ParentAttendance /></ParentRoute>} />
-                    <Route path="/parent/timetable" element={<ParentRoute><ParentTimetable /></ParentRoute>} />
-                    <Route path="/parent/performance" element={<ParentRoute><ParentPerformance /></ParentRoute>} />
-                    <Route path="/parent/assignments" element={<ParentRoute><ParentAssignments /></ParentRoute>} />
-                    <Route path="/parent/exams" element={<ParentRoute><ParentExams /></ParentRoute>} />
-                    <Route path="/parent/fees" element={<ParentRoute><ParentFees /></ParentRoute>} />
-                    <Route path="/parent/transport" element={<ParentRoute><ParentTransport /></ParentRoute>} />
-                    <Route path="/parent/hostel" element={<ParentRoute><ParentHostel /></ParentRoute>} />
-                    <Route path="/parent/library" element={<ParentRoute><ParentLibrary /></ParentRoute>} />
-                    <Route path="/parent/notices" element={<ParentRoute><ParentNotices /></ParentRoute>} />
-                    <Route path="/parent/ptm" element={<ParentRoute><ParentPTM /></ParentRoute>} />
-                    <Route path="/parent/leave" element={<ParentRoute><ParentLeave /></ParentRoute>} />
-                    <Route path="/parent/complaints" element={<ParentRoute><ParentComplaints /></ParentRoute>} />
-                    <Route path="/parent/documents" element={<ParentRoute><ParentDocuments /></ParentRoute>} />
-                    <Route path="/parent/messages" element={<ParentRoute><ParentMessages /></ParentRoute>} />
-                    <Route path="/parent/activity" element={<ParentRoute><ParentActivity /></ParentRoute>} />
+                      {/* Parent Routes */}
+                      <Route path="/parent/dashboard" element={<ParentRoute><ParentDashboard /></ParentRoute>} />
+                      <Route path="/parent/children" element={<ParentRoute><ParentChildren /></ParentRoute>} />
+                      <Route path="/parent/attendance" element={<ParentRoute><ParentAttendance /></ParentRoute>} />
+                      <Route path="/parent/timetable" element={<ParentRoute><ParentTimetable /></ParentRoute>} />
+                      <Route path="/parent/performance" element={<ParentRoute><ParentPerformance /></ParentRoute>} />
+                      <Route path="/parent/assignments" element={<ParentRoute><ParentAssignments /></ParentRoute>} />
+                      <Route path="/parent/exams" element={<ParentRoute><ParentExams /></ParentRoute>} />
+                      <Route path="/parent/fees" element={<ParentRoute><ParentFees /></ParentRoute>} />
+                      <Route path="/parent/transport" element={<ParentRoute><ParentTransport /></ParentRoute>} />
+                      <Route path="/parent/hostel" element={<ParentRoute><ParentHostel /></ParentRoute>} />
+                      <Route path="/parent/library" element={<ParentRoute><ParentLibrary /></ParentRoute>} />
+                      <Route path="/parent/notices" element={<ParentRoute><ParentNotices /></ParentRoute>} />
+                      <Route path="/parent/ptm" element={<ParentRoute><ParentPTM /></ParentRoute>} />
+                      <Route path="/parent/leave" element={<ParentRoute><ParentLeave /></ParentRoute>} />
+                      <Route path="/parent/complaints" element={<ParentRoute><ParentComplaints /></ParentRoute>} />
+                      <Route path="/parent/documents" element={<ParentRoute><ParentDocuments /></ParentRoute>} />
+                      <Route path="/parent/messages" element={<ParentRoute><ParentMessages /></ParentRoute>} />
+                      <Route path="/parent/activity" element={<ParentRoute><ParentActivity /></ParentRoute>} />
 
-                    {/* CEO Routes */}
-                    <Route path="/ceo/dashboard" element={<CEORoute><CEODashboard /></CEORoute>} />
-                    <Route path="/ceo/pricing" element={<CEORoute><CEOSubscription /></CEORoute>} />
-                    <Route path="/ceo/subscription" element={<CEORoute><CEOSubscription /></CEORoute>} />
-                    <Route path="/ceo/charges" element={<CEORoute><CEOCharges /></CEORoute>} />
+                      {/* CEO Routes */}
+                      <Route path="/ceo/dashboard" element={<CEORoute><CEODashboard /></CEORoute>} />
+                      <Route path="/ceo/pricing" element={<CEORoute><CEOSubscription /></CEORoute>} />
+                      <Route path="/ceo/subscription" element={<CEORoute><CEOSubscription /></CEORoute>} />
+                      <Route path="/ceo/charges" element={<CEORoute><CEOCharges /></CEORoute>} />
 
-                    {/* Librarian Routes */}
-                    <Route path="/librarian/dashboard" element={<LibrarianRoute><LibrarianDashboard /></LibrarianRoute>} />
-                    <Route path="/librarian/books" element={<LibrarianRoute><LibrarianBooks /></LibrarianRoute>} />
-                    <Route path="/librarian/issue" element={<LibrarianRoute><LibrarianIssueBook /></LibrarianRoute>} />
-                    <Route path="/librarian/returns" element={<LibrarianRoute><LibrarianReturns /></LibrarianRoute>} />
-                    <Route path="/librarian/overdue" element={<LibrarianRoute><LibrarianOverdue /></LibrarianRoute>} />
-                    <Route path="/librarian/fines" element={<LibrarianRoute><LibrarianFines /></LibrarianRoute>} />
-                    <Route path="/librarian/members" element={<LibrarianRoute><LibrarianMembers /></LibrarianRoute>} />
-                    <Route path="/librarian/analytics" element={<LibrarianRoute><LibrarianAnalytics /></LibrarianRoute>} />
+                      {/* Librarian Routes */}
+                      <Route path="/librarian/dashboard" element={<LibrarianRoute><LibrarianDashboard /></LibrarianRoute>} />
+                      <Route path="/librarian/books" element={<LibrarianRoute><LibrarianBooks /></LibrarianRoute>} />
+                      <Route path="/librarian/issue" element={<LibrarianRoute><LibrarianIssueBook /></LibrarianRoute>} />
+                      <Route path="/librarian/returns" element={<LibrarianRoute><LibrarianReturns /></LibrarianRoute>} />
+                      <Route path="/librarian/overdue" element={<LibrarianRoute><LibrarianOverdue /></LibrarianRoute>} />
+                      <Route path="/librarian/fines" element={<LibrarianRoute><LibrarianFines /></LibrarianRoute>} />
+                      <Route path="/librarian/members" element={<LibrarianRoute><LibrarianMembers /></LibrarianRoute>} />
+                      <Route path="/librarian/analytics" element={<LibrarianRoute><LibrarianAnalytics /></LibrarianRoute>} />
 
-                    {/* Hostel Warden Routes */}
-                    <Route path="/hostel/dashboard" element={<HostelWardenRoute><HostelDashboard /></HostelWardenRoute>} />
-                    <Route path="/hostel/buildings" element={<HostelWardenRoute><HostelBuildings /></HostelWardenRoute>} />
-                    <Route path="/hostel/rooms" element={<HostelWardenRoute><HostelRooms /></HostelWardenRoute>} />
-                    <Route path="/hostel/rooms/:id" element={<HostelWardenRoute><HostelRoomDetail /></HostelWardenRoute>} />
-                    <Route path="/hostel/students" element={<HostelWardenRoute><HostelStudents /></HostelWardenRoute>} />
-                    <Route path="/hostel/complaints" element={<HostelWardenRoute><HostelComplaints /></HostelWardenRoute>} />
-                    <Route path="/hostel/analytics" element={<HostelWardenRoute><HostelWardenAnalytics /></HostelWardenRoute>} />
-                    <Route path="/hostel/activity" element={<HostelWardenRoute><HostelActivity /></HostelWardenRoute>} />
+                      {/* Hostel Warden Routes */}
+                      <Route path="/hostel/dashboard" element={<HostelWardenRoute><HostelDashboard /></HostelWardenRoute>} />
+                      <Route path="/hostel/buildings" element={<HostelWardenRoute><HostelBuildings /></HostelWardenRoute>} />
+                      <Route path="/hostel/rooms" element={<HostelWardenRoute><HostelRooms /></HostelWardenRoute>} />
+                      <Route path="/hostel/rooms/:id" element={<HostelWardenRoute><HostelRoomDetail /></HostelWardenRoute>} />
+                      <Route path="/hostel/students" element={<HostelWardenRoute><HostelStudents /></HostelWardenRoute>} />
+                      <Route path="/hostel/complaints" element={<HostelWardenRoute><HostelComplaints /></HostelWardenRoute>} />
+                      <Route path="/hostel/analytics" element={<HostelWardenRoute><HostelWardenAnalytics /></HostelWardenRoute>} />
+                      <Route path="/hostel/activity" element={<HostelWardenRoute><HostelActivity /></HostelWardenRoute>} />
 
-                    {/* Vice Principal Routes */}
-                    <Route path="/vice-principal/dashboard" element={<VicePrincipalRoute><VicePrincipalDashboard /></VicePrincipalRoute>} />
-                    <Route path="/vice-principal/attendance" element={<VicePrincipalRoute><VicePrincipalAttendance /></VicePrincipalRoute>} />
-                    <Route path="/vice-principal/discipline" element={<VicePrincipalRoute><VicePrincipalDiscipline /></VicePrincipalRoute>} />
-                    <Route path="/vice-principal/substitutions" element={<VicePrincipalRoute><VicePrincipalSubstitutions /></VicePrincipalRoute>} />
-                    <Route path="/vice-principal/daily-reports" element={<VicePrincipalRoute><VicePrincipalDailyReports /></VicePrincipalRoute>} />
-                    <Route path="/vice-principal/inspections" element={<VicePrincipalRoute><VicePrincipalInspections /></VicePrincipalRoute>} />
+                      {/* Vice Principal Routes */}
+                      <Route path="/vice-principal/dashboard" element={<VicePrincipalRoute><VicePrincipalDashboard /></VicePrincipalRoute>} />
+                      <Route path="/vice-principal/attendance" element={<VicePrincipalRoute><VicePrincipalAttendance /></VicePrincipalRoute>} />
+                      <Route path="/vice-principal/discipline" element={<VicePrincipalRoute><VicePrincipalDiscipline /></VicePrincipalRoute>} />
+                      <Route path="/vice-principal/substitutions" element={<VicePrincipalRoute><VicePrincipalSubstitutions /></VicePrincipalRoute>} />
+                      <Route path="/vice-principal/daily-reports" element={<VicePrincipalRoute><VicePrincipalDailyReports /></VicePrincipalRoute>} />
+                      <Route path="/vice-principal/inspections" element={<VicePrincipalRoute><VicePrincipalInspections /></VicePrincipalRoute>} />
 
-                    {/* Exam Controller Routes */}
-                    <Route path="/exam-controller/dashboard" element={<ExamControllerRoute><ExamControllerDashboard /></ExamControllerRoute>} />
-                    <Route path="/exam-controller/exams" element={<ExamControllerRoute><ExamControllerExams /></ExamControllerRoute>} />
-                    <Route path="/exam-controller/results" element={<ExamControllerRoute><ExamControllerResults /></ExamControllerRoute>} />
-                    <Route path="/exam-controller/seating" element={<ExamControllerRoute><ExamControllerSeating /></ExamControllerRoute>} />
-                    <Route path="/exam-controller/merit-list" element={<ExamControllerRoute><ExamControllerMeritList /></ExamControllerRoute>} />
-                    <Route path="/exam-controller/grades" element={<ExamControllerRoute><ExamControllerGrades /></ExamControllerRoute>} />
+                      {/* Exam Controller Routes */}
+                      <Route path="/exam-controller/dashboard" element={<ExamControllerRoute><ExamControllerDashboard /></ExamControllerRoute>} />
+                      <Route path="/exam-controller/exams" element={<ExamControllerRoute><ExamControllerExams /></ExamControllerRoute>} />
+                      <Route path="/exam-controller/results" element={<ExamControllerRoute><ExamControllerResults /></ExamControllerRoute>} />
+                      <Route path="/exam-controller/seating" element={<ExamControllerRoute><ExamControllerSeating /></ExamControllerRoute>} />
+                      <Route path="/exam-controller/merit-list" element={<ExamControllerRoute><ExamControllerMeritList /></ExamControllerRoute>} />
+                      <Route path="/exam-controller/grades" element={<ExamControllerRoute><ExamControllerGrades /></ExamControllerRoute>} />
 
-                    {/* Receptionist Routes */}
-                    <Route path="/receptionist/dashboard" element={<ReceptionistRoute><ReceptionistDashboard /></ReceptionistRoute>} />
-                    <Route path="/receptionist/visitors" element={<ReceptionistRoute><ReceptionistVisitors /></ReceptionistRoute>} />
-                    <Route path="/receptionist/enquiries" element={<ReceptionistRoute><ReceptionistEnquiries /></ReceptionistRoute>} />
-                    <Route path="/receptionist/phone-logs" element={<ReceptionistRoute><ReceptionistPhoneLogs /></ReceptionistRoute>} />
-                    <Route path="/receptionist/certificates" element={<ReceptionistRoute><ReceptionistCertificates /></ReceptionistRoute>} />
-                    <Route path="/receptionist/id-cards" element={<ReceptionistRoute><ReceptionistIdCards /></ReceptionistRoute>} />
+                      {/* Receptionist Routes */}
+                      <Route path="/receptionist/dashboard" element={<ReceptionistRoute><ReceptionistDashboard /></ReceptionistRoute>} />
+                      <Route path="/receptionist/visitors" element={<ReceptionistRoute><ReceptionistVisitors /></ReceptionistRoute>} />
+                      <Route path="/receptionist/enquiries" element={<ReceptionistRoute><ReceptionistEnquiries /></ReceptionistRoute>} />
+                      <Route path="/receptionist/phone-logs" element={<ReceptionistRoute><ReceptionistPhoneLogs /></ReceptionistRoute>} />
+                      <Route path="/receptionist/certificates" element={<ReceptionistRoute><ReceptionistCertificates /></ReceptionistRoute>} />
+                      <Route path="/receptionist/id-cards" element={<ReceptionistRoute><ReceptionistIdCards /></ReceptionistRoute>} />
 
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                    </Suspense>
+                  </ErrorBoundary>
                 </MainLayout>
               </ProtectedRoute>
             }

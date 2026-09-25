@@ -73,7 +73,7 @@ export function ParentHostel() {
     queryKey: ['parent-hostel', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/hostel?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })
@@ -81,7 +81,7 @@ export function ParentHostel() {
   const maintenanceMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await api.post(`/parent/hostel/maintenance?childId=${childId}`, data)
-      return res.data
+      return res.data?.data ?? res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parent-hostel', childId] })

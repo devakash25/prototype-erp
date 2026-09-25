@@ -33,7 +33,7 @@ export function ReceptionistPhoneLogs() {
     queryKey: ['receptionist-phone-logs', search],
     queryFn: async () => {
       const res = await api.get('/receptionist/phone-logs', { params: { search } })
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 

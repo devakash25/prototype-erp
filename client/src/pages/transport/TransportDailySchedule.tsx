@@ -14,7 +14,7 @@ export function TransportDailySchedule() {
     setLoading(true);
     try {
       const r = await api.get('/transport/schedule');
-      setSchedule(r.data);
+      setSchedule(r.data?.data ?? r.data);
     } catch (e) { console.error(e); }
     setLoading(false);
   };

@@ -36,7 +36,7 @@ export function ParentExams() {
     queryKey: ['parent-exams', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/examinations?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })

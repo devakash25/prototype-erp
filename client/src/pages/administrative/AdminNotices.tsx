@@ -80,7 +80,7 @@ export function AdminNotices() {
     setLoading(true);
     try {
       const res = await api.get('/administrative/notices');
-      setNotices(res.data);
+      setNotices(res.data?.data ?? res.data);
     } catch (err) {
       console.error('Failed to fetch notices', err);
     } finally {

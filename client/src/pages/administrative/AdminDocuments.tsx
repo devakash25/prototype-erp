@@ -61,7 +61,7 @@ export function AdminDocuments() {
     setLoading(true)
     try {
       const res = await api.get('/administrative/documents')
-      setDocuments(res.data)
+      setDocuments(res.data?.data ?? res.data)
     } catch (err) {
       console.error('Failed to fetch documents', err)
     } finally {

@@ -5,7 +5,7 @@ import { Clock, LogIn, LogOut, AlertTriangle, CheckCircle } from 'lucide-react'
 export function HostelActivity() {
   const { data: activities, isLoading } = useQuery({
     queryKey: ['hostel-activities'],
-    queryFn: () => api.get('/hostel/activities').then(r => r.data),
+    queryFn: () => api.get('/hostel/activities').then(r => r.data?.data ?? r.data),
   })
 
   const iconMap: any = { 'check-in': LogIn, 'check-out': LogOut, 'complaint': AlertTriangle, 'resolved': CheckCircle, 'allocation': Clock }

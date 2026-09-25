@@ -57,7 +57,7 @@ export function ParentDashboard() {
     queryKey: ['parent-children'],
     queryFn: async () => {
       const res = await api.get('/parent/children')
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 
@@ -73,7 +73,7 @@ export function ParentDashboard() {
     queryKey: ['parent-dashboard', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/dashboard?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })
@@ -82,7 +82,7 @@ export function ParentDashboard() {
     queryKey: ['parent-assignments', childId],
     queryFn: async () => {
       const res = await api.get(`/parent/assignments?childId=${childId}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: !!childId,
   })

@@ -22,7 +22,7 @@ export function ExamControllerGrades() {
     queryKey: ['exam-controller-grades-exams'],
     queryFn: async () => {
       const res = await api.get('/exam-controller/exams')
-      return res.data
+      return res.data?.data ?? res.data
     },
   })
 
@@ -31,7 +31,7 @@ export function ExamControllerGrades() {
     queryFn: async () => {
       const params = selectedExamId ? `?examId=${selectedExamId}` : ''
       const res = await api.get(`/exam-controller/calculate-grades${params}`)
-      return res.data
+      return res.data?.data ?? res.data
     },
     enabled: true,
   })
@@ -39,7 +39,7 @@ export function ExamControllerGrades() {
   const calculateGradesMutation = useMutation({
     mutationFn: async (examId: string) => {
       const res = await api.post('/exam-controller/calculate-grades', { examId })
-      return res.data
+      return res.data?.data ?? res.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exam-controller-grades'] })
@@ -305,3 +305,5 @@ export function ExamControllerGrades() {
     </div>
   )
 }
+
+export default ExamControllerGrades

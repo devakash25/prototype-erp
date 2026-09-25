@@ -7,7 +7,7 @@ export function LibrarianOverdue() {
 
   const { data: overdue, isLoading } = useQuery({
     queryKey: ['lib-overdue'],
-    queryFn: () => api.get('/librarian/overdue').then(r => r.data),
+    queryFn: () => api.get('/librarian/overdue').then(r => r.data?.data ?? r.data),
   })
 
   const collectMut = useMutation({

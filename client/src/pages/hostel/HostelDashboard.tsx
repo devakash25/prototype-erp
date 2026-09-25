@@ -27,7 +27,7 @@ export function HostelDashboard() {
     setError(false)
     try {
       const res = await api.get('/hostel/dashboard')
-      setData(res.data)
+      setData(res.data?.data ?? res.data)
     } catch (err) {
       console.error(err)
       setError(true)
@@ -55,7 +55,7 @@ export function HostelDashboard() {
     )
   }
 
-  const summary = data?.summary || {}
+  const summary = data?.summary || data || {}
   const totalHostels = summary.totalHostels || 0
   const totalRooms = summary.totalRooms || 0
   const occupiedRooms = summary.occupiedRooms || 0
@@ -78,10 +78,12 @@ export function HostelDashboard() {
     { label: 'Raise Complaint', href: '/hostel/complaints', color: 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20', icon: MessageSquare },
   ]
 
-  const hostelStats = data?.hostelStats || []
+  const hostelStats = data?.hostelWiseStats || data?.hostelStats || []
   const recentComplaints = data?.recentComplaints || []
-  const todayCheckIns = data?.todayCheckIns || []
-  const todayCheckOuts = data?.todayCheckOuts || []
+  const checkInList = Array.isArray(data?.todayCheckIns) ? data.todayCheckIns : []
+  const checkOutList = Array.isArray(data?.todayCheckOuts) ? data.todayCheckOuts : []
+  const todayCheckInsCount = checkInList.length || Number(data?.todayCheckIns) || 0
+  const todayCheckOutsCount = checkOutList.length || Number(data?.todayCheckOuts) || 0
 
   const getOccupancyColor = (rate: number) => {
     if (rate >= 90) return 'bg-red-500'
@@ -230,12 +232,15 @@ export function HostelDashboard() {
             <div>
               <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center gap-2">
                 <LogIn className="w-4 h-4 text-green-500" /> Check-ins
+                <span className="ml-auto text-lg font-bold text-white">{todayCheckInsCount}</span>
               </h3>
-              {todayCheckIns.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-4">No check-ins today</p>
+              {checkInList.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-4">
+                  {todayCheckInsCount > 0 ? `${todayCheckInsCount} check-ins today` : 'No check-ins today'}
+                </p>
               ) : (
                 <div className="space-y-2">
-                  {todayCheckIns.map((item: any) => (
+                  {checkInList.map((item: any) => (
                     <div key={item.id} className="flex items-center justify-between p-3 bg-green-500/10 rounded-lg border border-green-500/20">
                       <div>
                         <p className="text-sm font-medium text-white">{item.studentName}</p>
@@ -250,12 +255,15 @@ export function HostelDashboard() {
             <div>
               <h3 className="text-sm font-medium text-slate-400 mb-2 flex items-center gap-2">
                 <LogOut className="w-4 h-4 text-red-500" /> Check-outs
+                <span className="ml-auto text-lg font-bold text-white">{todayCheckOutsCount}</span>
               </h3>
-              {todayCheckOuts.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-4">No check-outs today</p>
+              {checkOutList.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-4">
+                  {todayCheckOutsCount > 0 ? `${todayCheckOutsCount} check-outs today` : 'No check-outs today'}
+                </p>
               ) : (
                 <div className="space-y-2">
-                  {todayCheckOuts.map((item: any) => (
+                  {checkOutList.map((item: any) => (
                     <div key={item.id} className="flex items-center justify-between p-3 bg-red-500/10 rounded-lg border border-red-500/20">
                       <div>
                         <p className="text-sm font-medium text-white">{item.studentName}</p>
