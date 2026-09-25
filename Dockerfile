@@ -32,7 +32,7 @@ RUN apk add --no-cache openssl
 # Server setup
 WORKDIR /app/server
 COPY server/package.json server/package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev && npm install prisma@6
 COPY --from=server-builder /app/server/node_modules/.prisma ./node_modules/.prisma
 COPY --from=server-builder /app/server/dist ./dist
 COPY --from=server-builder /app/server/prisma ./prisma
