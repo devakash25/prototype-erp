@@ -38,7 +38,7 @@ const defaultWidgets: DashboardWidget[] = [
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
-      darkMode: true,
+      darkMode: false,
       sidebarCollapsed: false,
       widgets: defaultWidgets,
       layout: {},
@@ -68,6 +68,10 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'dev-erp-settings',
+      version: 1,
+      // v0 persisted darkMode: true — migrate so the app opens in light mode
+      migrate: (persisted) =>
+        ({ ...(persisted as object), darkMode: false }) as SettingsState,
     }
   )
 )
