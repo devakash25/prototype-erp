@@ -1,4 +1,6 @@
 import express from 'express';
+import path from 'path';
+import fs from 'fs';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -131,12 +133,35 @@ app.use('/api/v1/templates', templatesRoutes);
 app.use('/api/v1/custom-reports', customReportsRoutes);
 app.use('/api/v1/appearance-settings', appearanceRoutes);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: { message: 'Route not found', statusCode: 404 },
+// Serve static client files (single-service deployment)
+const clientPath = path.resolve(__dirname, '../../client/dist');
+if (fs.existsSync(clientPath)) {
+  // Static assets with cache
+  app.use(express.static(clientPath, {
+    index: false,
+    setHeaders: (res, filePath) => {
+      if (filePath.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+        res.set('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    },
+  }));
+
+  // SPA fallback - serve index.html for all non-API routes
+  app.get(/^\/(?!api|health).*/, (_req, res) => {
+    res.sendFile(path.join(clientPath, 'index.html'));
   });
+}
+
+// 404 handler (API only)
+app.use((req, res) => {
+  if (req.path.startsWith('/api')) {
+    res.status(404).json({
+      success: false,
+      error: { message: 'Route not found', statusCode: 404 },
+    });
+  } else {
+    res.status(404).send('Not found');
+  }
 });
 
 // Error handler
