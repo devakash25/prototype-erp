@@ -28,3 +28,15 @@ services:
         sync: false
     healthCheckPath: /health
     autoDeploy: true
+
+  # ---- Frontend (Static Site) ----
+  - type: static_site
+    name: dev-erp-client
+    runtime: static
+    plan: free
+    staticPublishPath: ./client/dist
+    buildCommand: cd client && npm install --include=dev && npm run build
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+    autoDeploy: true
