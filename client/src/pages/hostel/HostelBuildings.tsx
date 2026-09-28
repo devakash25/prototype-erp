@@ -39,7 +39,7 @@ export function HostelBuildings() {
   const loadHostels = async () => {
     setLoading(true)
     try {
-      const res = await api.get('/hostel/buildings')
+      const res = await api.get('/hostel/hostels')
       setHostels(res.data?.data ?? res.data)
     } catch (err) {
       console.error(err)
@@ -57,9 +57,9 @@ export function HostelBuildings() {
         capacity: Number(formData.capacity),
       }
       if (editingHostel) {
-        await api.put(`/hostel/buildings/${editingHostel.id}`, payload)
+        await api.patch(`/hostel/hostels/${editingHostel.id}`, payload)
       } else {
-        await api.post('/hostel/buildings', payload)
+        await api.post('/hostel/hostels', payload)
       }
       resetForm()
       loadHostels()

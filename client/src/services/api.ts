@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useSubscriptionStore } from '@/store/subscriptionStore'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api/v1',
@@ -22,9 +23,28 @@ api.interceptors.request.use(
 
 // Response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const state = response.headers['x-subscription-state']
+    if (state) {
+      useSubscriptionStore.getState().setSubscription({
+        state: state as any,
+        graceEndsAt: response.headers['x-subscription-grace-ends'] || null,
+        message: null,
+      })
+    }
+    return response
+  },
   async (error) => {
     const originalRequest = error.config
+
+    if (error.response?.status === 402) {
+      useSubscriptionStore.getState().setSubscription({
+        state: 'readonly',
+        message:
+          error.response.data?.error?.message ||
+          'Read-only mode: subscription expired. Renew the plan to restore write access.',
+      })
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true

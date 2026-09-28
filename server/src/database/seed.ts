@@ -10,26 +10,56 @@ async function hashPassword(password: string): Promise<string> {
 async function main() {
   console.log('Seeding database...');
 
+  // Create Platform CEO (platform level — no institution)
+  const ceoPassword = await hashPassword('Admin@123');
+  const existingCeo = await prisma.user.findUnique({ where: { email: 'ceo@deverp.com' } });
+  if (!existingCeo) {
+    await prisma.user.create({
+      data: {
+        institutionId: null,
+        email: 'ceo@deverp.com',
+        password: ceoPassword,
+        role: 'CEO',
+        firstName: 'Platform',
+        lastName: 'CEO',
+        fullName: 'Platform CEO',
+        isActive: true,
+        isEmailVerified: true,
+      },
+    });
+    console.log('CEO created: ceo@deverp.com / Admin@123');
+  }
+
   // Create Institution
-  const institution = await prisma.institution.create({
-    data: {
-      name: 'DEV ERP Academy',
-      code: 'DEVERP001',
-      type: 'COLLEGE',
-      address: '123 Education Lane',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      country: 'India',
-      pincode: '400001',
-      phone: '+91 22 1234 5678',
-      email: 'admin@dev-erp.com',
-      website: 'https://dev-erp.com',
-      timezone: 'Asia/Kolkata',
-      currency: 'INR',
-      academicYearStart: 4,
-    },
-  });
-  console.log('Institution created:', institution.id);
+  const institutionData = {
+    name: 'DEV ERP Academy',
+    code: 'DEVERP001',
+    subdomain: 'deverp001',
+    emailDomain: 'deverp001.deverp.com',
+    type: 'COLLEGE' as const,
+    address: '123 Education Lane',
+    city: 'Mumbai',
+    state: 'Maharashtra',
+    country: 'India',
+    pincode: '400001',
+    phone: '+91 22 1234 5678',
+    email: 'admin@deverp001.deverp.com',
+    website: 'https://deverp.com',
+    timezone: 'Asia/Kolkata',
+    currency: 'INR',
+    academicYearStart: 4,
+  };
+  let institution = await prisma.institution.findUnique({ where: { code: 'DEVERP001' } });
+  if (!institution) {
+    institution = await prisma.institution.create({ data: institutionData });
+    console.log('Institution created:', institution.id);
+  } else {
+    institution = await prisma.institution.update({
+      where: { code: 'DEVERP001' },
+      data: { subdomain: institutionData.subdomain, emailDomain: institutionData.emailDomain, email: institutionData.email, website: institutionData.website },
+    });
+    console.log('Institution updated:', institution.id);
+  }
 
   // Create Academic Session
   const session = await prisma.academicSession.create({
@@ -59,7 +89,7 @@ async function main() {
   const chiefHead = await prisma.user.create({
     data: {
       institutionId: institution.id,
-      email: 'admin@dev-erp.com',
+      email: 'admin@deverp001.deverp.com',
       password: chiefHeadPassword,
       role: 'CHIEF_HEAD',
       firstName: 'Chief',
@@ -112,7 +142,7 @@ async function main() {
   // Principal
   const principalUser = await prisma.user.create({
     data: {
-      institutionId: institution.id, email: 'principal@dev-erp.com', password: employeePassword,
+      institutionId: institution.id, email: 'principal@deverp001.deverp.com', password: employeePassword,
       role: 'PRINCIPAL', firstName: 'Prof. Meena', lastName: 'Sharma', fullName: 'Prof. Meena Sharma',
       phone: '+91 98765 43211', gender: 'FEMALE', isActive: true,
     },
@@ -128,11 +158,11 @@ async function main() {
 
   // Teachers
   const teacherData = [
-    { email: 'teacher1@dev-erp.com', name: 'Mr. Suresh Reddy', dept: departments[0].id, code: 'EMP002' },
-    { email: 'teacher2@dev-erp.com', name: 'Ms. Kavitha Nair', dept: departments[0].id, code: 'EMP003' },
-    { email: 'teacher3@dev-erp.com', name: 'Mr. Vikram Joshi', dept: departments[1].id, code: 'EMP004' },
-    { email: 'teacher4@dev-erp.com', name: 'Mrs. Priya Gupta', dept: departments[2].id, code: 'EMP005' },
-    { email: 'teacher5@dev-erp.com', name: 'Mr. Arun Singh', dept: departments[4].id, code: 'EMP006' },
+    { email: 'teacher1@deverp001.deverp.com', name: 'Mr. Suresh Reddy', dept: departments[0].id, code: 'EMP002' },
+    { email: 'teacher2@deverp001.deverp.com', name: 'Ms. Kavitha Nair', dept: departments[0].id, code: 'EMP003' },
+    { email: 'teacher3@deverp001.deverp.com', name: 'Mr. Vikram Joshi', dept: departments[1].id, code: 'EMP004' },
+    { email: 'teacher4@deverp001.deverp.com', name: 'Mrs. Priya Gupta', dept: departments[2].id, code: 'EMP005' },
+    { email: 'teacher5@deverp001.deverp.com', name: 'Mr. Arun Singh', dept: departments[4].id, code: 'EMP006' },
   ];
 
   for (const t of teacherData) {
@@ -157,7 +187,7 @@ async function main() {
   // Accountant
   const accountantUser = await prisma.user.create({
     data: {
-      institutionId: institution.id, email: 'accountant@dev-erp.com', password: employeePassword,
+      institutionId: institution.id, email: 'accountant@deverp001.deverp.com', password: employeePassword,
       role: 'ACCOUNTANT', firstName: 'Amit', lastName: 'Patel', fullName: 'Amit Patel',
       phone: '+91 98765 43212', gender: 'MALE', isActive: true,
     },
@@ -173,7 +203,7 @@ async function main() {
   // Admission Counsellor
   const admissionUser = await prisma.user.create({
     data: {
-      institutionId: institution.id, email: 'admission@dev-erp.com', password: employeePassword,
+      institutionId: institution.id, email: 'admission@deverp001.deverp.com', password: employeePassword,
       role: 'ADMISSION_COUNSELLOR', firstName: 'Priya', lastName: 'Singh', fullName: 'Priya Singh',
       phone: '+91 98765 43213', gender: 'FEMALE', isActive: true,
     },
@@ -189,7 +219,7 @@ async function main() {
   // Librarian
   const librarianUser = await prisma.user.create({
     data: {
-      institutionId: institution.id, email: 'librarian@dev-erp.com', password: employeePassword,
+      institutionId: institution.id, email: 'librarian@deverp001.deverp.com', password: employeePassword,
       role: 'LIBRARIAN', firstName: 'Sushma', lastName: 'Reddy', fullName: 'Sushma Reddy',
       gender: 'FEMALE', isActive: true,
     },
@@ -204,8 +234,8 @@ async function main() {
 
   // Hostel Wardens
   const wardenData = [
-    { email: 'warden.boys@dev-erp.com', name: 'Ravi Shankar', gender: 'MALE' },
-    { email: 'warden.girls@dev-erp.com', name: 'Lakshmi Devi', gender: 'FEMALE' },
+    { email: 'warden.boys@deverp001.deverp.com', name: 'Ravi Shankar', gender: 'MALE' },
+    { email: 'warden.girls@deverp001.deverp.com', name: 'Lakshmi Devi', gender: 'FEMALE' },
   ];
   for (const w of wardenData) {
     const user = await prisma.user.create({
@@ -227,7 +257,7 @@ async function main() {
   // Transport Manager
   const transportUser = await prisma.user.create({
     data: {
-      institutionId: institution.id, email: 'transport@dev-erp.com', password: employeePassword,
+      institutionId: institution.id, email: 'transport@deverp001.deverp.com', password: employeePassword,
       role: 'TRANSPORT_MANAGER', firstName: 'Manoj', lastName: 'Kumar', fullName: 'Manoj Kumar',
       gender: 'MALE', isActive: true,
     },
@@ -243,7 +273,7 @@ async function main() {
   // Vice Principal
   const vicePrincipalUser = await prisma.user.create({
     data: {
-      institutionId: institution.id, email: 'vice.principal@dev-erp.com', password: employeePassword,
+      institutionId: institution.id, email: 'vice.principal@deverp001.deverp.com', password: employeePassword,
       role: 'VICE_PRINCIPAL', firstName: 'Rajesh', lastName: 'Kumar', fullName: 'Rajesh Kumar',
       phone: '+91 98765 43214', gender: 'MALE', isActive: true,
     },
@@ -259,7 +289,7 @@ async function main() {
   // Exam Controller
   const examControllerUser = await prisma.user.create({
     data: {
-      institutionId: institution.id, email: 'exam.controller@dev-erp.com', password: employeePassword,
+      institutionId: institution.id, email: 'exam.controller@deverp001.deverp.com', password: employeePassword,
       role: 'EXAM_CONTROLLER', firstName: 'Sunita', lastName: 'Rao', fullName: 'Sunita Rao',
       gender: 'FEMALE', isActive: true,
     },
@@ -275,7 +305,7 @@ async function main() {
   // Receptionist
   const receptionistUser = await prisma.user.create({
     data: {
-      institutionId: institution.id, email: 'receptionist@dev-erp.com', password: employeePassword,
+      institutionId: institution.id, email: 'receptionist@deverp001.deverp.com', password: employeePassword,
       role: 'RECEPTIONIST', firstName: 'Anita', lastName: 'Desai', fullName: 'Anita Desai',
       gender: 'FEMALE', isActive: true,
     },
@@ -285,6 +315,22 @@ async function main() {
       institutionId: institution.id, departmentId: departments[0].id, userId: receptionistUser.id,
       employeeCode: 'EMP015', designation: 'Receptionist', department: 'ADMINISTRATION',
       dateOfJoining: new Date('2022-05-01'), qualification: 'B.A.',
+    },
+  });
+
+  // Administrative Staff
+  const administrativeUser = await prisma.user.create({
+    data: {
+      institutionId: institution.id, email: 'administrative@deverp001.deverp.com', password: employeePassword,
+      role: 'ADMINISTRATIVE_STAFF', firstName: 'Kavita', lastName: 'Iyer', fullName: 'Kavita Iyer',
+      gender: 'FEMALE', isActive: true,
+    },
+  });
+  await prisma.employee.create({
+    data: {
+      institutionId: institution.id, departmentId: departments[0].id, userId: administrativeUser.id,
+      employeeCode: 'EMP016', designation: 'Administrative Officer', department: 'ADMINISTRATION',
+      dateOfJoining: new Date('2022-06-15'), qualification: 'MBA',
     },
   });
 
@@ -302,7 +348,7 @@ async function main() {
     const [first, last] = studentNames[i].split(' ');
     const user = await prisma.user.create({
       data: {
-        institutionId: institution.id, email: `student${i + 1}@dev-erp.com`, password: studentPassword,
+        institutionId: institution.id, email: `student${i + 1}@deverp001.deverp.com`, password: studentPassword,
         role: 'STUDENT', firstName: first, lastName: last, fullName: studentNames[i],
         gender: i % 2 === 0 ? 'MALE' : 'FEMALE', isActive: true,
       },
@@ -323,7 +369,7 @@ async function main() {
   const parentPassword = await hashPassword('Parent@123');
   const parentUser = await prisma.user.create({
     data: {
-      institutionId: institution.id, email: 'father@dev-erp.com', password: parentPassword,
+      institutionId: institution.id, email: 'father@deverp001.deverp.com', password: parentPassword,
       role: 'PARENT', firstName: 'Ramesh', lastName: 'Sharma', fullName: 'Ramesh Sharma',
       phone: '+91 98765 43215', gender: 'MALE', isActive: true,
     },
@@ -541,13 +587,13 @@ async function main() {
   console.log('Seed completed!');
   console.log('---');
   console.log('Login credentials:');
-  console.log('CEO: ceo@dev-erp.com / Admin@123');
-  console.log('Chief Head: admin@dev-erp.com / Admin@123');
-  console.log('Principal: principal@dev-erp.com / Teacher@123');
-  console.log('Teacher 1: teacher1@dev-erp.com / Teacher@123');
-  console.log('Accountant: accountant@dev-erp.com / Teacher@123');
-  console.log('Student: student1@dev-erp.com / Student@123');
-  console.log('Parent: father@dev-erp.com / Parent@123');
+  console.log('CEO: ceo@deverp.com / Admin@123');
+  console.log('Chief Head: admin@deverp001.deverp.com / Admin@123');
+  console.log('Principal: principal@deverp001.deverp.com / Teacher@123');
+  console.log('Teacher 1: teacher1@deverp001.deverp.com / Teacher@123');
+  console.log('Accountant: accountant@deverp001.deverp.com / Teacher@123');
+  console.log('Student: student1@deverp001.deverp.com / Student@123');
+  console.log('Parent: father@deverp001.deverp.com / Parent@123');
 
   // ========== Subscription Plans ==========
   console.log('\nSeeding subscription plans...');

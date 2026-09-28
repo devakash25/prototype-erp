@@ -27,6 +27,20 @@ const COLORS = ["#6366f1", "#8b5cf6", "#a78bfa", "#c4b5fd", "#4f46e5", "#7c3aed"
 
 const PIE_COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"];
 
+function ChartTooltip({ active, payload }: { active?: boolean; payload?: any[] }) {
+  if (!active || !payload || payload.length === 0) return null;
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-md">
+      <p className="text-xs font-medium text-gray-500 mb-1">{payload[0]?.payload?.label || payload[0]?.payload?.name}</p>
+      {payload.map((entry, index) => (
+        <p key={index} className="text-sm font-semibold text-gray-900">
+          {entry.name}: {typeof entry.value === "number" ? formatNumber(entry.value) : entry.value}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 export default function StudentAnalytics() {
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
   const [fromDate, setFromDate] = useState('');
@@ -115,20 +129,6 @@ export default function StudentAnalytics() {
     },
   ];
 
-  const renderTooltip = (payload: any[]) => {
-    if (!payload || payload.length === 0) return null;
-    return (
-      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-md">
-        <p className="text-xs font-medium text-gray-500 mb-1">{payload[0]?.payload?.label || payload[0]?.payload?.name}</p>
-        {payload.map((entry, index) => (
-          <p key={index} className="text-sm font-semibold text-gray-900">
-            {entry.name}: {typeof entry.value === "number" ? formatNumber(entry.value) : entry.value}
-          </p>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -193,26 +193,26 @@ export default function StudentAnalytics() {
 
       <div className="space-y-6">
         {activeTab === "Overview" && (
-          <OverviewTab data={overview} loading={overviewLoading} renderTooltip={renderTooltip} />
+          <OverviewTab data={overview} loading={overviewLoading} />
         )}
         {activeTab === "Demographics" && (
-          <DemographicsTab data={demographics} loading={demographicsLoading} renderTooltip={renderTooltip} />
+          <DemographicsTab data={demographics} loading={demographicsLoading} />
         )}
         {activeTab === "Performance" && (
           <PerformanceTab data={performance} loading={performanceLoading} />
         )}
         {activeTab === "Attendance" && (
-          <AttendanceTab data={attendance} loading={attendanceLoading} renderTooltip={renderTooltip} />
+          <AttendanceTab data={attendance} loading={attendanceLoading} />
         )}
         {activeTab === "Fees" && (
-          <FeesTab data={fees} loading={feesLoading} renderTooltip={renderTooltip} />
+          <FeesTab data={fees} loading={feesLoading} />
         )}
       </div>
     </div>
   );
 }
 
-function OverviewTab({ data, loading, renderTooltip }: { data: any; loading: boolean; renderTooltip: (payload: any[]) => React.ReactNode }) {
+function OverviewTab({ data, loading }: { data: any; loading: boolean }) {
   if (loading) {
     return (
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -236,7 +236,7 @@ function OverviewTab({ data, loading, renderTooltip }: { data: any; loading: boo
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis dataKey="label" tick={{ fontSize: 12 }} stroke="#94a3b8" />
             <YAxis tick={{ fontSize: 12 }} stroke="#94a3b8" />
-            <Tooltip content={renderTooltip([{ name: "Enrolled", value: 0, payload: { label: "" } }])} />
+            <Tooltip content={<ChartTooltip />} />
             <Legend />
             <Line
               type="monotone"
@@ -306,7 +306,7 @@ function OverviewTab({ data, loading, renderTooltip }: { data: any; loading: boo
   );
 }
 
-function DemographicsTab({ data, loading, renderTooltip }: { data: any; loading: boolean; renderTooltip: (payload: any[]) => React.ReactNode }) {
+function DemographicsTab({ data, loading }: { data: any; loading: boolean }) {
   if (loading) {
     return (
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -355,7 +355,7 @@ function DemographicsTab({ data, loading, renderTooltip }: { data: any; loading:
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis type="number" tick={{ fontSize: 12 }} stroke="#94a3b8" />
             <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="#94a3b8" width={55} />
-            <Tooltip content={renderTooltip([{ name: "Students", value: 0, payload: { name: "" } }])} />
+            <Tooltip content={<ChartTooltip />} />
             <Bar dataKey="value" fill="#6366f1" radius={[0, 6, 6, 0]} name="Students" />
           </BarChart>
         </ResponsiveContainer>
@@ -368,7 +368,7 @@ function DemographicsTab({ data, loading, renderTooltip }: { data: any; loading:
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis dataKey="label" tick={{ fontSize: 12 }} stroke="#94a3b8" />
             <YAxis tick={{ fontSize: 12 }} stroke="#94a3b8" />
-            <Tooltip content={renderTooltip([{ name: "Students", value: 0, payload: { label: "" } }])} />
+            <Tooltip content={<ChartTooltip />} />
             <Bar dataKey="value" fill="#8b5cf6" radius={[6, 6, 0, 0]} name="Students" />
           </BarChart>
         </ResponsiveContainer>
@@ -486,7 +486,7 @@ function PerformanceTab({ data, loading }: { data: any; loading: boolean }) {
   );
 }
 
-function AttendanceTab({ data, loading, renderTooltip }: { data: any; loading: boolean; renderTooltip: (payload: any[]) => React.ReactNode }) {
+function AttendanceTab({ data, loading }: { data: any; loading: boolean }) {
   if (loading) {
     return (
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -583,7 +583,7 @@ function AttendanceTab({ data, loading, renderTooltip }: { data: any; loading: b
   );
 }
 
-function FeesTab({ data, loading, renderTooltip }: { data: any; loading: boolean; renderTooltip: (payload: any[]) => React.ReactNode }) {
+function FeesTab({ data, loading }: { data: any; loading: boolean }) {
   if (loading) {
     return (
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

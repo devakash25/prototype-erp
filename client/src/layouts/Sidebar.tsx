@@ -521,6 +521,8 @@ const parentNavigation: NavItem[] = [
 
 const ceoNavigation: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/ceo/dashboard' },
+  { label: 'Institutions', icon: Building, href: '/ceo/institutions' },
+  { label: 'Users', icon: Users, href: '/ceo/users' },
   { label: 'Plan & Subscription', icon: CreditCard, href: '/ceo/subscription' },
   { label: 'Charges & Payments', icon: DollarSign, href: '/ceo/charges' },
 ]

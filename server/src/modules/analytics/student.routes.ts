@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { authenticate } from '../../middleware/auth';
+import { authenticate, authorize } from '../../middleware/auth';
 import { studentAnalyticsService } from './student.service';
 
 const router = Router();
-router.use(authenticate);
+router.use(authenticate, authorize('STUDENT'));
 
 router.get('/kpis', async (req: Request, res: Response) => {
   const user = (req as any).user;

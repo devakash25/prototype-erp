@@ -14,6 +14,7 @@ import { AppError } from '../../utils/errors';
 
 const router = Router();
 router.use(authenticate);
+router.use(authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'));
 
 function getInstitutionId(req: Request): string {
   const id = req.user?.institutionId;

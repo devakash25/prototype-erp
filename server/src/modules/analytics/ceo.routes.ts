@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { ceoService } from './ceo.service';
-import { authenticate } from '../../middleware/auth';
+import { authenticate, authorize } from '../../middleware/auth';
+import { institutionAdminService } from '../institution/institution-admin.service';
 
 const router = Router();
-router.use(authenticate);
+router.use(authenticate, authorize('CEO'));
 
 // ========== User Management ==========
 
@@ -219,6 +220,75 @@ router.delete('/charges/:id', async (req: Request, res: Response) => {
     res.json(data);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ========== Institutions (tenant management) ==========
+
+function sendError(res: Response, error: any): void {
+  res.status(error.statusCode || error.status || 500).json({ error: error.message || 'Internal server error' });
+}
+
+router.get('/institutions', async (_req: Request, res: Response) => {
+  try {
+    const data = await institutionAdminService.list();
+    res.json(data);
+  } catch (error: any) {
+    sendError(res, error);
+  }
+});
+
+router.post('/institutions', async (req: Request, res: Response) => {
+  try {
+    const data = await institutionAdminService.create(req.body);
+    res.status(201).json(data);
+  } catch (error: any) {
+    sendError(res, error);
+  }
+});
+
+router.patch('/institutions/:id', async (req: Request, res: Response) => {
+  try {
+    const data = await institutionAdminService.update(String(req.params.id), req.body);
+    res.json(data);
+  } catch (error: any) {
+    sendError(res, error);
+  }
+});
+
+router.patch('/institutions/:id/status', async (req: Request, res: Response) => {
+  try {
+    const data = await institutionAdminService.setStatus(String(req.params.id), !!req.body.isActive);
+    res.json(data);
+  } catch (error: any) {
+    sendError(res, error);
+  }
+});
+
+router.get('/institutions/:id/subscriptions', async (req: Request, res: Response) => {
+  try {
+    const data = await institutionAdminService.getSubscriptions(String(req.params.id));
+    res.json(data);
+  } catch (error: any) {
+    sendError(res, error);
+  }
+});
+
+router.post('/institutions/:id/subscriptions', async (req: Request, res: Response) => {
+  try {
+    const data = await institutionAdminService.assignSubscription(String(req.params.id), req.body);
+    res.status(201).json(data);
+  } catch (error: any) {
+    sendError(res, error);
+  }
+});
+
+router.patch('/subscriptions/:id', async (req: Request, res: Response) => {
+  try {
+    const data = await institutionAdminService.updateSubscription(String(req.params.id), req.body);
+    res.json(data);
+  } catch (error: any) {
+    sendError(res, error);
   }
 });
 

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { authenticate } from '../../middleware/auth';
+import { authenticate, authorize } from '../../middleware/auth';
 import { vicePrincipalService } from './vicePrincipal.service';
 
 function wrap(fn: (req: Request, res: Response) => Promise<any>) {
@@ -15,7 +15,7 @@ function wrap(fn: (req: Request, res: Response) => Promise<any>) {
 }
 
 const router = Router();
-router.use(authenticate);
+router.use(authenticate, authorize('VICE_PRINCIPAL'));
 
 router.get('/dashboard', wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;

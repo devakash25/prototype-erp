@@ -1,4 +1,4 @@
-import { prisma } from '../../config/database';
+import { prisma, tenantTx } from '../../config/database';
 
 class HostelService {
   async getDashboard(institutionId: string) {
@@ -88,6 +88,7 @@ class HostelService {
     const hostelStats = hostels.map((h) => {
       const stats = hostelRoomMap.get(h.id) || { capacity: 0, occupied: 0 };
       return {
+        id: h.id,
         name: h.name,
         type: h.type,
         capacity: stats.capacity,
@@ -441,8 +442,8 @@ class HostelService {
     });
     if (existingAllocation) throw new Error('Student is already allocated to a room');
 
-    const [allocation] = await prisma.$transaction([
-      prisma.hostelRoomAllocation.create({
+    const [allocation] = await tenantTx(async (tx) => [
+      await tx.hostelRoomAllocation.create({
         data: {
           studentId: data.studentId,
           roomId: data.roomId,
@@ -452,11 +453,11 @@ class HostelService {
           room: { select: { roomNumber: true, type: true } },
         },
       }),
-      prisma.hostelRoom.update({
+      await tx.hostelRoom.update({
         where: { id: data.roomId },
         data: { occupied: { increment: 1 } },
       }),
-      prisma.student.update({
+      await tx.student.update({
         where: { id: data.studentId },
         data: { hostelId: room.hostelId, isHostelStudent: true },
       }),
@@ -475,15 +476,15 @@ class HostelService {
     });
     if (!allocation) throw new Error('Student is not allocated to any room');
 
-    const [updatedAllocation] = await prisma.$transaction([
-      prisma.hostelRoomAllocation.delete({
+    const [updatedAllocation] = await tenantTx(async (tx) => [
+      await tx.hostelRoomAllocation.delete({
         where: { id: allocation.id },
       }),
-      prisma.hostelRoom.update({
+      await tx.hostelRoom.update({
         where: { id: allocation.room.id },
         data: { occupied: { decrement: 1 } },
       }),
-      prisma.student.update({
+      await tx.student.update({
         where: { id: studentId },
         data: { hostelId: null, isHostelStudent: false },
       }),

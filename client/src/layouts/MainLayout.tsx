@@ -3,6 +3,7 @@ import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { useAuthStore } from '@/store/authStore'
 import { LoginSplash } from '@/components/LoginSplash'
+import { SubscriptionBanner } from '@/components/SubscriptionBanner'
 
 interface MainLayoutProps {
   children: ReactNode
@@ -30,6 +31,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           <Header onMenuToggle={() => setSidebarOpen((prev) => !prev)} />
+          <SubscriptionBanner />
           <main className="flex-1 overflow-y-auto overflow-x-auto p-4 sm:p-6">
             {children}
           </main>

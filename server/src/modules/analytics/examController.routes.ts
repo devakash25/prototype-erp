@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { examControllerService } from './examController.service';
-import { authenticate } from '../../middleware/auth';
+import { authenticate, authorize } from '../../middleware/auth';
 
 const router = Router();
-router.use(authenticate);
+router.use(authenticate, authorize('EXAM_CONTROLLER'));
 
 router.get('/dashboard', async (req: Request, res: Response) => {
   try {

@@ -17,6 +17,42 @@ function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
+const ROLE_ICONS: Record<string, typeof Users> = {
+  CEO: Crown,
+  CHIEF_HEAD: Shield,
+  PRINCIPAL: GraduationCap,
+  VICE_PRINCIPAL: GraduationCap,
+  TEACHER: BookOpen,
+  STUDENT: Users,
+  PARENT: HeartPulse,
+  ACCOUNTANT: DollarSign,
+  ADMISSION_COUNSELLOR: UserCheck,
+  RECEPTIONIST: UserCheck,
+  EXAM_CONTROLLER: BarChart3,
+  LIBRARIAN: Library,
+  HOSTEL_WARDEN: Building,
+  TRANSPORT_MANAGER: Bus,
+  ADMINISTRATIVE_STAFF: Briefcase,
+}
+
+const ROLE_COLORS: Record<string, string> = {
+  CEO: 'from-indigo-500 to-purple-600',
+  CHIEF_HEAD: 'from-blue-500 to-cyan-600',
+  PRINCIPAL: 'from-violet-500 to-indigo-600',
+  VICE_PRINCIPAL: 'from-purple-500 to-violet-600',
+  TEACHER: 'from-emerald-500 to-green-600',
+  STUDENT: 'from-amber-500 to-orange-600',
+  PARENT: 'from-pink-500 to-rose-600',
+  ACCOUNTANT: 'from-teal-500 to-emerald-600',
+  ADMISSION_COUNSELLOR: 'from-sky-500 to-blue-600',
+  RECEPTIONIST: 'from-cyan-500 to-sky-600',
+  EXAM_CONTROLLER: 'from-fuchsia-500 to-pink-600',
+  LIBRARIAN: 'from-lime-500 to-green-600',
+  HOSTEL_WARDEN: 'from-orange-500 to-red-600',
+  TRANSPORT_MANAGER: 'from-yellow-500 to-amber-600',
+  ADMINISTRATIVE_STAFF: 'from-slate-500 to-gray-600',
+}
+
 export function CEODashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['ceo-dashboard-stats'],

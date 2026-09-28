@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { AdministrativeService } from './administrative.service';
-import { authenticate } from '../../middleware/auth';
+import { authenticate, authorize } from '../../middleware/auth';
 
 const router = Router();
-router.use(authenticate);
+router.use(authenticate, authorize('ADMINISTRATIVE_STAFF'));
 
 const adminOnly = ['ADMINISTRATIVE_STAFF'];
 const allRoles = ['CHIEF_HEAD', 'PRINCIPAL', 'ADMINISTRATIVE_STAFF'];

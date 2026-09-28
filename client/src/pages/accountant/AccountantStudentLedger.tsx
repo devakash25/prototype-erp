@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import {
   Search, RefreshCw, ChevronDown, ChevronUp, Filter,
 } from 'lucide-react'
@@ -155,9 +155,8 @@ export function AccountantStudentLedger() {
               </thead>
               <tbody className="divide-y">
                 {students.map((student) => (
-                  <>
+                  <Fragment key={student.id}>
                     <tr
-                      key={student.id}
                       className="hover:bg-gray-50 transition-colors cursor-pointer"
                       onClick={() => toggleExpand(student.id)}
                     >
@@ -234,7 +233,7 @@ export function AccountantStudentLedger() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
             </table>

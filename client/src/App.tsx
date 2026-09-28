@@ -154,6 +154,8 @@ import { ParentActivity } from '@/pages/parent/ParentActivity'
 import { CEOSubscription } from '@/pages/ceo/CEOSubscription'
 import { CEOCharges } from '@/pages/ceo/CEOCharges'
 import { CEODashboard } from '@/pages/ceo/CEODashboard'
+import { CEOInstitutions } from '@/pages/ceo/CEOInstitutions'
+import { CEOUsers } from '@/pages/ceo/CEOUsers'
 import { LibrarianDashboard } from '@/pages/librarian/LibrarianDashboard'
 import { LibrarianBooks } from '@/pages/librarian/LibrarianBooks'
 import { LibrarianIssueBook } from '@/pages/librarian/LibrarianIssueBook'
@@ -523,6 +525,8 @@ function App() {
                       <Route path="/ceo/pricing" element={<CEORoute><CEOSubscription /></CEORoute>} />
                       <Route path="/ceo/subscription" element={<CEORoute><CEOSubscription /></CEORoute>} />
                       <Route path="/ceo/charges" element={<CEORoute><CEOCharges /></CEORoute>} />
+                      <Route path="/ceo/institutions" element={<CEORoute><CEOInstitutions /></CEORoute>} />
+                      <Route path="/ceo/users" element={<CEORoute><CEOUsers /></CEORoute>} />
 
                       {/* Librarian Routes */}
                       <Route path="/librarian/dashboard" element={<LibrarianRoute><LibrarianDashboard /></LibrarianRoute>} />

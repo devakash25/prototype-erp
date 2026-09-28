@@ -126,9 +126,17 @@ export function StudentResults() {
                 'bg-slate-800 rounded-xl border shadow-sm overflow-hidden transition-all duration-300',
                 isExpanded ? 'border-indigo-500/50 ring-1 ring-indigo-500/20' : 'border-slate-700 hover:border-slate-600'
               )}>
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => toggleExam(idx)}
-                  className="w-full p-5 text-left flex items-center gap-4 hover:bg-slate-700/50 transition-colors"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      toggleExam(idx)
+                    }
+                  }}
+                  className="w-full p-5 text-left flex items-center gap-4 hover:bg-slate-700/50 transition-colors cursor-pointer"
                 >
                   <div className="flex-shrink-0">
                     <div className={cn('w-14 h-14 rounded-xl flex items-center justify-center', bg)}>
@@ -164,7 +172,7 @@ export function StudentResults() {
                     </button>
                     {isExpanded ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
                   </div>
-                </button>
+                </div>
 
                 {isExpanded && result.subjects?.length > 0 && (
                   <div className="border-t border-slate-700 bg-slate-900/50">
