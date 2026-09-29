@@ -32,7 +32,7 @@ const router = Router();
 router.use(authenticate);
 
 // Read endpoints — all authenticated roles
-router.get('/monthly-overview', wrap(async (req: Request, res: Response) => {
+router.get('/monthly-overview', authorize('TEACHER', 'PRINCIPAL', 'CHIEF_HEAD'), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const courseId = req.query.courseId as string;
   const year = parseInt(req.query.year as string) || new Date().getFullYear();
@@ -41,27 +41,27 @@ router.get('/monthly-overview', wrap(async (req: Request, res: Response) => {
   res.json({ success: true, data });
 }));
 
-router.get('/courses', wrap(async (req: Request, res: Response) => {
+router.get('/courses', authorize('TEACHER', 'PRINCIPAL', 'CHIEF_HEAD'), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const data = await attendanceService.getCourses(user.userId);
   res.json({ success: true, data });
 }));
 
-router.get('/class-status', validate(attendanceQuerySchema), wrap(async (req: Request, res: Response) => {
+router.get('/class-status', authorize('TEACHER', 'PRINCIPAL', 'CHIEF_HEAD'), validate(attendanceQuerySchema), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const { courseId, date } = req.query as { courseId: string; date: string };
   const data = await attendanceService.getClassStatus(user.userId, courseId, date);
   res.json({ success: true, data });
 }));
 
-router.get('/class-students', wrap(async (req: Request, res: Response) => {
+router.get('/class-students', authorize('TEACHER', 'PRINCIPAL', 'CHIEF_HEAD'), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const courseId = req.query.courseId as string;
   const data = await attendanceService.getStudentsForCourse(user.userId, courseId);
   res.json({ success: true, data });
 }));
 
-router.get('/daily', validate(attendanceQuerySchema), wrap(async (req: Request, res: Response) => {
+router.get('/daily', authorize('TEACHER', 'PRINCIPAL', 'CHIEF_HEAD'), validate(attendanceQuerySchema), wrap(async (req: Request, res: Response) => {
   const user = (req as any).user;
   const { courseId, date } = req.query as { courseId: string; date: string };
   const session = (req.query.session as string)?.toUpperCase() as 'MORNING' | 'EVENING';

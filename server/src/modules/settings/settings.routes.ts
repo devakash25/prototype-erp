@@ -8,7 +8,7 @@ import { AppError } from '../../utils/errors';
 const router = Router();
 router.use(authenticate);
 
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', authorize('CHIEF_HEAD'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const institutionId = req.user?.institutionId;
     if (!institutionId) throw new AppError(400, 'Institution not found');
@@ -26,7 +26,7 @@ router.put('/', authorize('CHIEF_HEAD'), validate(updateSettingsSchema), async (
   } catch (error) { next(error); }
 });
 
-router.get('/:key', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:key', authorize('CHIEF_HEAD'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const institutionId = req.user?.institutionId;
     if (!institutionId) throw new AppError(400, 'Institution not found');

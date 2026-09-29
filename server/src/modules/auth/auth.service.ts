@@ -5,6 +5,9 @@ import { generateTokens, verifyRefreshToken } from '../../middleware/auth';
 import { safeSetex, safeDel } from '../../config/redis';
 import { logger } from '../../utils/logger';
 import { Prisma, UserRole } from '@prisma/client';
+import { extractEmailDomain, isPlatformDomain } from '../../config/tenant';
+import { getEnabledFeatures } from '../../middleware/featureGate';
+import { getSubscriptionInfo } from '../../middleware/subscription.middleware';
 
 interface CreateUserInput {
   email: string;
@@ -23,8 +26,34 @@ interface LoginInput {
 
 export class AuthService {
   async createUser(data: CreateUserInput) {
+    const email = data.email.trim().toLowerCase();
+    const domain = extractEmailDomain(email);
+    if (!domain) {
+      throw new AppError(400, 'Invalid email address');
+    }
+
+    if (data.institutionId) {
+      const inst = await prisma.institution.findUnique({
+        where: { id: data.institutionId },
+        select: { emailDomain: true },
+      });
+      if (!inst?.emailDomain) {
+        throw new AppError(400, 'Institution has no email domain configured');
+      }
+      if (domain !== inst.emailDomain) {
+        throw new AppError(400, `Email must use the institution domain (${inst.emailDomain})`);
+      }
+      // Public registration path — enforce read-only outside of authenticate.
+      const subscription = await getSubscriptionInfo(data.institutionId);
+      if (subscription.state === 'readonly') {
+        throw new AppError(402, 'Read-only mode: the subscription for this institution has expired. Renew the plan to restore write access.');
+      }
+    } else if (!isPlatformDomain(domain)) {
+      throw new AppError(400, 'Platform accounts must use the platform domain');
+    }
+
     const existingUser = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email },
     });
 
     if (existingUser) {
@@ -35,7 +64,7 @@ export class AuthService {
 
     const user = await prisma.user.create({
       data: {
-        email: data.email,
+        email,
         password: hashedPassword,
         role: data.role,
         firstName: data.firstName,
@@ -62,13 +91,62 @@ export class AuthService {
     return user;
   }
 
+  private static readonly TRANSIENT_DB_CODES = new Set(['P2024', 'P1001', 'P1002', 'P1008', 'P1017']);
+
   async login(data: LoginInput, ip?: string, userAgent?: string) {
+    try {
+      return await this.performLogin(data, ip, userAgent);
+    } catch (e: any) {
+      // Transient pooler/network blips: retry the login once (safe — reads are
+      // idempotent and a failed attempt creates no tokens)
+      if (e?.code && AuthService.TRANSIENT_DB_CODES.has(e.code)) {
+        logger.warn({ code: e.code }, 'Retrying login after transient database error');
+        await new Promise((r) => setTimeout(r, 400));
+        return this.performLogin(data, ip, userAgent);
+      }
+      throw e;
+    }
+  }
+
+  private async performLogin(data: LoginInput, ip?: string, userAgent?: string) {
+    const email = data.email.trim().toLowerCase();
+    const domain = extractEmailDomain(email);
+
+    if (!domain) {
+      throw new UnauthorizedError('Invalid email or password');
+    }
+
+    // Tenant resolution from email domain (before user lookup, so unknown
+    // domains get an actionable error instead of a generic credential error)
+    let institution: { id: string; type: string; isActive: boolean; name: string } | null = null;
+    if (!isPlatformDomain(domain)) {
+      institution = await prisma.institution.findFirst({
+        where: { emailDomain: domain },
+        select: { id: true, type: true, isActive: true, name: true },
+      });
+      if (!institution) {
+        throw new UnauthorizedError('No institution found for this email domain');
+      }
+      if (!institution.isActive) {
+        throw new UnauthorizedError('This institution is inactive. Contact your administrator.');
+      }
+    }
+
     const user = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email },
     });
 
     if (!user) {
       throw new UnauthorizedError('Invalid email or password');
+    }
+
+    // Tenant verification: the account must belong to the resolved tenant
+    if (isPlatformDomain(domain)) {
+      if (user.role !== 'CEO') {
+        throw new UnauthorizedError('Invalid email or password');
+      }
+    } else if (user.role === 'CEO' || user.institutionId !== institution!.id) {
+      throw new UnauthorizedError('Email domain does not match your account');
     }
 
     if (!user.isActive) {
@@ -85,12 +163,7 @@ export class AuthService {
       throw new UnauthorizedError('Your role is not yet active. Contact your administrator.');
     }
 
-    // Fetch institution type for non-CEO users
-    let institutionType: string | null = null;
-    if (user.institutionId) {
-      const inst = await prisma.institution.findUnique({ where: { id: user.institutionId }, select: { type: true } });
-      institutionType = inst?.type || null;
-    }
+    const institutionType = institution?.type || null;
 
     const payload = {
       userId: user.id,
@@ -139,6 +212,7 @@ export class AuthService {
         avatar: user.avatar,
         institutionId: user.institutionId,
         institutionType,
+        institutionName: institution?.name || null,
       },
       accessToken,
       refreshToken,
@@ -297,7 +371,7 @@ export class AuthService {
         institutionId: true,
         lastLoginAt: true,
         createdAt: true,
-        institution: { select: { type: true } },
+        institution: { select: { type: true, name: true } },
       },
     });
 
@@ -306,11 +380,15 @@ export class AuthService {
     }
 
     const { institution, ...userData } = user;
-    return { ...userData, institutionType: institution?.type || null };
+    return { ...userData, institutionType: institution?.type || null, institutionName: institution?.name || null };
   }
 
-  async getActiveFeatures(): Promise<string[]> {
+  async getActiveFeatures(institutionId?: string | null): Promise<string[]> {
     try {
+      if (institutionId) {
+        // Institution users see the modules of their assigned plan.
+        return await getEnabledFeatures(institutionId);
+      }
       const activePlan = await prisma.subscriptionPlan.findFirst({
         where: { isActive: true },
       });

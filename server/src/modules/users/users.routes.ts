@@ -21,9 +21,9 @@ router.post(
   userController.createAuthority
 );
 
-router.get('/', userController.getUsers);
-router.get('/stats', userController.getUserStats);
-router.get('/:id', userController.getUserById);
+router.get('/', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), userController.getUsers);
+router.get('/stats', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), userController.getUserStats);
+router.get('/:id', authorize('CHIEF_HEAD', 'PRINCIPAL', 'CEO'), userController.getUserById);
 
 router.put(
   '/:id',

@@ -6,7 +6,7 @@ import { searchQuerySchema } from './settings.validation';
 import { AppError } from '../../utils/errors';
 
 const router = Router();
-router.use(authenticate);
+router.use(authenticate, authorize('CHIEF_HEAD'));
 
 router.get('/', validate(searchQuerySchema), async (req: Request, res: Response, next: NextFunction) => {
   try {

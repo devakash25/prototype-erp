@@ -33,10 +33,10 @@ export function errorHandler(
   ) {
     (req as Request & { __dbRetry?: boolean }).__dbRetry = true;
     logger.warn({ code: err.code, path: req.path }, 'Retrying GET after transient database error');
-    const dispatch = (req.app as unknown as {
+    const app = req.app as unknown as {
       handle: (rq: Request, rs: Response, done: NextFunction) => void;
-    }).handle;
-    setTimeout(() => dispatch(req, res, next), 500);
+    };
+    setTimeout(() => app.handle(req, res, next), 500);
     return;
   }
 

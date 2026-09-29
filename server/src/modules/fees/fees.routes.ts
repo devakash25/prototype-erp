@@ -8,13 +8,13 @@ const router = Router();
 
 router.use(authenticate);
 
-router.get('/summary', async (req: Request, res: Response) => {
+router.get('/summary', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req: Request, res: Response) => {
   const user = (req as any).user;
   const data = await feeService.getSummary(user.institutionId);
   res.json({ success: true, data });
 });
 
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req: Request, res: Response) => {
   const user = (req as any).user;
   const { departmentId, isActive, search } = req.query;
   const data = await feeService.getAll(user.institutionId, {
@@ -25,7 +25,7 @@ router.get('/', async (req: Request, res: Response) => {
   res.json({ success: true, data });
 });
 
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', authorize('CHIEF_HEAD', 'PRINCIPAL', 'ACCOUNTANT', 'CEO'), async (req: Request, res: Response) => {
   const user = (req as any).user;
   const data = await feeService.getById(req.params.id as string, user.institutionId);
   res.json({ success: true, data });

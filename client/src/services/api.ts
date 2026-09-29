@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { useSubscriptionStore } from '@/store/subscriptionStore'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api/v1',
@@ -26,7 +25,6 @@ api.interceptors.response.use(
   (response) => {
     const state = response.headers['x-subscription-state']
     if (state) {
-      useSubscriptionStore.getState().setSubscription({
         state: state as any,
         graceEndsAt: response.headers['x-subscription-grace-ends'] || null,
         message: null,
@@ -38,7 +36,6 @@ api.interceptors.response.use(
     const originalRequest = error.config
 
     if (error.response?.status === 402) {
-      useSubscriptionStore.getState().setSubscription({
         state: 'readonly',
         message:
           error.response.data?.error?.message ||

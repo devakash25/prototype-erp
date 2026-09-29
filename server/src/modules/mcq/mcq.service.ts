@@ -1,4 +1,4 @@
-import { prisma } from '../../config/database';
+import { prisma, tenantTx } from '../../config/database';
 import { NotFoundError, ForbiddenError, ConflictError } from '../../utils/errors';
 
 class McqService {
@@ -14,7 +14,7 @@ class McqService {
 
     const totalMarks = data.questions.reduce((sum: number, q: any) => sum + (q.marks || 1), 0);
 
-    const test = await prisma.$transaction(async (tx) => {
+    const test = await tenantTx(async (tx) => {
       const t = await tx.mcqTest.create({
         data: {
           institutionId: user.institutionId!,
@@ -351,7 +351,7 @@ class McqService {
 
     const percentage = test.totalMarks > 0 ? Math.round((score / test.totalMarks) * 1000) / 10 : 0;
 
-    const submission = await prisma.$transaction(async (tx) => {
+    const submission = await tenantTx(async (tx) => {
       const sub = await tx.mcqSubmission.create({
         data: {
           testId,

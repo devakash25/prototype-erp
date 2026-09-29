@@ -25,10 +25,10 @@ async function main() {
 
   // Create Father user
   const fatherUser = await prisma.user.upsert({
-    where: { email: 'father@dev-erp.com' },
+    where: { email: 'father@deverp001.deverp.com' },
     update: {},
     create: {
-      email: 'father@dev-erp.com',
+      email: 'father@deverp001.deverp.com',
       password: hashedPassword,
       role: 'PARENT',
       firstName: 'Rajesh',
@@ -55,10 +55,10 @@ async function main() {
 
   // Create Mother user
   const motherUser = await prisma.user.upsert({
-    where: { email: 'mother@dev-erp.com' },
+    where: { email: 'mother@deverp001.deverp.com' },
     update: {},
     create: {
-      email: 'mother@dev-erp.com',
+      email: 'mother@deverp001.deverp.com',
       password: hashedPassword,
       role: 'PARENT',
       firstName: 'Sunita',
@@ -95,7 +95,7 @@ async function main() {
 
     const s1User = await prisma.user.create({
       data: {
-        email: 'student1@dev-erp.com',
+        email: 'student1@deverp001.deverp.com',
         password: await bcrypt.hash('Student@123', 10),
         role: 'STUDENT',
         firstName: 'Aarav',
@@ -126,7 +126,7 @@ async function main() {
 
     const s2User = await prisma.user.create({
       data: {
-        email: 'student2@dev-erp.com',
+        email: 'student2@deverp001.deverp.com',
         password: await bcrypt.hash('Student@123', 10),
         role: 'STUDENT',
         firstName: 'Ananya',
@@ -474,8 +474,8 @@ async function main() {
   console.log('\n========================================');
   console.log('Parent seeding completed!');
   console.log('========================================');
-  console.log('Father: father@dev-erp.com / Parent@123');
-  console.log('Mother: mother@dev-erp.com / Parent@123');
+  console.log('Father: father@deverp001.deverp.com / Parent@123');
+  console.log('Mother: mother@deverp001.deverp.com / Parent@123');
 }
 
 main()

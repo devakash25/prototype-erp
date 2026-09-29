@@ -12,6 +12,10 @@ services:
         value: production
       - key: DATABASE_URL
         sync: false
+      # Runtime DB role subject to Phase 5 RLS (erp_app). Leave unset to run
+      # as postgres with app-layer scoping only. Same URL as server/.env.
+      - key: APP_DATABASE_URL
+        sync: false
       - key: REDIS_URL
         sync: false
       - key: JWT_SECRET

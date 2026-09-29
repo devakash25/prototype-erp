@@ -411,16 +411,16 @@ CEO (Platform Owner)
 
 | Role | Email | Password |
 |------|-------|----------|
-| CEO | ceo@dev-erp.com | Admin@123 |
-| Chief Head | admin@dev-erp.com | Admin@123 |
-| Principal | principal@dev-erp.com | Teacher@123 |
-| Teacher | teacher1@dev-erp.com | Teacher@123 |
-| Student | student1@dev-erp.com | Student@123 |
-| Parent | father@dev-erp.com | Parent@123 |
-| Accountant | accountant@dev-erp.com | Teacher@123 |
-| Admission | admission@dev-erp.com | Teacher@123 |
-| Transport | transport@dev-erp.com | Teacher@123 |
-| Librarian | librarian@dev-erp.com | Teacher@123 |
+| CEO | ceo@deverp.com | Admin@123 |
+| Chief Head | admin@deverp001.deverp.com | Admin@123 |
+| Principal | principal@deverp001.deverp.com | Teacher@123 |
+| Teacher | teacher1@deverp001.deverp.com | Teacher@123 |
+| Student | student1@deverp001.deverp.com | Student@123 |
+| Parent | father@deverp001.deverp.com | Parent@123 |
+| Accountant | accountant@deverp001.deverp.com | Teacher@123 |
+| Admission | admission@deverp001.deverp.com | Teacher@123 |
+| Transport | transport@deverp001.deverp.com | Teacher@123 |
+| Librarian | librarian@deverp001.deverp.com | Teacher@123 |
 
 ---
 

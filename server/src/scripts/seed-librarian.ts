@@ -19,10 +19,10 @@ async function main() {
   const hashedPassword = await bcrypt.hash('Librarian@123', 10);
 
   const librarianUser = await prisma.user.upsert({
-    where: { email: 'librarian@dev-erp.com' },
+    where: { email: 'librarian@deverp001.deverp.com' },
     update: {},
     create: {
-      email: 'librarian@dev-erp.com',
+      email: 'librarian@deverp001.deverp.com',
       password: hashedPassword,
       role: 'LIBRARIAN',
       firstName: 'Priya',
@@ -349,7 +349,7 @@ async function main() {
     console.log('\n========================================');
     console.log('Librarian seeding completed!');
     console.log('========================================');
-    console.log(`Login: librarian@dev-erp.com / Librarian@123`);
+    console.log(`Login: librarian@deverp001.deverp.com / Librarian@123`);
     console.log(`Books created: ${booksCreated}`);
     return;
   }
@@ -460,7 +460,7 @@ async function main() {
   console.log('\n========================================');
   console.log('Librarian seeding completed!');
   console.log('========================================');
-  console.log(`Login: librarian@dev-erp.com / Librarian@123`);
+  console.log(`Login: librarian@deverp001.deverp.com / Librarian@123`);
   console.log(`Books created: ${booksCreated}`);
   console.log(`Issues created: ${issuesCreated}`);
   console.log(`Overdue fines: ₹50 + ₹100 = ₹150`);

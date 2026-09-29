@@ -6,17 +6,24 @@ import { logger } from '../utils/logger';
 const featureCache = new Map<string, { features: string[]; expiresAt: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-async function getEnabledFeatures(institutionId: string): Promise<string[]> {
+export async function getEnabledFeatures(institutionId: string): Promise<string[]> {
   const cached = featureCache.get(institutionId);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.features;
   }
 
   try {
-    const plan = await prisma.subscriptionPlan.findFirst({
-      where: { isActive: true },
+    // Feature set = modules of the institution's most recent assigned plan.
+    // Expiry/grace/read-only enforcement is handled separately (subscription
+    // lifecycle middleware), not by hiding features.
+    const subscription = await prisma.institutionSubscription.findFirst({
+      where: { institutionId },
+      orderBy: { createdAt: 'desc' },
+      include: { plan: { select: { modules: true } } },
     });
-    const features = plan ? ((plan.modules as string[]) || []) : [];
+    const features = subscription?.plan
+      ? ((subscription.plan.modules as string[]) || [])
+      : [];
     featureCache.set(institutionId, { features, expiresAt: Date.now() + CACHE_TTL });
     return features;
   } catch {

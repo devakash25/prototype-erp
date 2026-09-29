@@ -19,6 +19,8 @@ model Institution {
   id            String   @id @default(uuid())
   name          String
   code          String   @unique
+  subdomain     String?  @unique // e.g. "sbvm" → sbvm.deverp.com
+  emailDomain   String?  @unique // e.g. "sbvm.deverp.com" → users@sbvm.deverp.com
   type          InstitutionType @default(COLLEGE) // SCHOOL or COLLEGE
   address       String?
   city          String?

@@ -129,7 +129,7 @@ export class AuthController {
 
   async getFeatures(req: Request, res: Response, next: NextFunction) {
     try {
-      const features = await authService.getActiveFeatures();
+      const features = await authService.getActiveFeatures(req.user?.institutionId);
       res.json({
         success: true,
         data: { features },

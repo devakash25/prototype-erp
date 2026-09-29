@@ -58,6 +58,7 @@ app.use(helmet());
 app.use(cors({
   origin: env.NODE_ENV === 'production' ? env.APP_URL : '*',
   credentials: true,
+  exposedHeaders: ['X-Subscription-State', 'X-Subscription-Grace-Ends'],
 }));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));

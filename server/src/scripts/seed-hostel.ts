@@ -19,10 +19,10 @@ async function main() {
   const hashedPassword = await bcrypt.hash('Warden@123', 10);
 
   const wardenUser = await prisma.user.upsert({
-    where: { email: 'warden@dev-erp.com' },
+    where: { email: 'warden@deverp001.deverp.com' },
     update: {},
     create: {
-      email: 'warden@dev-erp.com',
+      email: 'warden@deverp001.deverp.com',
       password: hashedPassword,
       role: 'HOSTEL_WARDEN',
       firstName: 'Mohan',
@@ -467,7 +467,7 @@ async function main() {
   console.log('\n========================================');
   console.log('Hostel seeding completed!');
   console.log('========================================');
-  console.log(`Login: warden@dev-erp.com / Warden@123`);
+  console.log(`Login: warden@deverp001.deverp.com / Warden@123`);
   console.log(`Hostels created: ${createdHostels.length}`);
   console.log(`Rooms created: ${roomsCreated}`);
   console.log(`Complaints created: ${complaintsCreated}`);

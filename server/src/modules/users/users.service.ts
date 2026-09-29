@@ -1,8 +1,9 @@
 import { prisma } from '../../config/database';
 import bcrypt from 'bcrypt';
-import { NotFoundError, ConflictError, ForbiddenError } from '../../utils/errors';
+import { AppError, NotFoundError, ConflictError, ForbiddenError } from '../../utils/errors';
 import { logger } from '../../utils/logger';
 import { Prisma, UserRole } from '@prisma/client';
+import { extractEmailDomain } from '../../config/tenant';
 
 interface CreateAuthorityInput {
   email: string;
@@ -36,8 +37,30 @@ interface UserFilters {
 
 export class UserService {
   async createAuthority(data: CreateAuthorityInput, createdBy: string) {
+    const institutionId = createdBy;
+
+    const institution = await prisma.institution.findUnique({
+      where: { id: institutionId },
+      select: { type: true, emailDomain: true },
+    });
+    if (!institution) {
+      throw new NotFoundError('Institution not found');
+    }
+
+    const email = data.email.trim().toLowerCase();
+    const domain = extractEmailDomain(email);
+    if (!domain) {
+      throw new AppError(400, 'Invalid email address');
+    }
+    if (!institution.emailDomain) {
+      throw new AppError(400, 'Institution has no email domain configured');
+    }
+    if (domain !== institution.emailDomain) {
+      throw new AppError(400, `Email must use the institution domain (${institution.emailDomain})`);
+    }
+
     const existingUser = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email },
     });
 
     if (existingUser) {
@@ -45,26 +68,20 @@ export class UserService {
     }
 
     // Validate role against institution type
-    const creator = await prisma.user.findUnique({ where: { id: createdBy }, select: { institutionId: true } });
-    if (creator?.institutionId) {
-      const institution = await prisma.institution.findUnique({ where: { id: creator.institutionId }, select: { type: true } });
-      if (institution) {
-        const allowedRoles: Record<string, string[]> = {
-          SCHOOL: ['PRINCIPAL', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
-          COLLEGE: ['CHIEF_HEAD', 'PRINCIPAL', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
-        };
-        const allowed = allowedRoles[institution.type] || allowedRoles.COLLEGE;
-        if (!allowed.includes(data.role)) {
-          throw new ForbiddenError(`Role ${data.role} is not available for ${institution.type.toLowerCase()} institutions`);
-        }
-      }
+    const allowedRoles: Record<string, string[]> = {
+      SCHOOL: ['PRINCIPAL', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
+      COLLEGE: ['CHIEF_HEAD', 'PRINCIPAL', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'ADMISSION_COUNSELLOR', 'LIBRARIAN', 'HOSTEL_WARDEN', 'TRANSPORT_MANAGER', 'ADMINISTRATIVE_STAFF'],
+    };
+    const allowed = allowedRoles[institution.type] || allowedRoles.COLLEGE;
+    if (!allowed.includes(data.role)) {
+      throw new ForbiddenError(`Role ${data.role} is not available for ${institution.type.toLowerCase()} institutions`);
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
 
     const user = await prisma.user.create({
       data: {
-        email: data.email,
+        email,
         password: hashedPassword,
         role: data.role,
         firstName: data.firstName,

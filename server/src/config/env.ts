@@ -5,6 +5,7 @@ dotenv.config();
 
 const envSchema = z.object({
   DATABASE_URL: z.string(),
+  APP_DATABASE_URL: z.string().optional(),
   REDIS_URL: z.string().default('redis://localhost:6379'),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters for production security'),
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters for production security'),
