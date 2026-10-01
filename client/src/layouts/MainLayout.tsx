@@ -3,6 +3,7 @@ import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { useAuthStore } from '@/store/authStore'
 import { LoginSplash } from '@/components/LoginSplash'
+import { SubscriptionBanner } from '@/components/SubscriptionBanner'
 
 interface MainLayoutProps {
   children: ReactNode
